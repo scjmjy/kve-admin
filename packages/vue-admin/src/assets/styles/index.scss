@@ -1,0 +1,15 @@
+@use "element-plus.scss";
+@use "./effect-3d.scss";
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    margin: 0;
+}
+
+#app {
+  height: 100%;
+}

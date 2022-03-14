@@ -1,0 +1,15 @@
+{
+    "name": "koa-vue-starter",
+    "version": "1.0.0",
+    "main": "index.js",
+    "license": "MIT",
+    "private": true,
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "dev:admin": "yarn workspace vue-admin dev",
+        "dev:auth": "yarn workspace koa-auth dev",
+        "build:auth": "yarn workspace koa-auth build"
+    }
+}
