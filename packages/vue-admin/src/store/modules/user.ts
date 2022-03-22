@@ -1,8 +1,11 @@
-import { UserInfo } from "./../../api/model/user";
+import { ROUTE_PATH } from "./../../router/routes";
 import { defineStore } from "pinia";
+import { LoginCredential } from "@common/login";
+import { UserInfo } from "@/api/model/user";
+import { login } from "@/api/user";
 import { store } from "@/store";
 import { loadStorableObject } from "@/utils/storage";
-import { login } from "@/api/user";
+import { setTokenHeader } from "@/api/request";
 
 // interface AppState {
 //     darkMode?: ThemeEnum;
@@ -17,14 +20,25 @@ import { login } from "@/api/user";
 const storeDefinition = defineStore({
     id: "user",
     state: () => ({
-        token: "",
         userInfo: loadStorableObject(UserInfo.STORAGE_KEY, UserInfo),
     }),
     getters: {},
     actions: {
-        async login(userName: string, password: string) {
-            const res = await login(userName, password);
-            this.token = res.token;
+        async login(credential: LoginCredential) {
+            const res = await login(credential);
+            console.log("[login]", res);
+            const { token } = res.data;
+            setTokenHeader(token);
+            this.userInfo.token = token;
+            this.userInfo.userName = credential.userName;
+            this.userInfo.save();
+            return res;
+        },
+
+        async logout() {
+            setTokenHeader("");
+            this.userInfo.remove();
+            window.location.href = ROUTE_PATH.DASHBOARD;
         },
     },
 });

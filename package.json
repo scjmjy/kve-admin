@@ -8,8 +8,9 @@
         "packages/*"
     ],
     "scripts": {
-        "dev:admin": "yarn workspace vue-admin dev",
-        "dev:auth": "yarn workspace koa-auth dev",
-        "build:auth": "yarn workspace koa-auth build"
+        "dev:vue": "yarn workspace vue-admin dev",
+        "dev:koa": "yarn workspace koa-admin dev",
+        "build:koa": "yarn workspace koa-admin build",
+        "build:vue": "yarn workspace vue-admin build"
     }
 }

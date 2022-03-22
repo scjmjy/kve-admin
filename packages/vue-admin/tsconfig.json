@@ -13,7 +13,8 @@
         "types": ["vite/client", "element-plus/global"],
         "baseUrl": "./",
         "paths": {
-            "@/*": ["src/*"]
+            "@/*": ["src/*"],
+            "@common/*": ["../common/*"],
         }
     },
     "include": [

@@ -11,11 +11,18 @@ export default defineConfig(({ mode }) => {
         resolve: {
             alias: {
                 "@": path.resolve(cwd, "src"),
+                "@common": path.resolve(cwd, "../common"),
             },
         },
         server: {
             host: true,
             port: +env.VITE_SERVER_PORT,
+            proxy: {
+                "/api": {
+                    target: env.VITE_SERVER_PROXY,
+                    changeOrigin: true,
+                },
+            },
         },
         plugins: [vue()],
     };

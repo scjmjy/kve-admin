@@ -7,7 +7,7 @@ export function setupGuard(router: Router) {
     const userStore = useUserStore();
 
     router.beforeEach((to, from, next) => {
-        if (userStore.token) {
+        if (userStore.userInfo.token) {
             next();
         } else {
             const isWhite = WHITE_LIST.includes(to.path);

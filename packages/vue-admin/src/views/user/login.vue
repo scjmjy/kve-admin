@@ -10,6 +10,8 @@
                     <el-form-item prop="password">
                         <el-input
                             v-model="credential.password"
+                            type="password"
+                            show-password
                             placeholder="输入密码"
                             @keyup.enter="handleLogin"
                         ></el-input>
@@ -67,11 +69,13 @@ import DoubleFaceCardVue from "@/components/card/DoubleFaceCard.vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { useUserStore } from "@/store/modules/user";
 import { useRoute, useRouter } from "vue-router";
+import { LoginCredential } from "@common/login";
+import { ROUTE_PATH } from "@/router/routes";
 
 const router = useRouter();
 const route = useRoute();
 
-const credential = reactive({
+const credential = reactive<LoginCredential>({
     userName: "",
     password: "",
 });
@@ -117,15 +121,17 @@ function handleLogin() {
             console.info("[FORM] - OK");
             const userStore = useUserStore();
             userStore
-                .login(credential.userName, credential.password)
-                .then((res) => {
+                .login(credential)
+                .then(() => {
+                    // console.log('[login.vue]', res);
+
                     const redirect = route.query.redirect as string;
                     router.push({
-                        path: redirect || "/",
+                        path: redirect || ROUTE_PATH.DASHBOARD,
                     });
                 })
                 .catch((err) => {
-                    console.error(err);
+                    console.error("[login.vue]", err);
                 });
         })
         .catch((err) => {
@@ -145,6 +151,7 @@ function handleFind() {
 function rotateCard() {
     state.rotated = !state.rotated;
 }
+
 </script>
 
 <style scoped lang="scss">

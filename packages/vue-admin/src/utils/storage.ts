@@ -23,7 +23,7 @@ export function loadStorableObject<T>(storageKey: string, Cls: new () => T) {
     const newObject = new Cls();
     const savedObject = localStorage.getItem(storageKey);
     if (savedObject) {
-        Object.assign(newObject, savedObject);
+        Object.assign(newObject, JSON.parse(savedObject));
     }
     return newObject;
 }
