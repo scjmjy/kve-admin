@@ -1,0 +1,35 @@
+@use "./vars.scss" as *;
+
+.el-button:not(.el-button--text) {
+    box-shadow: $shodow-convex;
+    &:active {
+        transform: translateY(3px);
+        box-shadow: none;
+        // box-shadow: 0 3px 0px 1px rgb(0 0 0 / 40%);
+    }
+}
+
+.el-input__inner {
+    transition: all 0.3s ease;
+    box-shadow: $shodow-concave;
+    &:hover,
+    &:focus {
+        transform: translateY(-3px);
+        box-shadow: $shodow-convex;
+        // box-shadow: inset 0px 5px 5px 0px rgb(0 0 0 / 40%);
+    }
+}
+.el-form-item.is-error {
+    .el-input__inner {
+        box-shadow: $shodow-concave-danger;
+        &:hover,
+        &:focus {
+            box-shadow: $shodow-convex-danger;
+            // box-shadow: inset 0px 5px 5px 0px rgb(0 0 0 / 40%);
+        }
+    }
+}
+
+.el-message-box {
+    vertical-align: unset;
+}

@@ -1,0 +1,20 @@
+{
+    "name": "admin-common",
+    "version": "1.0.0",
+    "description": "Common Interfaces for frontend and backend",
+    "type": "module",
+    "module": "src/index.ts",
+    "main": "src/index.ts",
+    "license": "MIT",
+    "exports": {
+        ".": "./es/index.js",
+        "./*": "./es/*"
+    },
+    "scripts": {
+        "dev": "nodemon -w src -e ts --exec tsc",
+        "build": "tsc"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.15"
+    }
+}

@@ -1,5 +1,5 @@
 {
-    "name": "koa-vue-starter",
+    "name": "koa-vue-admin-starter",
     "version": "1.0.0",
     "main": "index.js",
     "license": "MIT",
@@ -8,9 +8,15 @@
         "packages/*"
     ],
     "scripts": {
-        "dev:vue": "yarn workspace vue-admin dev",
-        "dev:koa": "yarn workspace koa-admin dev",
-        "build:koa": "yarn workspace koa-admin build",
-        "build:vue": "yarn workspace vue-admin build"
+        "dev:common": "yarn workspace admin-common dev",
+        "dev:koa": "yarn workspace admin-koa dev",
+        "dev:vue": "yarn workspace admin-vue dev",
+        "dev:all": "concurrently -k yarn:dev:common yarn:dev:koa yarn:dev:vue",
+        "build:common": "yarn workspace admin-common build",
+        "build:koa": "yarn workspace admin-koa build",
+        "build:vue": "yarn workspace admin-vue build"
+    },
+    "devDependencies": {
+        "concurrently": "^7.0.0"
     }
 }
