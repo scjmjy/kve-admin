@@ -1,3 +1,4 @@
+import type koa from "koa";
 import Router from "koa-router";
 import { postLogin, getUserProfile } from "@/controllers/user";
 import { getHelloworld } from "@/controllers/helloworld";
@@ -9,7 +10,6 @@ export const router = new Router();
 
 router.post("/api/login", postLogin);
 router.get("/api/user/profile", koajwt, getUserProfile);
-
 router.get("/api/helloworld", getHelloworld);
 
 router.post("/api/upload", upload.single("avatar"), function (ctx) {
@@ -55,3 +55,7 @@ router.get("/api/download/:id", async function (ctx) {
         ctx.body = bucket.openDownloadStream(new ObjectId(id));
     }
 });
+
+export function setupRouter(app: koa) {
+    app.use(router.routes()).use(router.allowedMethods());
+}

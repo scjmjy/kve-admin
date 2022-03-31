@@ -28,7 +28,6 @@
                         </el-button>
                     </el-form-item>
                     <div class="login-findPassword">
-                        <el-button type="text" @click.prevent="getUserInfo">getUserInfo</el-button>
                         <el-button type="text" @click.prevent="rotateCard">找回密码</el-button>
                     </div>
                 </el-form>
@@ -73,7 +72,6 @@ import { useUserStore } from "@/store/modules/user";
 import { useRoute, useRouter } from "vue-router";
 import { LoginCredential } from "admin-common";
 import { ROUTE_PATH } from "@/router/routes";
-import { getUserProfile } from "@/api/user";
 
 const router = useRouter();
 const route = useRoute();
@@ -159,11 +157,6 @@ function rotateCard() {
     state.rotated = !state.rotated;
 }
 
-function getUserInfo() {
-    getUserProfile()
-        .then((res) => {})
-        .catch((err) => {});
-}
 </script>
 
 <style scoped lang="scss">

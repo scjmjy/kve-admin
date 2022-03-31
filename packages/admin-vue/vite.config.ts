@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
             },
         },
         server: {
+            https: true,
             host: true,
             port: +env.VITE_SERVER_PORT,
             proxy: {

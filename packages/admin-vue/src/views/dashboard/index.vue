@@ -1,8 +1,8 @@
 <template>
     <div class="dashboardIndex">
-        <div>
+        <!-- <div>
             <el-image src="/static/img/棒球.png"></el-image>
-        </div>
+        </div> -->
         <el-upload
             class="avatar-uploader"
             action="http://localhost:3000/api/upload"
@@ -15,7 +15,7 @@
             <img v-if="imageUrl" :src="imageUrl" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
         </el-upload>
-        <img src="/api/download/111" style="width: 200px; height: 200px;" />
+        <!-- <img src="/api/download/111" style="width: 200px; height: 200px;" /> -->
         <el-button type="primary" @click="getUserInfo">getUserProfile</el-button>
         <el-button type="primary" @click="logout">退出</el-button>
         <el-button type="primary" @click="logout">退出</el-button>
