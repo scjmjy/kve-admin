@@ -1,11 +1,12 @@
 @forward "element-plus/theme-chalk/src/common/var.scss" with (
     $colors: (
-        'primary': (
-          'base': #9da0a3,
+        "primary": (
+            "base": #9da0a3,
         ),
     )
 );
 
 @use "element-plus/theme-chalk/src/index.scss" as *;
+@use "element-plus/theme-chalk/src/display.scss" as *;
 
-@use "./element-custom.scss"
+@use "./element-custom.scss";

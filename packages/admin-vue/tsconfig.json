@@ -10,21 +10,12 @@
         "resolveJsonModule": true,
         "esModuleInterop": true,
         "lib": ["esnext", "dom"],
-        "types": ["vite/client", "element-plus/global"],
+        "types": ["../../node_modules/vite/client", "../../node_modules/element-plus/global"],
         "baseUrl": "./",
         "paths": {
-            "@/*": ["src/*"],
+            "@/*": ["src/*"]
         }
     },
-    "include": [
-        "../common/**/*.ts",
-        "src/**/*.ts",
-        "src/**/*.tsx",
-        "src/**/*.vue",
-        "build/**/*.ts",
-        "types/**/*.d.ts",
-        "vite.config.ts",
-        "../../node_modules/element-plus/global.d.ts"
-    ]
+    "include": ["types/**/*.d.ts", "src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "build/**/*.ts", "vite.config.ts"]
     // "references": [{ "path": "./tsconfig.node.json" }]
 }

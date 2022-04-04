@@ -1,9 +1,9 @@
 import { defineConfig, loadEnv } from "vite";
-import vue from "@vitejs/plugin-vue";
 import path from "path";
+import createVitePlugins from "./vite-plugins";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
     const cwd = process.cwd();
     const env = loadEnv(mode, cwd) as unknown as AdminDotEnv;
     // console.log("[VITE-CONFIG]", mode, cwd, env);
@@ -28,6 +28,13 @@ export default defineConfig(({ mode }) => {
                 },
             },
         },
-        plugins: [vue()],
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    additionalData: "",
+                },
+            },
+        },
+        plugins: createVitePlugins(env, command === "build"),
     };
 });

@@ -33,3 +33,32 @@
 .el-message-box {
     vertical-align: unset;
 }
+
+// .el-menu--collapse .el-sub-menu > .el-sub-menu__title > span {
+//     height: 0;
+//     width: 0;
+//     overflow: hidden;
+//     visibility: hidden;
+//     display: inline-block;
+// }
+
+// .el-sub-menu__title > span {
+//     overflow: hidden;
+//     white-space: nowrap;
+//     text-overflow: ellipsis;
+// }
+.el-menu--collapse {
+    .el-sub-menu__title > span {
+        height: 0;
+        width: 0;
+        overflow: hidden;
+        visibility: hidden;
+        display: inline-block;
+    }
+    .el-sub-menu__icon-arrow {
+        display: none;
+    }
+    .el-menu-item-group__title {
+        display: none;
+    }
+}

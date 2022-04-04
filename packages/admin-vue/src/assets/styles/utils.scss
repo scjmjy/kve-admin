@@ -1,0 +1,15 @@
+.el-icon {
+    &__ani {
+        transition: transform 0.3s ease;
+    }
+    &.is-up {
+        transform: rotateZ(180deg);
+    }
+}
+
+.m-flex {
+    display: flex;
+    &.is-vCenter {
+        align-items: center;
+    }
+}

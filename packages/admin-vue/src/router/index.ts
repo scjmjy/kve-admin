@@ -1,16 +1,19 @@
-import { routes } from "./routes";
 import type { App } from "vue";
-import { RouteRecordRaw, createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
+import { flatRoutes } from "./routes";
 import { setupGuard } from "./guard";
 
 export const router = createRouter({
     history: createWebHashHistory(import.meta.env.VITE_PUBLIC_PATH),
-    routes: routes,
-    strict: true,
+    routes: flatRoutes,
+    strict: false,
     scrollBehavior: () => ({ left: 0, top: 0 }),
 });
 
-setupGuard(router);
+export function setupRouter(app: App) {
+    setupGuard(router);
+    app.use(router);
+}
 
 // // reset router
 // export function resetRouter() {

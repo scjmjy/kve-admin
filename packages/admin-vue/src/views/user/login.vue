@@ -22,7 +22,6 @@
                             size="large"
                             type="primary"
                             style="width: 100%"
-                            :disabled="state.loggedIn"
                             @click.prevent="handleLogin"
                             >登 录
                         </el-button>
@@ -88,7 +87,6 @@ const find = reactive({
 const state = reactive({
     rotated: false,
     loggingIn: false,
-    loggedIn: false,
 });
 
 const credentialRules: FormRules = {
@@ -124,19 +122,14 @@ function handleLogin() {
             userStore
                 .login(credential)
                 .then(() => {
-                    state.loggedIn = true;
                     const redirect = route.query.redirect as string;
                     router.push({
                         path: redirect || ROUTE_PATH.DASHBOARD,
                     });
                 })
                 .catch((err) => {
-                    console.error("[login.vue]", err);
-                })
-                .finally(() => {
-                    setTimeout(() => {
-                        state.loggingIn = false;
-                    }, 300);
+                    // console.error("[login.vue]", err);
+                    state.loggingIn = false;
                 });
         })
         .catch((err) => {
@@ -156,7 +149,6 @@ function handleFind() {
 function rotateCard() {
     state.rotated = !state.rotated;
 }
-
 </script>
 
 <style scoped lang="scss">
