@@ -4,7 +4,7 @@
             <template #front>
                 <el-form ref="formCrt" class="login-form login-form_login" :model="credential" :rules="credentialRules">
                     <h3 class="login-title text-3d">iFlyIT 后台管理系统</h3>
-                    <el-form-item prop="userName">
+                    <el-form-item prop="username">
                         <el-input v-model="credential.username" placeholder="输入用户名"></el-input>
                     </el-form-item>
                     <el-form-item prop="password">
@@ -35,7 +35,7 @@
                 <el-form ref="formFind" class="login-form login-form_find" :model="find" :rules="findRules">
                     <h3 class="login-title text-3d">找回密码</h3>
                     <el-form-item prop="userName">
-                        <el-input v-model="find.userName" placeholder="输入用户名"></el-input>
+                        <el-input v-model="find.username" placeholder="输入用户名"></el-input>
                     </el-form-item>
                     <el-form-item prop="phoneNumber">
                         <el-input
@@ -80,7 +80,7 @@ const credential = reactive<LoginCredential>({
     password: "",
 });
 const find = reactive({
-    userName: "",
+    username: "",
     phoneNumber: "",
 });
 
@@ -101,7 +101,7 @@ const credentialRules: FormRules = {
 };
 
 const findRules: FormRules = {
-    userName: {
+    username: {
         required: true,
         message: "用户名不能为空",
     },
@@ -161,7 +161,7 @@ function rotateCard() {
 
     &-title {
         font-size: 1.5rem;
-        color: var(--el-color-primary-light-7);
+        color: var(--el-text-color-primary);
     }
 
     &-card {

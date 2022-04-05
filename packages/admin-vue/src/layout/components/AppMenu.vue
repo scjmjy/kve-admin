@@ -50,8 +50,6 @@ function onMouseLeave() {
 }
 
 function onClickOutside() {
-    console.log(arguments);
-
     if (systemStore.menu.mode === "OFFSCREEN") {
         systemStore.menu.collapse = true;
     }

@@ -14,6 +14,7 @@ export type ScreenMode = keyof typeof ElementPlusBreackpoints | "xs";
 export interface ScreenState {
     mode: ScreenMode;
     footer: boolean;
+    tags: boolean;
 }
 
 const breakpoints = useBreakpoints();
@@ -43,7 +44,8 @@ const storeDefinition = defineStore({
             theme: "default",
             screen: {
                 mode: modes.screenMode,
-                footer: false,
+                footer: true,
+                tags: true,
             } as ScreenState,
             menu: {
                 mode: modes.menuMode,
