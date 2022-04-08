@@ -1,13 +1,43 @@
 .text-3d {
-    text-shadow: 1px 2px 0 var(--el-text-color-secondary), 2px 3px 0 var(--el-text-color-secondary), 2px 4px 0px var(--el-text-color-secondary);
+    text-shadow: 1px 2px 0 var(--el-text-color-secondary), 2px 3px 0 var(--el-text-color-secondary),
+        2px 4px 0px var(--el-text-color-secondary);
 }
 
 .transition-3d-enter-active,
 .transition-3d-leave-active {
     transition: transform 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+    transform-origin: center 100px;
 }
 
 .transition-3d-enter-from,
 .transition-3d-leave-to {
     transform: scale3d(0, 0, 0) rotateX(120deg);
+    transform-origin: center 100px;
+}
+
+/* fade */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.28s;
+}
+
+.fade-enter,
+.fade-leave-active {
+    opacity: 0;
+}
+
+/* fade-transform */
+.fade-transform-leave-active,
+.fade-transform-enter-active {
+    transition: all 0.5s;
+}
+
+.fade-transform-enter {
+    opacity: 0;
+    transform: translateX(-30px);
+}
+
+.fade-transform-leave-to {
+    opacity: 0;
+    transform: translateX(30px);
 }

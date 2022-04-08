@@ -1,19 +1,27 @@
 <template>
     <div>
-        <p>PageName: Page 2</p>
-        <p>Count: {{ count }}</p>
+        <p>RouteName: Page2</p>
+        <p>此页面进入次数: {{ count }}</p>
+        <div>
+            <div>演示功能:</div>
+            <ul>
+                <li>使用 route.meta.cacheable=false 来禁用缓存</li>
+                <li>“此页面进入次数”始终是 1</li>
+            </ul>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts" name="Page2">
-import { ref } from "vue";
-import { onBeforeRouteLeave } from "vue-router";
+import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 
-const count = ref(1);
+const count = ref(0);
 
-onBeforeRouteLeave((to, from, next) => {
+onBeforeMount(() => {
     count.value++;
-    next();
+});
+onBeforeUnmount(() => {
+    count.value--;
 });
 </script>
 

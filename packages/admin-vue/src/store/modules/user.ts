@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { LoginCredential } from "admin-common";
-import { ROUTE_PATH } from "@/router/routes";
+import { ROUTE_PATH } from "@/router/consts";
 import { setTokenHeader } from "@/api/request";
 import { login } from "@/api/user";
 import { UserProfile } from "@/api/model/user";

@@ -1,21 +1,40 @@
 import { RouteRecordRaw } from "vue-router";
 import DefaultLayout from "@/layout/DefaultLayout.vue";
-import { flattenRoutes, normalizeRoutes } from "./utils";
+import BlankPage from "@/views/internal/blank.vue";
+import { FakeLayout, flattenRoutes, makeFullpathRoutes } from "./utils";
+import { ROUTE_PATH } from "./consts";
 
-const PUBLIC_PATH = import.meta.env.VITE_PUBLIC_PATH;
-export const ROUTE_PATH = {
-    DASHBOARD: PUBLIC_PATH,
-    LOGIN: PUBLIC_PATH + "login",
-};
-
+/**
+ * 注意事项：
+ *  1. route.name 的重要性
+ *      - 对于 route.meta.cacheable=true (即需要 keep-alive )的页面，务必保证 route.name 和 \<script setup name="XXX"\>中的 name 一致，且全局唯一
+ *      - 外部链接的 route.name 不能为空，且全局唯一
+ *  2. route.path 不要以 ROUTE_PATH.REDIRECT 为开头，因为不会出现在 TabList 中
+ */
 export const routes: RouteRecordRaw[] = [
+    {
+        path: ROUTE_PATH.REDIRECT,
+        component: DefaultLayout,
+        meta: {
+            visible: false,
+        },
+        children: [
+            {
+                path: ":path(.*)",
+                component: () => import("@/views/internal/redirect.vue"),
+                meta: {
+                    cacheable: false,
+                },
+            },
+        ],
+    },
     {
         path: ROUTE_PATH.LOGIN,
         name: "Login",
         component: () => import("@/views/user/login.vue"),
         meta: {
             title: "登录",
-            hidden: true,
+            visible: false,
         },
     },
     {
@@ -49,13 +68,24 @@ export const routes: RouteRecordRaw[] = [
             {
                 name: "Page1",
                 path: "page1",
-                meta: { title: "页面1" },
+                meta: { title: "测试meta.pathKey" },
                 component: () => import("@/views/pages/page1.vue"),
+            },
+            {
+                name: "Page1Detail",
+                path: "detail1",
+                meta: {
+                    title: "页面1的详情",
+                    visible: false,
+                    forName: "Page1",
+                    pathKey: "fullPath",
+                },
+                component: () => import("@/views/pages/detail1.vue"),
             },
             {
                 name: "Page2",
                 path: "page2",
-                meta: { title: "页面2" },
+                meta: { title: "测试meta.cacheable", cacheable: false },
                 component: () => import("@/views/pages/page2.vue"),
             },
             {
@@ -87,8 +117,14 @@ export const routes: RouteRecordRaw[] = [
                             {
                                 name: "ThirdNestedPage1",
                                 path: "page1",
-                                meta: { title: "第三层嵌套页面1" },
+                                meta: { title: "测试 route.params" },
                                 component: () => import("@/views/pages/nested/third-nested/page1.vue"),
+                            },
+                            {
+                                name: "ThirdNestedPage1Detail",
+                                path: ":id",
+                                meta: { title: "第三层嵌套页面1的详情", visible: false, forName: "ThirdNestedPage1" },
+                                component: () => import("@/views/pages/nested/third-nested/detail1.vue"),
                             },
                             {
                                 name: "ThirdNestedPage2",
@@ -125,8 +161,72 @@ export const routes: RouteRecordRaw[] = [
             },
         ],
     },
+    {
+        path: "/external",
+        component: DefaultLayout,
+        meta: {
+            title: "外部链接",
+        },
+        children: [
+            {
+                path: "https://www.baidu.com",
+                component: FakeLayout,
+                meta: {
+                    title: "百度",
+                },
+            },
+            {
+                path: "https://www.bing.com",
+                component: FakeLayout,
+                meta: {
+                    title: "Bing",
+                },
+            },
+            {
+                path: "bing",
+                name: "Bing",
+                component: BlankPage,
+                meta: {
+                    title: "Bing(内嵌)",
+                    iframe: "https://www.bing.com",
+                    cacheable: false,
+                },
+            },
+            {
+                path: "vue3",
+                name: "Vue3",
+                component: BlankPage,
+                meta: {
+                    title: "Vue3(内嵌)",
+                    iframe: "https://v3.cn.vuejs.org",
+                    cacheable: false,
+                },
+            },
+        ],
+    },
+    {
+        path: "/:path*",
+        component: () => import("@/views/internal/error/404.vue"),
+        meta: {
+            visible: false,
+        },
+    },
 ];
 
-export const normalizedRoutes = normalizeRoutes(routes);
+export const fullpathRoutes = makeFullpathRoutes(routes);
 
 export const flatRoutes = flattenRoutes(routes);
+
+export function findRouteFullpath(name: string, routes = fullpathRoutes): string {
+    for (const route of routes) {
+        if (route.name === name) {
+            return route.path;
+        } else if (route.children && route.children.length) {
+            const found = findRouteFullpath(name, route.children);
+            if (found) {
+                return found;
+            }
+        }
+    }
+    return "";
+}

@@ -1,8 +1,11 @@
-import { ElementPlusBreackpoints, useBreakpoints } from "@/composables/useBreakpoints";
-import { defineStore } from "pinia";
-import { store } from "@/store";
-import { normalizedRoutes } from "@/router/routes";
 import { watch } from "vue";
+import { RouteLocationNormalizedLoaded, Router } from "vue-router";
+import { defineStore } from "pinia";
+import { ElementPlusBreackpoints, useBreakpoints } from "@/composables/useBreakpoints";
+import { store } from "@/store";
+import { fullpathRoutes } from "@/router/routes";
+import { RouteRecordMenuItem } from "@/router/utils";
+import { ROUTE_PATH } from "@/router/consts";
 
 export type MenuMode = "NORMAL" | "OFFSCREEN";
 export interface MenuState {
@@ -17,11 +20,18 @@ export interface ScreenState {
     tags: boolean;
 }
 
-const breakpoints = useBreakpoints();
+export type RouteRecordVisited = Pick<RouteLocationNormalizedLoaded, "fullPath" | "path" | "query" | "meta" | "name">;
+
+export interface RouterState {
+    fullpathRoutes: RouteRecordMenuItem[];
+    cachedTabs: string[];
+    visitedRoutes: RouteRecordVisited[];
+}
 
 const storeDefinition = defineStore({
     id: "system",
     state: () => {
+        const breakpoints = useBreakpoints();
         const modes = toggleScreenAndMenuMode([
             breakpoints.sm.value,
             breakpoints.md.value,
@@ -52,11 +62,84 @@ const storeDefinition = defineStore({
                 collapse: modes.menuCollpase,
             } as MenuState,
             router: {
-                allRoutes: normalizedRoutes,
-            },
+                fullpathRoutes: fullpathRoutes,
+                cachedTabs: [],
+                visitedRoutes: [],
+            } as RouterState,
         };
     },
-    actions: {},
+    actions: {
+        onRouteChanged(route: RouteLocationNormalizedLoaded) {
+            const { name, fullPath, path, meta } = route;
+            if (
+                meta.cacheable !== false &&
+                name &&
+                typeof name === "string" &&
+                !this.router.cachedTabs.some((tab) => tab === name)
+            ) {
+                this.router.cachedTabs.push(name);
+            }
+            if (
+                !path.startsWith(ROUTE_PATH.REDIRECT) &&
+                !this.router.visitedRoutes.some((visitedRoute) => {
+                    if (route.meta.pathKey === "fullPath") {
+                        return visitedRoute.fullPath === fullPath;
+                    }
+                    return visitedRoute.path === path;
+                })
+            ) {
+                const { fullPath, path, query, meta, name } = route;
+                this.router.visitedRoutes.push({
+                    fullPath,
+                    path,
+                    query,
+                    meta,
+                    name,
+                });
+            }
+        },
+        closeTab(route: RouteRecordVisited, isExactActive: boolean, router: Router) {
+            const { name, fullPath, path } = route;
+            const { cachedTabs, visitedRoutes } = this.router;
+            const foundIndex = visitedRoutes.findIndex((visitedRoute) => {
+                if (route.meta.pathKey === "fullPath") {
+                    return visitedRoute.fullPath === fullPath;
+                }
+                return visitedRoute.path === path;
+            });
+            if (foundIndex !== -1) {
+                visitedRoutes.splice(foundIndex, 1);
+
+                if (
+                    name &&
+                    typeof name === "string" &&
+                    // 如果 visitedRoutes 中还有名为 ${name} 的路由，就不从 cachedTabs 中删除
+                    !visitedRoutes.find((visitedRoute) => visitedRoute.name === name)
+                ) {
+                    const foundIndex = cachedTabs.findIndex((tab) => tab === name);
+                    if (foundIndex !== -1) {
+                        cachedTabs.splice(foundIndex, 1);
+                        cachedTabs;
+                    }
+                }
+                if (!isExactActive) {
+                    // 删除的不是当前激活的路由
+                    return;
+                }
+                // 删除的是当前激活的路由，所以需要激活另外一个路由
+                const { length } = visitedRoutes;
+                if (length) {
+                    router.push(visitedRoutes[length - 1].fullPath);
+                } else if (route.path === ROUTE_PATH.DASHBOARD) {
+                    router.replace({
+                        path: "/redirect/" + ROUTE_PATH.DASHBOARD,
+                    });
+                } else {
+                    router.push(ROUTE_PATH.DASHBOARD);
+                }
+            }
+        },
+    },
 });
 
 export function useSystemStore() {

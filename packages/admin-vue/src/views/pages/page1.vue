@@ -1,20 +1,49 @@
 <template>
     <div>
-        <p>PageName: Page 1</p>
-        <p>Count: {{ count }}</p>
+        <p>RouteName: Page1</p>
+        <p>此页面进入次数: {{ count }}</p>
+        <div>
+            <div>演示功能:</div>
+            <ol>
+                <li>使用 route.meta.pathKey=fullpath 来缓存多个详情页</li>
+            </ol>
+        </div>
+        <p>
+            <el-input
+                v-model="queryValue"
+                placeholder="输入 query 值"
+                style="width: 120px; margin-right: 10px"
+            ></el-input>
+            <el-button type="primary" @click="gotoDetail">前往详情页</el-button>
+        </p>
     </div>
 </template>
 
 <script setup lang="ts" name="Page1">
-import { ref } from "vue";
-import { onBeforeRouteLeave } from "vue-router";
+import { onActivated, ref } from "vue";
+import { useRouter } from "vue-router";
+import { findRouteFullpath } from "@/router/routes";
 
-const count = ref(1);
+const router = useRouter();
 
-onBeforeRouteLeave((to, from, next) => {
+const count = ref(0);
+const queryValue = ref("");
+
+onActivated(() => {
     count.value++;
-    next();
 });
+
+function gotoDetail() {
+    const path = findRouteFullpath("Page1Detail");
+    if (path) {
+        router.push({
+            path,
+            query: {
+                queryKey: queryValue.value,
+            },
+        });
+    }
+}
 </script>
 
 <style scoped></style>

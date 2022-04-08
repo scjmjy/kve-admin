@@ -3,7 +3,7 @@ import { GridFsStorage } from "multer-gridfs-storage";
 import { GridFSBucket } from "mongodb";
 
 const storage = new GridFsStorage({
-    url: "mongodb://entryform:33o93o6@localhost:27017/gridfs",
+    url: "mongodb://gridfs:33o93o6@localhost:27017/gridfs",
     file(req, file) {
         // console.log("[avatar]", file);
         return file.originalname;

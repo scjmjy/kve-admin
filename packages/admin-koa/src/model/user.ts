@@ -10,11 +10,12 @@ interface IUserModel extends mongoose.Model<IUserDoc> {
     getStatistics(): string;
 }
 
-const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>({
+export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>({
     username: { type: String, required: true },
     password: { type: String, required: true, bcrypt: true },
     realname: { type: String },
     gender: { type: String },
+    depts: [{ type: mongoose.Types.ObjectId, ref: "Department" }],
 });
 
 UserSchema.plugin(BcryptPlugin);

@@ -1,31 +1,36 @@
 @use "./vars.scss" as *;
 
-.el-button:not(.el-button--text) {
-    box-shadow: $shodow-convex;
-    &:active {
-        transform: translateY(3px);
-        box-shadow: none;
-        // box-shadow: 0 3px 0px 1px rgb(0 0 0 / 40%);
-    }
-}
-
-.el-input__inner {
-    transition: all 0.3s ease;
-    box-shadow: $shodow-concave;
-    &:hover,
-    &:focus {
-        transform: translateY(-3px);
+.is-3d {
+    .el-button:not(.el-button--text) {
         box-shadow: $shodow-convex;
-        // box-shadow: inset 0px 5px 5px 0px rgb(0 0 0 / 40%);
+        &:active {
+            transform: translateY(3px);
+            box-shadow: none;
+            // box-shadow: 0 3px 0px 1px rgb(0 0 0 / 40%);
+        }
     }
 }
-.el-form-item.is-error {
+.is-3d {
     .el-input__inner {
-        box-shadow: $shodow-concave-danger;
+        transition: all 0.3s ease;
+        box-shadow: $shodow-concave;
         &:hover,
         &:focus {
-            box-shadow: $shodow-convex-danger;
+            transform: translateY(-3px);
+            box-shadow: $shodow-convex;
             // box-shadow: inset 0px 5px 5px 0px rgb(0 0 0 / 40%);
+        }
+    }
+}
+.is-3d.el-form {
+    .el-form-item.is-error {
+        .el-input__inner {
+            box-shadow: $shodow-concave-danger;
+            &:hover,
+            &:focus {
+                box-shadow: $shodow-convex-danger;
+                // box-shadow: inset 0px 5px 5px 0px rgb(0 0 0 / 40%);
+            }
         }
     }
 }
@@ -34,19 +39,14 @@
     vertical-align: unset;
 }
 
-// .el-menu--collapse .el-sub-menu > .el-sub-menu__title > span {
-//     height: 0;
-//     width: 0;
-//     overflow: hidden;
-//     visibility: hidden;
-//     display: inline-block;
-// }
+.el-scrollbar {
+    &.is-vertical {
+        .el-scrollbar__view {
+            overflow-x: hidden;
+        }
+    }
+}
 
-// .el-sub-menu__title > span {
-//     overflow: hidden;
-//     white-space: nowrap;
-//     text-overflow: ellipsis;
-// }
 .el-menu--collapse {
     .el-sub-menu__title > span {
         height: 0;
@@ -61,4 +61,9 @@
     .el-menu-item-group__title {
         display: none;
     }
+}
+
+.el-icon--svg {
+    width: 1.2em;
+    height: 1.2em;
 }

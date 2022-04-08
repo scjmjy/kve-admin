@@ -2,8 +2,13 @@
     <div class="login">
         <DoubleFaceCardVue class="login-card" v-model="state.rotated">
             <template #front>
-                <el-form ref="formCrt" class="login-form login-form_login" :model="credential" :rules="credentialRules">
-                    <h3 class="login-title text-3d">iFlyIT 后台管理系统</h3>
+                <el-form
+                    ref="formCrt"
+                    class="is-3d login-form login-form_login"
+                    :model="credential"
+                    :rules="credentialRules"
+                >
+                    <h3 class="login-title text-3d">KVE 后台管理系统</h3>
                     <el-form-item prop="username">
                         <el-input v-model="credential.username" placeholder="输入用户名"></el-input>
                     </el-form-item>
@@ -32,7 +37,7 @@
                 </el-form>
             </template>
             <template #back>
-                <el-form ref="formFind" class="login-form login-form_find" :model="find" :rules="findRules">
+                <el-form ref="formFind" class="is-3d login-form login-form_find" :model="find" :rules="findRules">
                     <h3 class="login-title text-3d">找回密码</h3>
                     <el-form-item prop="userName">
                         <el-input v-model="find.username" placeholder="输入用户名"></el-input>
@@ -55,7 +60,7 @@
                         </el-button>
                     </el-form-item>
                     <div class="login-back2loign">
-                        <el-button type="text" @click.prevent="rotateCard">返回登录</el-button>
+                        <el-button class="is-3d" type="text" @click.prevent="rotateCard">返回登录</el-button>
                     </div>
                 </el-form>
             </template>
@@ -70,7 +75,7 @@ import type { FormInstance, FormRules } from "element-plus";
 import { useUserStore } from "@/store/modules/user";
 import { useRoute, useRouter } from "vue-router";
 import { LoginCredential } from "admin-common";
-import { ROUTE_PATH } from "@/router/routes";
+import { ROUTE_PATH } from "@/router/consts";
 
 const router = useRouter();
 const route = useRoute();

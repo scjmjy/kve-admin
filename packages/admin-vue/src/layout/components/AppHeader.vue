@@ -1,6 +1,7 @@
 <template>
     <Hamburger v-model="systemStore.menu.collapse" id="appHeader-hamburger" @change="onHamburgerChange"></Hamburger>
-    <span class="appHeader-title">方舟后台管理系统</span>
+    <img class="appHeader-logo" src="@/assets/imgs/logo.png" />
+    <span class="appHeader-title">KVE 后台管理系统</span>
     <el-popover
         placement="bottom-end"
         :width="300"
@@ -14,13 +15,7 @@
                 <el-icon :class="{ 'is-up': state.isProfileCardShow, 'el-icon__ani': true }"><arrow-down /></el-icon>
             </div>
         </template>
-        <el-card class="appHeader-profileCard" shadow="never">
-            <template #header>
-                <span>User Name</span>
-                <el-button class="button" type="primary" :loading="state.loggingOut" @click="logout">退出</el-button>
-            </template>
-            <div v-for="o in 4" :key="o" class="text item">{{ "List item " + o }}</div>
-        </el-card>
+        <ProfileCard></ProfileCard>
     </el-popover>
 </template>
 
@@ -28,21 +23,13 @@
 import { reactive } from "vue";
 import Hamburger from "@/components/Hamburger.vue";
 import { useSystemStore } from "@/store/modules/system";
-import { useUserStore } from "@/store/modules/user";
+import ProfileCard from "./ProfileCard.vue";
 
 const systemStore = useSystemStore();
 
-const userStore = useUserStore();
-
 const state = reactive({
-    loggingOut: false,
     isProfileCardShow: false,
 });
-
-function logout() {
-    state.loggingOut = true;
-    userStore.logout().finally(() => {});
-}
 
 function onHamburgerChange(collapse: boolean) {
     systemStore.menu.collapse = collapse;
@@ -54,7 +41,11 @@ function toggleProfileCardShow() {
 
 <style scoped lang="scss">
 .appHeader {
+    &-logo {
+        height: 100%;
+    }
     &-title {
+        margin-left: 10px;
         margin-right: auto;
         font-weight: bold;
         font-size: 1.4em;
@@ -62,18 +53,6 @@ function toggleProfileCardShow() {
     }
     &-avatar {
         margin-right: 4px;
-    }
-}
-</style>
-
-<style lang="scss">
-.appHeader {
-    &-profileCard {
-        .el-card__header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
     }
 }
 </style>

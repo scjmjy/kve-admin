@@ -10,3 +10,7 @@ interface ImportMetaEnv extends AdminDotEnv {}
 interface ImportMeta {
     readonly env: ImportMetaEnv;
 }
+
+declare type Fn<T = any, R = any> = (...arg: T[]) => R;
+
+declare type NoopFn = () => void;

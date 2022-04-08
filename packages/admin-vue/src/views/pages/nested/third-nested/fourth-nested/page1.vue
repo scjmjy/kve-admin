@@ -1,19 +1,17 @@
 <template>
     <div>
-        <p>PageName: FourthNestedPage1</p>
-        <p>Count: {{ count }}</p>
+        <p>RouteName: FourthNestedPage1</p>
+        <p>此页面进入次数: {{ count }}</p>
     </div>
 </template>
 
 <script setup lang="ts" name="FourthNestedPage1">
-import { ref } from "vue";
-import { onBeforeRouteLeave } from "vue-router";
+import { onActivated, ref } from "vue";
 
-const count = ref(1);
+const count = ref(0);
 
-onBeforeRouteLeave((to, from, next) => {
+onActivated(() => {
     count.value++;
-    next();
 });
 </script>
 

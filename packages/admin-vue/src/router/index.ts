@@ -7,7 +7,13 @@ export const router = createRouter({
     history: createWebHashHistory(import.meta.env.VITE_PUBLIC_PATH),
     routes: flatRoutes,
     strict: false,
-    scrollBehavior: () => ({ left: 0, top: 0 }),
+    scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) {
+            return savedPosition;
+        } else {
+            return { left: 0, top: 0 };
+        }
+    },
 });
 
 export function setupRouter(app: App) {

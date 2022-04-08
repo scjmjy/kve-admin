@@ -1,38 +1,61 @@
 <template>
-    <el-scrollbar class="appMenu" v-click-outside:[elHamburger]="onClickOutside">
+    <el-scrollbar class="is-vertical appMenu" v-click-outside:[elHamburger]="onClickOutside">
         <el-menu
             :default-active="defaultActive"
             :collapse="systemStore.menu.collapse"
             :collapse-transition="false"
-            router
             @mouseenter="onMouseEnter"
             @mouseleave="onMouseLeave"
+            @select="onMenuItemSelected"
         >
-            <el-menu-item-group
-                v-for="route in systemStore.router.allRoutes"
-                :key="route.path"
-                :title="route.meta?.title"
-            >
-                <template v-if="route.children && route.children.length">
-                    <MenuItem v-for="(item, index) in route.children" :key="item.path" :route="item"></MenuItem>
-                </template>
-                <template v-else>
-                    <MenuItem :route="route"></MenuItem>
-                </template>
-            </el-menu-item-group>
+            <template v-for="route in systemStore.router.fullpathRoutes" :key="route.path">
+                <el-menu-item-group v-if="!(route.meta && route.meta.visible === false)" :title="route.meta?.title">
+                    <template v-if="route.children && route.children.length">
+                        <MenuItem
+                            v-for="(item, index) in route.children"
+                            :key="item.path"
+                            :route="item"
+                            :for-route="forRoute"
+                        ></MenuItem>
+                    </template>
+                    <template v-else>
+                        <MenuItem :route="route" :for-route="forRoute"></MenuItem>
+                    </template>
+                </el-menu-item-group>
+            </template>
         </el-menu>
     </el-scrollbar>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useSystemStore } from "@/store/modules/system";
-import { useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import MenuItem from "./MenuItem.vue";
+import { isExternalLink } from "@/utils/is";
+import { findRouteFullpath } from "@/router/routes";
 
-const router = useRouter();
+const route = useRoute();
 const systemStore = useSystemStore();
-const defaultActive = router.currentRoute.value.fullPath;
+const defaultActive = ref("");
+const forRoute = ref("");
+
+watch(
+    () => route.path,
+    (path) => {
+        const { forName } = route.meta || {};
+        if (forName) {
+            forRoute.value = defaultActive.value = findRouteFullpath(forName);
+        } else {
+            defaultActive.value = path;
+            forRoute.value = "";
+        }
+    },
+    {
+        immediate: true,
+    },
+);
+
 let restoreMenuCollapse = false;
 
 function onMouseEnter() {
@@ -54,6 +77,16 @@ function onClickOutside() {
         systemStore.menu.collapse = true;
     }
 }
+
+function onMenuItemSelected(index: string) {
+    if (isExternalLink(index)) {
+        defaultActive.value = "";
+        setTimeout(() => {
+            defaultActive.value = route.path;
+        }, 100);
+    }
+}
+
 const elHamburger = ref<HTMLElement | null>();
 onMounted(() => {
     elHamburger.value = document.getElementById("appHeader-hamburger");
@@ -62,7 +95,10 @@ onMounted(() => {
 
 <style lang="scss">
 $menuItemPadding: 0 10px !important;
-$menuItemMargin: 0 5px 0 10px !important;
+$menuItemMargin: 0px 8px 5px !important;
+$menuItemMarginCollapse: 0px 0px 5px !important;
+$menuItemBgDark: rgba(255, 255, 255, 0.3);
+$menuItemBgLight: rgba(255, 255, 255, 0.12);
 .appMenu {
     padding: 20px 0;
     box-sizing: border-box;
@@ -71,8 +107,9 @@ $menuItemMargin: 0 5px 0 10px !important;
         no-repeat left/cover url(@/assets/imgs/bg-menu.jpg);
 
     .el-menu {
-        margin: 0 auto;
         --el-menu-active-color: white;
+        --el-menu-item-height: 48px;
+        margin: 0 auto;
         border-right: none !important;
         background-color: transparent;
         &--inline {
@@ -88,13 +125,19 @@ $menuItemMargin: 0 5px 0 10px !important;
             }
         }
         &-item {
+            margin: $menuItemMarginCollapse;
             min-width: unset !important;
             border-radius: 6px;
             padding: $menuItemPadding;
             color: white;
-            &:hover,
             &.is-active {
-                background-color: rgba(255, 255, 255, 0.3);
+                background-color: $menuItemBgDark;
+                &.has-detail {
+                    background-color: $menuItemBgLight;
+                }
+            }
+            &:hover {
+                background-color: $menuItemBgDark !important;
             }
         }
         &:not(.el-menu--collapse) {
@@ -117,16 +160,20 @@ $menuItemMargin: 0 5px 0 10px !important;
         }
     }
     .el-sub-menu {
+        .el-menu-item {
+            height: var(--el-menu-item-height);
+            line-height: var(--el-menu-item-height);
+        }
         &__title {
             border-radius: 6px;
             color: white;
             &:hover {
-                background-color: rgba(255, 255, 255, 0.3) !important;
+                background-color: $menuItemBgDark !important;
             }
         }
         &.is-active:not(.is-opened) {
             > .el-sub-menu__title {
-                background-color: rgba(255, 255, 255, 0.15);
+                background-color: $menuItemBgLight;
             }
         }
     }
@@ -151,11 +198,6 @@ $menuItemMargin: 0 5px 0 10px !important;
                 width: 1px;
             }
         }
-    }
-
-    &.el-popper {
-        border: none !important;
-        box-shadow: 0 5px 5px 0px #808080b3;
     }
 }
 </style>

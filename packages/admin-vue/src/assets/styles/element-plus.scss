@@ -1,10 +1,11 @@
-// @forward "element-plus/theme-chalk/src/common/var.scss" with (
-//     // $colors: (
-//     //     "primary": (
-//     //         "base": #9da0a3,
-//     //     ),
-//     // )
-// );
+@forward "element-plus/theme-chalk/src/common/var.scss" with (
+    // $colors: (
+    //     "primary": (
+    //         "base": #9da0a3,
+    //     ),
+    // )
+    $bg-color: ("": #ebeef5, "page": #ebeef5, "overlay": #ebeef5)
+);
 
 @use "element-plus/theme-chalk/src/index.scss" as *;
 @use "element-plus/theme-chalk/src/display.scss" as *;

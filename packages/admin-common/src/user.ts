@@ -1,3 +1,6 @@
+import { IDepartment } from './department';
+import { IRole } from './role';
+
 export enum Gender {
     MALE = "MALE",
     FEMALE = "FEMALE",
@@ -21,6 +24,8 @@ export interface IUser {
     realname: string;
     gender: Gender;
     avatar: string;
+    depts: IDepartment[];
+    roles: IRole[];
     createdAt: number;
 }
 

@@ -10,7 +10,7 @@
   "dependencies": {
     "@vueuse/core": "^8.2.4",
     "axios": "^0.26.1",
-    "element-plus": "^2.1.7",
+    "element-plus": "^2.1.8",
     "pinia": "^2.0.13",
     "sass": "^1.49.11",
     "vue": "^3.2.31",

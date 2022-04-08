@@ -7,6 +7,7 @@ export function setupGuard(router: Router) {
     const userStore = useUserStore();
 
     router.beforeEach((to, from, next) => {
+        // console.log("[setupGuard]", to, from);
         if (userStore.userProfile.token) {
             next();
         } else {
@@ -24,4 +25,15 @@ export function setupGuard(router: Router) {
             }
         }
     });
+
+    // router.afterEach((to, from) => {
+    //     if (to.path === ROUTE_PATH.REDIRECT) {
+    //         const realPath = (to.query.path || ROUTE_PATH.DASHBOARD) as string;
+    //         delete to.query.path;
+    //         router.replace({
+    //             path: realPath,
+    //             query: to.query,
+    //         });
+    //     }
+    // });
 }

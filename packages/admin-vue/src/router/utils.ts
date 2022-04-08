@@ -1,40 +1,43 @@
+import { isExternalLink } from "@/utils/is";
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
+
+export const FakeLayout = () => Promise.resolve({ name: "FakeLayout" });
 
 export interface RouteRecordMenuItem extends Pick<RouteRecordRaw, "name" | "path" | "meta"> {
     children?: RouteRecordMenuItem[];
 }
 
-export function normalizeRoutes(routes: (RouteRecordRaw | RouteRecordMenuItem)[], parentPath = "") {
+export function makeFullpathRoutes(routes: (RouteRecordRaw | RouteRecordMenuItem)[], parentPath = "") {
     const normalizedRoutes: RouteRecordMenuItem[] = [];
     routes.forEach((route) => {
-        if (!route.meta?.hidden) {
-            normalizedRoutes.push(normalizeRoute(route, parentPath));
-        }
+        normalizedRoutes.push(makeFullpathRoute(route, parentPath));
     });
     return normalizedRoutes;
 }
 
-function normalizePath(parentPath: string, childPath: string) {
-    if (parentPath.endsWith("/") || childPath.startsWith("/")) {
+function makeFullpath(parentPath: string, childPath: string) {
+    if (isExternalLink(childPath) || childPath.startsWith("/")) {
+        return childPath;
+    } else if (parentPath.endsWith("/")) {
         return `${parentPath}${childPath}`;
     } else {
         return `${parentPath}/${childPath}`;
     }
 }
 
-function normalizeRoute(route: RouteRecordRaw | RouteRecordMenuItem, parentPath = ""): RouteRecordMenuItem {
-    const fullPath = normalizePath(parentPath, route.path);
+function makeFullpathRoute(route: RouteRecordRaw | RouteRecordMenuItem, parentPath = ""): RouteRecordMenuItem {
+    const fullPath = makeFullpath(parentPath, route.path);
     if (route.children && route.children.length) {
         return {
             name: route.name,
-            meta: { ...route.meta! },
+            meta: route.meta,
             path: fullPath,
-            children: normalizeRoutes(route.children, fullPath),
+            children: makeFullpathRoutes(route.children, fullPath),
         };
     } else {
         return {
             name: route.name,
-            meta: { ...route.meta! },
+            meta: route.meta,
             path: fullPath,
         };
     }
@@ -50,7 +53,7 @@ export function flattenRoutes(routes: RouteRecordRaw[]) {
 }
 
 function flattenRoute(flatRoutes: RouteRecordRaw[], route: RouteRecordRaw, parentPath = "") {
-    const fullPath = normalizePath(parentPath, route.path);
+    const fullPath = makeFullpath(parentPath, route.path);
     if (route.children && route.children.length) {
         const children: RouteRecordRaw[] = [];
         route.children.forEach((child) => {
