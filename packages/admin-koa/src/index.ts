@@ -1,33 +1,21 @@
 import koa from "koa";
-import bodyparser from "koa-bodyparser";
-import cors from "@koa/cors";
-
-import { setupStatic } from "./middlewares/static";
-import { responseTime } from "./middlewares/response-time";
-import { errorMiddleware } from "./middlewares/error";
 
 import { setupMongo } from "./model";
-import { setupSession } from "./session";
 import { setupRouter } from "./router";
-import { setupLog } from "./middlewares/log";
 import { setupConfig } from "./config";
+import { __dirname } from "./utils/dirname";
+import { setupPostMiddlewares, setupPreMiddlewares } from "./middlewares";
 
 const app = new koa();
 const port = 3000;
 
-setupConfig(app, __dirname);
+setupConfig(app, __dirname(import.meta.url));
 
-setupLog(app);
-
-app.use(cors());
-
-setupSession(app);
-
-setupStatic(app);
-
-app.use(errorMiddleware).use(responseTime).use(bodyparser());
+setupPreMiddlewares(app);
 
 setupRouter(app);
+
+setupPostMiddlewares(app);
 
 setupMongo(app)
     .then(() => {

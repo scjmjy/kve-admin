@@ -1,9 +1,23 @@
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
-import { MsgShowType, Undefinable, UserProfileResult, LoginCredential, LoginResult } from "admin-common";
-import { UserModel } from "@/model/user";
+import {
+    MsgShowType,
+    UserProfileResult,
+    LoginCredential,
+    LoginResult,
+    UpdateUserProfile,
+    Gender,
+    UpdateUserPassword,
+    isValidPassword,
+    UpdateUserAvatar,
+    FindUsersParams,
+    FindUsersResult,
+} from "admin-common";
+import { IUserMethods, UserModel } from "@/model/user";
 import { JWT_SECRET } from "@/middlewares/jwt";
 import { KoaContext } from "@/types/koa";
+import { throwUserNotFoundError } from "./errors";
 
 export async function postLogin(ctx: KoaContext<Undefinable<LoginCredential>, LoginResult>) {
     if (ctx.session && ctx.session.loginErrorCount >= 5) {
@@ -28,12 +42,7 @@ export async function postLogin(ctx: KoaContext<Undefinable<LoginCredential>, Lo
         const existedUser = await UserModel.findOne({ username }, "password").exec();
 
         if (!existedUser) {
-            ctx.status = StatusCodes.NOT_FOUND;
-            ctx.body = {
-                code: ctx.status,
-                showType: MsgShowType.MESSAGE,
-                msg: "用户不存在",
-            };
+            throwUserNotFoundError();
         } else {
             const valid = await existedUser.verifyPassword(password);
             if (!valid) {
@@ -78,49 +87,165 @@ export async function postLogin(ctx: KoaContext<Undefinable<LoginCredential>, Lo
 //     id?: string;
 // };
 
+/**
+ * token 中加密的数据
+ */
 interface JwtPayload {
     id: string;
 }
 
-interface GetUserProfileState {
+/**
+ * token 解码后，通过 ctx.state.user 获取其内容
+ */
+interface JwtState {
     user: JwtPayload;
 }
 
-export async function getUserProfile(ctx: KoaContext<void, UserProfileResult, GetUserProfileState>) {
+export async function getUserProfile(ctx: KoaContext<void, UserProfileResult, JwtState>) {
     // console.log("[Session]: ", ctx.session = null);
     // ctx.session = null;
-    ctx.logger.debug("getUserProfile");
     const userId = ctx.state.user.id;
-    if (userId) {
-        const existedUser = await UserModel.findById(userId).exec();
-        if (!existedUser) {
-            ctx.status = StatusCodes.NOT_FOUND;
-            ctx.body = {
-                code: ctx.status,
-                showType: MsgShowType.MESSAGE,
-                msg: "用户不存在",
-            };
-        } else {
-            ctx.status = StatusCodes.OK;
-            const { id, username, realname, gender, avatar } = existedUser;
-            // console.log("[postLogin]", existedUser);
-            ctx.body = {
-                code: ctx.status,
-                data: {
-                    id,
-                    username,
-                    realname,
-                    gender,
-                    avatar,
-                },
-            };
-        }
+    const existedUser = await UserModel.findById<UserProfileResult>(userId)
+        .populate({
+            path: "depts",
+            select: "name",
+        })
+        .populate({
+            path: "roles",
+            select: "name",
+        })
+        .exec();
+    if (!existedUser) {
+        throwUserNotFoundError();
     } else {
+        ctx.status = StatusCodes.OK;
+        const { _id, username, realname, email, mobileno, gender, avatar, depts, roles, createdAt, updatedAt } =
+            existedUser;
+        // console.log("[postLogin]", existedUser);
+        ctx.body = {
+            code: ctx.status,
+            data: {
+                _id,
+                username,
+                realname,
+                email,
+                mobileno,
+                gender,
+                avatar,
+                depts,
+                roles,
+                createdAt,
+                updatedAt,
+            },
+        };
+    }
+}
+
+export async function putUserProfile(ctx: KoaContext<UpdateUserProfile, void, JwtState>) {
+    const userId = ctx.state.user.id;
+    const existedUser = await UserModel.findById<mongoose.Document & UpdateUserProfile>(
+        userId,
+        "realname gender mobileno email",
+    ).exec();
+    if (!existedUser) {
+        throwUserNotFoundError();
+    } else {
+        ctx.status = StatusCodes.OK;
+        const { realname, email, mobileno, gender } = ctx.request.body || {};
+        realname && (existedUser.realname = realname);
+        existedUser.gender = gender || Gender.UNKNOWN;
+        existedUser.mobileno = mobileno || "";
+        existedUser.email = email || "";
+        await existedUser.save();
+        ctx.body = {
+            code: ctx.status,
+        };
+    }
+}
+
+export async function putUserPassword(ctx: KoaContext<UpdateUserPassword, void, JwtState>) {
+    const userId = ctx.state.user.id;
+    const { oldPassword, newPassword } = ctx.request.body || {};
+    if (!oldPassword || !newPassword) {
         ctx.status = StatusCodes.BAD_REQUEST;
         ctx.body = {
             code: ctx.status,
             showType: MsgShowType.MESSAGE,
-            msg: "请提供用户 ID",
+            msg: "请提供必要的参数！",
+        };
+        return;
+    } else {
+        const valid = isValidPassword(newPassword);
+        if (valid === "fail-range") {
+            ctx.status = StatusCodes.BAD_REQUEST;
+            ctx.body = {
+                code: ctx.status,
+                showType: MsgShowType.MESSAGE,
+                msg: "密码长度错误！请提供 6-24 位字符。",
+            };
+            return;
+        } else if (valid === "fail-strong") {
+            ctx.status = StatusCodes.BAD_REQUEST;
+            ctx.body = {
+                code: ctx.status,
+                showType: MsgShowType.MESSAGE,
+                msg: "密码强度错误！请提供 2 种以上的字符组合。",
+            };
+            return;
+        }
+    }
+    const existedUser = await UserModel.findById<mongoose.Document & { password: string } & IUserMethods>(
+        userId,
+        "password",
+    ).exec();
+    if (!existedUser) {
+        throwUserNotFoundError();
+    } else {
+        const valid = await existedUser.verifyPassword(oldPassword);
+        if (!valid) {
+            ctx.status = StatusCodes.BAD_REQUEST;
+            ctx.body = {
+                code: ctx.status,
+                showType: MsgShowType.MESSAGE,
+                msg: "当前密码错误！",
+            };
+        } else {
+            existedUser.password = newPassword;
+            await existedUser.save();
+            ctx.status = StatusCodes.OK;
+            ctx.body = {
+                code: ctx.status,
+            };
+        }
+    }
+}
+
+export async function putUserAvatar(ctx: KoaContext<UpdateUserAvatar, void, JwtState>) {
+    const userId = ctx.state.user.id;
+    const { avatar } = ctx.request.body || {};
+    if (!avatar) {
+        ctx.status = StatusCodes.BAD_REQUEST;
+        ctx.body = {
+            code: ctx.status,
+            showType: MsgShowType.MESSAGE,
+            msg: "请提供 base64 格式的头像！",
+        };
+        return;
+    }
+    const existedUser = await UserModel.findById<mongoose.Document & { avatar: string } & IUserMethods>(
+        userId,
+        "avatar",
+    ).exec();
+    if (!existedUser) {
+        throwUserNotFoundError();
+    } else {
+        existedUser.avatar = avatar;
+        await existedUser.save();
+        ctx.status = StatusCodes.OK;
+        ctx.body = {
+            code: ctx.status,
         };
     }
 }
+
+export async function postFindUsers(ctx: KoaContext<Undefinable<FindUsersParams>, FindUsersResult>) {}

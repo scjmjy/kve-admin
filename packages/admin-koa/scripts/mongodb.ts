@@ -1,10 +1,10 @@
-import { MongoClient, Db } from "mongodb";
-import mongoose from "mongoose";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { DepartmentModel } from "../src/model/department";
-import { RoleModel } from "../src/model/role";
+import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 import { UserModel } from "../src/model/user";
+import { DepartmentModel, RoleModel } from "../src/model/department";
+import { internalDepts, internalRoles, internalUsers } from "./data/seed-depts";
 
 interface ArgsType {
     bd: string;
@@ -185,76 +185,10 @@ async function seedBiz(force = false) {
 
     const m = await mongoose.connect("mongodb://biz:33o93o6@localhost:27017/biz");
 
-    const roles = await RoleModel.insertMany([
-        {
-            name: "超级管理员",
-            description: "拥有所有系统权限，一般由开发公司的开发人员持有。",
-        },
-        {
-            name: "管理员",
-            description: "拥有大部分系统权限，由开发公司人员或者甲方公司的 IT 人员持有。",
-        },
-        {
-            name: "普通用户",
-            description: "没有系统管理权限的普通用户。",
-        },
-    ]);
-    const depts = await DepartmentModel.insertMany([
-        {
-            name: "开发部门",
-            description: "由此项目的开发人员组成。",
-            roles: [roles[0]],
-        },
-        {
-            name: "甲方公司",
-            description: "甲方公司部门的主节点。",
-            roles: [roles[1], roles[2]],
-        },
-    ]);
-    await UserModel.insertMany([
-        {
-            username: "superadmin",
-            realname: "Super Admin",
-            password: "123456",
-            depts: [depts[0]],
-        },
-        {
-            username: "dev01",
-            realname: "Developer 01",
-            password: "123456",
-            depts: [depts[0]],
-        },
-        {
-            username: "dev02",
-            realname: "Developer 02",
-            password: "123456",
-            depts: [depts[0]],
-        },
-        {
-            username: "user01",
-            realname: "User 01",
-            password: "123456",
-            depts: [depts[1]],
-        },
-        {
-            username: "user02",
-            realname: "User 02",
-            password: "123456",
-            depts: [depts[1]],
-        },
-        {
-            username: "admin01",
-            realname: "Admin 01",
-            password: "123456",
-            depts: [depts[1]],
-        },
-        {
-            username: "admin02",
-            realname: "Admin 02",
-            password: "123456",
-            depts: [depts[1]],
-        },
-    ]);
+    await RoleModel.insertMany(internalRoles);
+    await DepartmentModel.insertMany(internalDepts);
+    await UserModel.insertMany(internalUsers);
+
     await m.disconnect();
 }
 

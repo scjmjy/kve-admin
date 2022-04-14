@@ -1,21 +1,21 @@
 import type { IMiddleware } from "koa-router";
-import { JsonWebTokenError, NotBeforeError, TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import { MsgShowType } from "admin-common";
 import { KoaContext } from "@/types/koa";
+import { NotFoundError } from "@/controllers/errors";
 
 export const errorMiddleware: IMiddleware = async (ctx: KoaContext<any, void>, next) => {
     await next().catch((err: any) => {
-        // console.error("[errorMiddleware]", err.originalError);
         if (err.originalError) {
-            if (err.originalError instanceof TokenExpiredError) {
+            if (err.originalError instanceof jwt.TokenExpiredError) {
                 ctx.status = StatusCodes.UNAUTHORIZED;
                 ctx.body = {
                     code: "ERR_TOKEN_EXPIRED",
                     showType: MsgShowType.FATAL,
                     msg: "登录已过期，请重新登录！",
                 };
-            } else if (err.originalError instanceof NotBeforeError || err instanceof JsonWebTokenError) {
+            } else if (err.originalError instanceof jwt.NotBeforeError || err instanceof jwt.JsonWebTokenError) {
                 ctx.status = StatusCodes.UNAUTHORIZED;
                 ctx.body = {
                     code: ctx.status,
@@ -30,6 +30,13 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaContext<any, void>, n
                 showType: MsgShowType.NOTIFICATION,
                 msg: "未授权的操作",
             };
+        } else if (err instanceof NotFoundError) {
+            ctx.status = StatusCodes.NOT_FOUND;
+            ctx.body = {
+                code: err.code,
+                showType: err.showType,
+                msg: err.message,
+            };
         } else {
             console.log("[服务器发生未知错误]", err);
 
@@ -42,3 +49,12 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaContext<any, void>, n
         }
     });
 };
+
+export function error404(ctx: KoaContext<any, void>) {
+    ctx.status = StatusCodes.NOT_FOUND;
+    ctx.body = {
+        code: ctx.status,
+        showType: MsgShowType.NOTIFICATION,
+        msg: "请求的资源不存在！",
+    };
+}
