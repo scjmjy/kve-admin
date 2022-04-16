@@ -4,27 +4,29 @@
     <span class="appHeader-title">KVE 后台管理系统</span>
     <el-popover
         placement="bottom-end"
-        :width="300"
+        :width="200"
         trigger="hover"
         @before-enter="toggleProfileCardShow"
         @before-leave="toggleProfileCardShow"
     >
         <template #reference>
-            <div class="m-flex is-vCenter">
-                <el-avatar class="appHeader-avatar" src="/static/img/男孩.png"></el-avatar>
+            <div class="appHeader-right" ref="refPopoverTrigger">
+                <el-avatar class="appHeader-avatar" :src="userStore.userProfile.avatar"></el-avatar>
                 <el-icon :class="{ 'is-up': state.isProfileCardShow, 'el-icon__ani': true }"><arrow-down /></el-icon>
             </div>
         </template>
-        <ProfileCard></ProfileCard>
+        <ProfileCard @hideme="onHideme"></ProfileCard>
     </el-popover>
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
-import Hamburger from "@/components/Hamburger.vue";
+import { reactive, ref } from "vue";
 import { useSystemStore } from "@/store/modules/system";
+import { useUserStore } from "@/store/modules/user";
+import Hamburger from "@/components/Hamburger.vue";
 import ProfileCard from "./ProfileCard.vue";
 
+const userStore = useUserStore();
 const systemStore = useSystemStore();
 
 const state = reactive({
@@ -37,6 +39,11 @@ function onHamburgerChange(collapse: boolean) {
 function toggleProfileCardShow() {
     state.isProfileCardShow = !state.isProfileCardShow;
 }
+const refPopoverTrigger = ref<HTMLDivElement>();
+function onHideme() {
+    const mouseEvent = new MouseEvent("mouseleave");
+    refPopoverTrigger.value?.dispatchEvent(mouseEvent);
+}
 </script>
 
 <style scoped lang="scss">
@@ -46,10 +53,17 @@ function toggleProfileCardShow() {
     }
     &-title {
         margin-left: 10px;
-        margin-right: auto;
         font-weight: bold;
         font-size: 1.4em;
         color: var(--el-color-primary);
+        .is-xs & {
+            display: none;
+        }
+    }
+    &-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
     }
     &-avatar {
         margin-right: 4px;

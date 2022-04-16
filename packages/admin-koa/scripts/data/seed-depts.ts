@@ -44,7 +44,7 @@ const _id_role_17 = new ObjectId(17);
 const _id_role_18 = new ObjectId(18);
 /** 部门B-1领导 */
 const _id_role_19 = new ObjectId(19);
-/** 部门B通用角色 */
+/** 部门B-1通用角色 */
 const _id_role_20 = new ObjectId(20);
 
 export const internalRoles: InternalRole[] = [
@@ -115,7 +115,7 @@ export const internalRoles: InternalRole[] = [
         _id: _id_role_9,
         name: "管理员",
         orderNo: 0,
-        description: "由甲方公司的负责人。",
+        description: "由甲方公司的负责人持有。",
         status: "enabled",
     },
     {
@@ -190,7 +190,7 @@ export const internalRoles: InternalRole[] = [
     },
     {
         _id: _id_role_20,
-        name: "部门B通用角色",
+        name: "部门B-1通用角色",
         orderNo: 1,
         description: "部门B-1的通用角色。",
         status: "enabled",
@@ -438,7 +438,7 @@ export const internalDepts: InternalDepartment[] = [
     },
 ];
 
-interface InternalUser extends Omit<IUser, "_id" | "roles" | "depts" | "createdAt" | "updatedAt"> {
+interface InternalUser extends Omit<IUser, "_id" | "avatar" | "thumb" | "roles" | "depts" | "createdAt" | "updatedAt"> {
     roles: { _id: ObjectId }[];
     depts: { _id: ObjectId }[];
 }
@@ -451,7 +451,6 @@ export const internalUsers: InternalUser[] = [
         email: "",
         mobileno: "",
         gender: Gender.UNKNOWN,
-        avatar: "/static/img/avatar/avatar-superadmin.png",
         status: "enabled",
         depts: [
             {
@@ -471,7 +470,6 @@ export const internalUsers: InternalUser[] = [
         email: "",
         mobileno: "",
         gender: Gender.UNKNOWN,
-        avatar: "/static/img/avatar/avatar-admin.png",
         status: "enabled",
         depts: [
             {

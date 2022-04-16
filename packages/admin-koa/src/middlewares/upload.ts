@@ -13,7 +13,6 @@ const storage = new GridFsStorage({
 export const upload = multer({ storage });
 
 export function getGridFsBucket() {
-    // @ts-ignore
     const bucket = new GridFSBucket(storage.db, { bucketName: "fs" });
     return bucket;
 }

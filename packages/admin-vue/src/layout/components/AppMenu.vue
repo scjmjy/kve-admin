@@ -59,14 +59,14 @@ watch(
 let restoreMenuCollapse = false;
 
 function onMouseEnter() {
-    if (systemStore.menu.collapse) {
+    if (systemStore.menu.mode !== "OFFSCREEN" && systemStore.menu.collapse) {
         systemStore.menu.collapse = false;
         restoreMenuCollapse = true;
     }
 }
 
 function onMouseLeave() {
-    if (restoreMenuCollapse) {
+    if (systemStore.menu.mode !== "OFFSCREEN" && restoreMenuCollapse) {
         systemStore.menu.collapse = true;
         restoreMenuCollapse = false;
     }
@@ -94,6 +94,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
+$menuCollaseWidth: 48px;
 $menuItemPadding: 0 10px !important;
 $menuItemMargin: 0px 8px 5px !important;
 $menuItemMarginCollapse: 0px 0px 5px !important;
@@ -104,7 +105,7 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
     box-sizing: border-box;
     z-index: 100;
     background: left/cover linear-gradient(to right, #141e30d4, #243b55c7),
-        no-repeat left/cover url(@/assets/imgs/bg-menu.jpg);
+        no-repeat left/cover url(@/assets/imgs/bg-menu-1.jpeg);
 
     .el-menu {
         --el-menu-active-color: white;
@@ -149,10 +150,12 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             white-space: nowrap !important;
+            padding-left: 15px !important;
             font-size: 16px;
             font-weight: bold;
         }
         &.el-menu--collapse {
+            width: $menuCollaseWidth !important;
             .el-menu-item-group {
                 border-top: 2px solid rgba(255, 255, 255, 0.3);
                 padding: 5px 0;
@@ -183,6 +186,11 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
             margin: $menuItemMargin;
             padding: $menuItemPadding;
         }
+    }
+
+    // TODO: 为了保证可以居中对齐, 这个做法比较 Tricky
+    .el-tooltip__trigger {
+        padding-left: 12px !important;
     }
 
     .menuItem-2 {

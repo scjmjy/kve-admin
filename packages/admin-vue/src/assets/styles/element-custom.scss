@@ -3,38 +3,37 @@
 .is-3d {
     .el-button:not(.el-button--text) {
         box-shadow: $shodow-convex;
-        &:active {
+        &:active:not(.is-disabled) {
             transform: translateY(3px);
             box-shadow: none;
             // box-shadow: 0 3px 0px 1px rgb(0 0 0 / 40%);
         }
     }
-}
-.is-3d {
     .el-input__inner {
         transition: all 0.3s ease;
         box-shadow: $shodow-concave;
         &:hover,
         &:focus {
             transform: translateY(-3px);
-            box-shadow: $shodow-convex;
+            box-shadow: $shodow-convex !important;
             // box-shadow: inset 0px 5px 5px 0px rgb(0 0 0 / 40%);
         }
     }
-}
-.is-3d.el-form {
-    .el-form-item.is-error {
+    .is-error {
         .el-input__inner {
-            box-shadow: $shodow-concave-danger;
+            box-shadow: $shodow-concave-danger !important;
             &:hover,
             &:focus {
-                box-shadow: $shodow-convex-danger;
+                box-shadow: $shodow-convex-danger !important;
                 // box-shadow: inset 0px 5px 5px 0px rgb(0 0 0 / 40%);
             }
         }
     }
-}
 
+    .el-avatar {
+        box-shadow: 0px 3px 5px 1px rgb(0 0 0 / 40%);
+    }
+}
 .el-message-box {
     vertical-align: unset;
 }
@@ -66,4 +65,70 @@
 .el-icon--svg {
     width: 1.2em;
     height: 1.2em;
+}
+
+// .el-form {
+//     &-item {
+//         &__label {
+//             text-align: justify;
+//             text-align-last: justify;
+//             position: relative;
+//             &::before {
+//                 position: absolute;
+//                 left: -10px;
+//             }
+//         }
+//     }
+// }
+
+.el-tree-node {
+    margin: 5px 0;
+    &.is-current {
+        > .el-tree-node__content {
+            box-shadow: 0 0 5px #808080a6;
+            > .el-tree-node__label {
+                color: var(--el-color-primary);
+                font-weight: bold;
+            }
+        }
+    }
+}
+.el-descriptions--custom {
+    .el-descriptions__header {
+        .el-descriptions__title {
+            display: none;
+        }
+        .el-descriptions__extra {
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+    }
+}
+.el-switch {
+    &.is-readonly {
+        * {
+            cursor: default !important;
+        }
+    }
+}
+
+// .el-table__header {
+//     .el-table__cell {
+//         text-align: center;
+//     }
+// }
+
+.el-table__body {
+    .el-table__column--action {
+        .cell {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    }
+}
+
+.el-select {
+    width: 100%;
 }

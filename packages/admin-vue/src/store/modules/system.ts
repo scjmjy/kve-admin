@@ -68,10 +68,17 @@ const storeDefinition = defineStore({
             } as RouterState,
         };
     },
+    getters: {
+        iframes: (state) => state.router.visitedRoutes.filter((route) => !!route.meta.iframe),
+    },
     actions: {
         onRouteChanged(route: RouteLocationNormalizedLoaded) {
             const { name, fullPath, path, meta } = route;
+            // if (meta.title) {
+            //     document.title = meta.title;
+            // }
             if (
+                !path.startsWith(ROUTE_PATH.REDIRECT) &&
                 meta.cacheable !== false &&
                 name &&
                 typeof name === "string" &&
@@ -89,13 +96,18 @@ const storeDefinition = defineStore({
                 })
             ) {
                 const { fullPath, path, query, meta, name } = route;
-                this.router.visitedRoutes.push({
+                const visited = {
                     fullPath,
                     path,
                     query,
                     meta,
                     name,
-                });
+                };
+                if (meta.pinned) {
+                    this.router.visitedRoutes.unshift(visited);
+                } else {
+                    this.router.visitedRoutes.push(visited);
+                }
             }
         },
         closeTab(route: RouteRecordVisited, isExactActive: boolean, router: Router) {
@@ -119,7 +131,6 @@ const storeDefinition = defineStore({
                     const foundIndex = cachedTabs.findIndex((tab) => tab === name);
                     if (foundIndex !== -1) {
                         cachedTabs.splice(foundIndex, 1);
-                        cachedTabs;
                     }
                 }
                 if (!isExactActive) {
@@ -132,7 +143,7 @@ const storeDefinition = defineStore({
                     router.push(visitedRoutes[length - 1].fullPath);
                 } else if (route.path === ROUTE_PATH.DASHBOARD) {
                     router.replace({
-                        path: "/redirect/" + ROUTE_PATH.DASHBOARD,
+                        path: ROUTE_PATH.REDIRECT + "/" + ROUTE_PATH.DASHBOARD,
                     });
                 } else {
                     router.push(ROUTE_PATH.DASHBOARD);

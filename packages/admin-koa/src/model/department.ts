@@ -44,8 +44,19 @@ export const DepartmentSchema = new mongoose.Schema<IDepartmentDoc, IDepartmentM
 );
 
 const preFind: mongoose.PreMiddlewareFunction<mongoose.Query<any, any>> = function (next) {
+    // @ts-ignore
+    const filter = this.getFilter() as mongoose.PopulateQuery<any>;
+
+    if (!filter.doPopulate) {
+        return next();
+    }
     this.populate([
-        "depts",
+        {
+            path: "depts",
+            match: {
+                doPopulate: true, // 深度 populate
+            },
+        },
         "roles",
         {
             path: "managers",

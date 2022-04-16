@@ -1,6 +1,6 @@
 <template>
     <div class="login">
-        <DoubleFaceCardVue class="login-card" v-model="state.rotated">
+        <DoubleFaceCard class="login-card" v-model="state.rotated">
             <template #front>
                 <el-form
                     ref="formCrt"
@@ -64,13 +64,13 @@
                     </div>
                 </el-form>
             </template>
-        </DoubleFaceCardVue>
+        </DoubleFaceCard>
     </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import DoubleFaceCardVue from "@/components/card/DoubleFaceCard.vue";
+import DoubleFaceCard from "@/components/card/DoubleFaceCard.vue";
 import type { FormInstance, FormRules } from "element-plus";
 import { useUserStore } from "@/store/modules/user";
 import { useRoute, useRouter } from "vue-router";
@@ -124,6 +124,7 @@ function handleLogin() {
         ?.validate()
         .then(() => {
             const userStore = useUserStore();
+            state.loggingIn = true;
             userStore
                 .login(credential)
                 .then(() => {

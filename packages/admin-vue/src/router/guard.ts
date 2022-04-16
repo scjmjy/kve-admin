@@ -1,28 +1,47 @@
-import { Router } from "vue-router";
+import { Undefinable } from "admin-common";
+import { ROUTE_PATH } from "./consts";
+import { RouteLocationRaw, Router } from "vue-router";
 import { useUserStore } from "@/store/modules/user";
 
-const WHITE_LIST = ["/login"];
+const WHITE_LIST = [ROUTE_PATH.LOGIN];
 
 export function setupGuard(router: Router) {
     const userStore = useUserStore();
 
-    router.beforeEach((to, from, next) => {
+    router.beforeEach(async (to, from, next) => {
         // console.log("[setupGuard]", to, from);
-        if (userStore.userProfile.token) {
-            next();
+        const loginLocation: RouteLocationRaw = {
+            path: ROUTE_PATH.LOGIN,
+            replace: true,
+            query: {
+                redirect: to.fullPath,
+            },
+        };
+        let location: Undefinable<RouteLocationRaw> = undefined;
+        const { token, _id } = userStore.userProfile;
+        if (token) {
+            if (to.path === ROUTE_PATH.LOGIN) {
+                location = {
+                    path: ROUTE_PATH.DASHBOARD,
+                };
+            } else if (!_id) {
+                try {
+                    await userStore.getUserProfile();
+                } catch (error) {
+                    userStore.cleanup();
+                    location = loginLocation;
+                }
+            }
         } else {
             const isWhite = WHITE_LIST.includes(to.path);
-            if (isWhite) {
-                next();
-            } else {
-                next({
-                    path: "/login",
-                    replace: true,
-                    query: {
-                        redirect: to.fullPath,
-                    },
-                });
+            if (!isWhite) {
+                location = loginLocation;
             }
+        }
+        if (location) {
+            next(location);
+        } else {
+            next();
         }
     });
 

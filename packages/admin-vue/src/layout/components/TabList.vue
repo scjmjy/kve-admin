@@ -30,7 +30,7 @@ const refScrollbar = ref<InstanceType<typeof ElScrollbar>>();
 let elWrapper: HTMLDivElement | undefined;
 
 function horizontalScroll(evt: WheelEvent) {
-    console.log("[horizontalScroll]", evt);
+    // console.log("[horizontalScroll]", evt);
     evt.preventDefault();
     elWrapper && (elWrapper.scrollLeft += evt.deltaY);
 }

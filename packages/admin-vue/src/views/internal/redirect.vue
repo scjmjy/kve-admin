@@ -2,7 +2,7 @@
     <div></div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" name="Redirect">
 import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();

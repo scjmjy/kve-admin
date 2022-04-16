@@ -1,25 +1,29 @@
 import type { IMiddleware } from "koa-router";
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
-import { MsgShowType } from "admin-common";
-import { KoaContext } from "@/types/koa";
-import { NotFoundError } from "@/controllers/errors";
+import type { AsyncValidationError } from "async-validator/dist-types/util";
+import { KoaAjaxContext } from "@/types/koa";
+import { AjaxError } from "@/controllers/errors";
 
-export const errorMiddleware: IMiddleware = async (ctx: KoaContext<any, void>, next) => {
+function isAsyncValidationError(err: any): err is AsyncValidationError {
+    return err.errors && err.fields;
+}
+
+export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void>, next) => {
     await next().catch((err: any) => {
         if (err.originalError) {
             if (err.originalError instanceof jwt.TokenExpiredError) {
                 ctx.status = StatusCodes.UNAUTHORIZED;
                 ctx.body = {
                     code: "ERR_TOKEN_EXPIRED",
-                    showType: MsgShowType.FATAL,
+                    showType: "FATAL",
                     msg: "登录已过期，请重新登录！",
                 };
             } else if (err.originalError instanceof jwt.NotBeforeError || err instanceof jwt.JsonWebTokenError) {
                 ctx.status = StatusCodes.UNAUTHORIZED;
                 ctx.body = {
                     code: ctx.status,
-                    showType: MsgShowType.FATAL,
+                    showType: "FATAL",
                     msg: "Token 校验出错！",
                 };
             }
@@ -27,15 +31,22 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaContext<any, void>, n
             ctx.status = err.status;
             ctx.body = {
                 code: ctx.status,
-                showType: MsgShowType.NOTIFICATION,
+                showType: "NOTIFICATION",
                 msg: "未授权的操作",
             };
-        } else if (err instanceof NotFoundError) {
+        } else if (err instanceof AjaxError) {
             ctx.status = StatusCodes.NOT_FOUND;
             ctx.body = {
                 code: err.code,
                 showType: err.showType,
                 msg: err.message,
+            };
+        } else if (isAsyncValidationError(err)) {
+            ctx.status = StatusCodes.BAD_REQUEST;
+            ctx.body = {
+                code: ctx.status,
+                showType: "MESSAGE",
+                msg: err.errors.map((e) => e.message).join("\n"),
             };
         } else {
             console.log("[服务器发生未知错误]", err);
@@ -43,18 +54,18 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaContext<any, void>, n
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
             ctx.body = {
                 code: ctx.status,
-                showType: MsgShowType.NOTIFICATION,
+                showType: "NOTIFICATION",
                 msg: "服务器发生未知错误",
             };
         }
     });
 };
 
-export function error404(ctx: KoaContext<any, void>) {
+export function error404(ctx: KoaAjaxContext<any, void>) {
     ctx.status = StatusCodes.NOT_FOUND;
     ctx.body = {
         code: ctx.status,
-        showType: MsgShowType.NOTIFICATION,
+        showType: "NOTIFICATION",
         msg: "请求的资源不存在！",
     };
 }

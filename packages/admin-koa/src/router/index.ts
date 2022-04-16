@@ -1,19 +1,32 @@
 import type koa from "koa";
 import Router from "koa-router";
-import { postLogin, getUserProfile, putUserProfile, putUserPassword, putUserAvatar } from "@/controllers/user";
+import {
+    postLogin,
+    getUserProfile,
+    putUserProfile,
+    putUserPassword,
+    putUserAvatar,
+    postFindUsers,
+    postCreateUser,
+    getUserAvatar,
+} from "@/controllers/user";
 import { getHelloworld } from "@/controllers/helloworld";
 import { ObjectId } from "bson";
 import { koajwt } from "@/middlewares/jwt";
 import { getGridFsBucket, upload } from "@/middlewares/upload";
 import { getDeptTreeNodes } from "@/controllers/department";
 
-export const router = new Router();
+export const router = new Router<any, any>();
 
 router.post("/api/login", postLogin);
+router.post("/api/user", koajwt, postCreateUser);
 router.get("/api/user/profile", koajwt, getUserProfile);
 router.put("/api/user/profile", koajwt, putUserProfile);
 router.put("/api/user/password", koajwt, putUserPassword);
 router.put("/api/user/avatar", koajwt, putUserAvatar);
+router.get("/api/user/avatar/:userId", getUserAvatar);
+router.post("/api/user/list", koajwt, postFindUsers);
+
 router.get("/api/helloworld", getHelloworld);
 
 router.get("/api/dept/tree", koajwt, getDeptTreeNodes);

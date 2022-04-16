@@ -1,31 +1,31 @@
 <template>
-    <svg class="svgIcon" aria-hidden="true">
-        <use :xlink:href="props.icon" :fill="props.color" />
-    </svg>
+    <template v-if="icon">
+        <el-icon v-if="icon.startsWith('icon-')" :color="color" :size="size">
+            <svg aria-hidden="true">
+                <use :xlink:href="'#' + icon" />
+            </svg>
+        </el-icon>
+        <el-icon v-else :color="color" :size="size">
+            <component :is="icon"></component>
+        </el-icon>
+    </template>
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
+defineProps({
     icon: {
         type: String,
         required: true,
     },
     color: {
         type: String,
-        required: true,
+        default: "currentColor",
     },
-    // size: {
-    //     type: [String, Number],
-    //     default: undefined,
-    // },
+    size: {
+        type: [String, Number],
+        default: undefined,
+    },
 });
-
 </script>
 
-<style lang="scss">
-.svgIcon {
-    width: 1em;
-    height: 1em;
-    fill: currentColor;
-}
-</style>
+<style lang="scss"></style>

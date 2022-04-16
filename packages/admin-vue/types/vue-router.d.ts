@@ -12,7 +12,7 @@ declare module "vue-router" {
          */
         icon?: string;
         /**
-         * true: 固定在 TabList 最开头，并且不可被关闭
+         * true: 固定在 TabList 最开头
          *
          * @default false
          */

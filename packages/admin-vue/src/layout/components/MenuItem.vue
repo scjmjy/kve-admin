@@ -8,9 +8,7 @@
                 popper-class="appMenu"
             >
                 <template #title>
-                    <el-icon>
-                        <edit></edit>
-                    </el-icon>
+                    <SvgIcon :icon="route.meta?.icon"></SvgIcon>
                     <span class="appMenu-title">{{ route.meta?.title }}</span>
                 </template>
                 <MenuItem
@@ -29,9 +27,7 @@
                 :class="{ 'has-detail': forRoute === route.path }"
                 @click="onMenuItemClick"
             >
-                <el-icon>
-                    <edit></edit>
-                </el-icon>
+                <SvgIcon :icon="route.meta?.icon"></SvgIcon>
                 <template #title>
                     <span class="appMenu-title">{{ route.meta?.title }}</span>
                 </template>
@@ -46,7 +42,7 @@ import { MenuItemRegistered } from "element-plus";
 import { RouteRecordMenuItem } from "@/router/utils";
 import { isExternalLink } from "@/utils/is";
 import { useRouter } from "vue-router";
-import { ROUTE_PATH } from "@/router/consts";
+import { useSystemStore } from "@/store/modules/system";
 
 const props = defineProps({
     forRoute: {
@@ -64,6 +60,7 @@ const props = defineProps({
 });
 
 const router = useRouter();
+const systemStore = useSystemStore();
 
 function onMenuItemClick(item: MenuItemRegistered) {
     const { index: path } = item;
@@ -73,6 +70,10 @@ function onMenuItemClick(item: MenuItemRegistered) {
         router.push(path);
     } else {
         router.push(path);
+    }
+
+    if (systemStore.menu.mode === "OFFSCREEN") {
+        systemStore.menu.collapse = true;
     }
 }
 </script>

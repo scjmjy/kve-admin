@@ -1,40 +1,31 @@
 <template>
-    <el-container
-        class="defaultLayout"
-        :class="{
-            ['is-menu' + systemStore.menu.mode]: true,
-            'is-menuCOLLAPSE': systemStore.menu.collapse,
-            'is-menuEXPAND': !systemStore.menu.collapse,
-            ['is-' + systemStore.screen.mode]: true,
-            'has-footer': systemStore.screen.footer,
-            'has-tags': systemStore.screen.tags,
-        }"
-    >
+    <el-container class="defaultLayout" :class="layoutClass">
         <el-header class="defaultLayout-header">
             <AppHeader></AppHeader>
         </el-header>
         <el-container style="overflow: hidden">
-            <el-aside class="defaultLayout-left" width="240px">
+            <el-aside class="defaultLayout-left">
                 <AppMenu></AppMenu>
             </el-aside>
-            <el-container class="defaultLayout-right">
+            <el-container class="scrollbar defaultLayout-right">
                 <el-header v-if="systemStore.screen.tags" class="defaultLayout-tags">
                     <TabList></TabList>
                 </el-header>
 
                 <el-main class="defaultLayout-main" ref="refMain">
-                    <AppMain></AppMain>
+                    <el-scrollbar id="defaultLayoutScrollbar" class="is-vertical">
+                        <AppMain pageStyle="flex: 1; padding: 15px"></AppMain>
+                        <AppFooter></AppFooter>
+                    </el-scrollbar>
+                    <el-backtop target="#defaultLayoutScrollbar .el-scrollbar__wrap" :right="50" :bottom="50" />
                 </el-main>
-                <el-footer v-if="systemStore.screen.footer" class="defaultLayout-footer">
-                    <AppFooter></AppFooter>
-                </el-footer>
             </el-container>
         </el-container>
     </el-container>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, ref } from "vue";
 import { useSystemStore } from "@/store/modules/system";
 import { initAppMainResize } from "@/composables/useAppMainResize";
 import AppHeader from "./components/AppHeader.vue";
@@ -45,14 +36,19 @@ import TabList from "./components/TabList.vue";
 
 const systemStore = useSystemStore();
 
-const refMain = ref<HTMLDivElement>()
-initAppMainResize(refMain);
+const layoutClass = computed(() => ({
+    ["is-menu" + systemStore.menu.mode]: true,
+    "is-menuCOLLAPSE": systemStore.menu.collapse,
+    ["is-" + systemStore.screen.mode]: true,
+}));
 
+const refMain = ref<HTMLDivElement>();
+initAppMainResize(refMain);
 </script>
 
 <style scoped lang="scss">
-$fullWidth: 240px;
-$collapseWidth: 84px;
+$fullWidth: 200px;
+$collapseWidth: 64px;
 $headerHeight: 48px;
 $tagsHeight: 40px;
 $footerHeight: 60px;
@@ -69,38 +65,34 @@ $footerHeight: 60px;
     }
     &-left {
         transition: width 0.28s;
+        --el-aside-width: #{$fullWidth};
     }
     &-right {
-        overflow-x: hidden;
-        overflow-y: auto;
+        overflow: hidden;
         background-color: var(--el-bg-color);
         // box-shadow: inset 1px 1px 5px 2px rgb(0 0 0 / 40%);
-        .has-footer & {
-            display: block;
-        }
     }
     &-tags {
         --el-header-height: #{$tagsHeight};
         --el-header-padding: 5px 10px;
-        position: sticky;
-        top: 0;
-        left: 0;
-        right: 0;
-        background-color: #4d4b4b;
         z-index: 100;
+        background-color: #4d4b4b;
     }
     &-main {
         position: relative;
-        overflow-x: hidden;
-        overflow-y: auto;
-        --el-main-padding: 10px;
-        .has-footer.has-tags & {
-            min-height: calc(100% - #{$footerHeight} - #{$tagsHeight});
+        overflow: hidden;
+        --el-main-padding: 0;
+        :deep(.el-scrollbar) {
+            flex: 1;
+            .el-scrollbar__view {
+                display: flex;
+                flex-direction: column;
+                min-height: 100%;
+            }
         }
-        .has-footer:not(.has-tags) & {
-            min-height: calc(100% - #{$headerHeight});
-        }
+        display: flex;
     }
+
     &-footer {
         --el-footer-height: #{$footerHeight};
         --el-footer-padding: 0 0;
@@ -111,26 +103,15 @@ $footerHeight: 60px;
                 --el-aside-width: #{$collapseWidth} !important;
             }
         }
-        // &.is-menuEXPAND {
-        //     .defaultLayout-right {
-        //         flex: none;
-        //         width: calc(100% - #{$collapseWidth});
-        //     }
-        // }
     }
     &.is-menuOFFSCREEN {
+        .defaultLayout-right {
+            flex: none;
+            width: 100%;
+        }
         &.is-menuCOLLAPSE {
             .defaultLayout-left {
                 --el-aside-width: 0 !important;
-            }
-        }
-        &.is-menuEXPAND {
-            .defaultLayout-left {
-                --el-aside-width: #{$fullWidth} !important;
-            }
-            .defaultLayout-right {
-                flex: none;
-                width: 100%;
             }
         }
     }

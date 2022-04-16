@@ -1,21 +1,21 @@
 <template>
-    <transition-group v-show="isShow" class="frameMain" ref="refMain" name="transition-3d" mode="out-in" tag="div">
-        <template v-for="frame of iframes" :key="frame.fullPath">
+    <transition-group v-show="isShow" class="frameContainer" ref="refMain" name="transition-3d" mode="out-in" tag="div">
+        <template v-for="frame of systemStore.iframes" :key="frame.fullPath">
             <iframe
                 v-show="frame.name === route.name"
                 :src="frame.meta.iframe"
-                class="frameMain-iframe"
+                class="frameContainer-iframe"
                 frameborder="none"
                 :height="frameHeight"
             ></iframe>
         </template>
     </transition-group>
-    <!-- <div v-show="isShow" class="frameMain" ref="refMain">
+    <!-- <div v-show="isShow" class="frameContainer" ref="refMain">
         <template v-for="frame of iframes" :key="frame.fullPath">
             <iframe
                 v-show="frame.name === route.name"
                 :src="frame.meta.iframe"
-                class="frameMain-iframe"
+                class="frameContainer-iframe"
                 frameborder="none"
                 :height="frameHeight"
             ></iframe>
@@ -30,18 +30,23 @@ import { useRoute } from "vue-router";
 import { useAppMainResize } from "@/composables/useAppMainResize";
 const route = useRoute();
 const systemStore = useSystemStore();
-const iframes = computed(() => {
-    return systemStore.router.visitedRoutes.filter((route) => route.meta.iframe);
-});
 const isShow = computed(() => {
-    return iframes.value.length && iframes.value.find((frame) => frame.name === route.name);
+    return systemStore.iframes.length > 0 && !!systemStore.iframes.find((frame) => frame.name === route.name);
 });
-const frameHeight = ref(0);
+/**
+ * TODO 这里是 hardcoded，可以在 systemStore 里配置 headerHeight 和 tagsHeight
+ * headerHeight: 48
+ * tagsHeight: 40 */
+function calcFrameHeight() {
+    return window.innerHeight - 48 - 40;
+}
+const frameHeight = ref(calcFrameHeight());
 const refMain = ref<ComponentPublicInstance>();
 function resetHeight() {
-    if (refMain.value && refMain.value.$el && isShow.value) {
-        frameHeight.value = refMain.value.$el.clientHeight;
-    }
+    frameHeight.value = calcFrameHeight();
+    // if (refMain.value && refMain.value.$el && isShow.value) {
+    //     frameHeight.value = refMain.value.$el.clientHeight;
+    // }
 }
 // const refMain = ref<HTMLDivElement>();
 // function resetHeight() {
@@ -50,7 +55,7 @@ function resetHeight() {
 //     }
 // }
 onMounted(() => {
-    resetHeight();
+    // resetHeight();
 });
 useAppMainResize(() => {
     resetHeight();
@@ -58,13 +63,13 @@ useAppMainResize(() => {
 </script>
 
 <style scoped lang="scss">
-.frameMain {
+.frameContainer {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
-    margin: var(--el-main-padding);
+    // margin: var(--el-main-padding);
     &-iframe {
         position: absolute;
         left: 0;

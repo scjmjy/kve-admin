@@ -1,9 +1,7 @@
 import axios, { AxiosResponse, AxiosError, Axios } from "axios";
 import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
-import { AjaxResult, MsgShowType, MsgSilent, MsgSilentHeader } from "admin-common";
+import { AjaxResult, MsgSilent, MsgSilentHeader } from "admin-common";
 import { useUserStore } from "@/store/modules/user";
-
-// axios.defaults.headers.post["Content-Type"] = "application/json;charset=utf-8";
 
 export const request = axios.create({
     baseURL: import.meta.env.VITE_AXIOS_BASE_API,
@@ -35,20 +33,20 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
     (res) => {
-        let msgSilent: string | undefined;
+        let msgSilent: MsgSilent | undefined;
         if (res.config.headers) {
-            msgSilent = res.config.headers[MsgSilentHeader] as string;
+            msgSilent = res.config.headers[MsgSilentHeader] as MsgSilent;
         }
         const body = res.data as AjaxResult;
-        if (msgSilent !== MsgSilent.SUCCESS && msgSilent !== MsgSilent.BOTH) {
+        if (msgSilent !== "SUCCESS" && msgSilent !== "BOTH") {
             switch (body.showType) {
-                case MsgShowType.MESSAGE:
+                case "MESSAGE":
                     ElMessage.success(body.msg);
                     break;
-                case MsgShowType.NOTIFICATION:
+                case "NOTIFICATION":
                     ElNotification.success(body.msg);
                     break;
-                case MsgShowType.SILENT:
+                case "SILENT":
                 default:
                     // Does nothing.
                     break;
@@ -70,15 +68,15 @@ request.interceptors.response.use(
                 msgSilent = err.config.headers[MsgSilentHeader] as string;
             }
             const body = err.response.data as AjaxResult;
-            if (msgSilent !== MsgSilent.SUCCESS && msgSilent !== MsgSilent.BOTH) {
+            if (msgSilent !== "SUCCESS" && msgSilent !== "BOTH") {
                 switch (body.showType) {
-                    case MsgShowType.MESSAGE:
+                    case "MESSAGE":
                         ElMessage.error(body.msg);
                         break;
-                    case MsgShowType.NOTIFICATION:
+                    case "NOTIFICATION":
                         ElNotification.error(body.msg);
                         break;
-                    case MsgShowType.FATAL:
+                    case "FATAL":
                         // TODO Logout and Navigate to Login Page
                         try {
                             await ElMessageBox.confirm(body.msg || "xxx", "提示", {
@@ -94,7 +92,7 @@ request.interceptors.response.use(
                             // 忽略错误
                         }
                         break;
-                    case MsgShowType.SILENT:
+                    case "SILENT":
                     default:
                         // Does nothing.
                         break;

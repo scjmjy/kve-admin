@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="index2Page">
         <p>RouteName: Index2</p>
         <p>此页面进入次数: {{ count }}</p>
         <div>
@@ -19,7 +19,11 @@ onActivated(() => {
 </script>
 
 <style scoped lang="scss">
-img {
-    margin: 10px;
+
+.index2Page {
+    img {
+        margin: 10px;
+        width: calc(50% - 20px);
+    }
 }
 </style>

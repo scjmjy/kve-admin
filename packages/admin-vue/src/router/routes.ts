@@ -22,16 +22,13 @@ export const routes: RouteRecordRaw[] = [
             {
                 path: ":path(.*)",
                 component: () => import("@/views/internal/redirect.vue"),
-                meta: {
-                    cacheable: false,
-                },
             },
         ],
     },
     {
         path: ROUTE_PATH.LOGIN,
         name: "Login",
-        component: () => import("@/views/user/login.vue"),
+        component: () => import("@/views/system/user/login.vue"),
         meta: {
             title: "登录",
             visible: false,
@@ -47,14 +44,40 @@ export const routes: RouteRecordRaw[] = [
             {
                 name: "Index1",
                 path: "",
-                meta: { title: "首页1" },
+                meta: { title: "首页1", icon: "DataLine", pinned: true },
                 component: () => import("@/views/dashboard/index.vue"),
             },
             {
                 name: "Index2",
                 path: "index2",
-                meta: { title: "首页2" },
+                meta: { title: "首页2", icon: "DataAnalysis", pinned: true },
                 component: () => import("@/views/dashboard/index2.vue"),
+            },
+        ],
+    },
+    {
+        name: "System",
+        path: "/system",
+        meta: { title: "系统管理" },
+        component: DefaultLayout,
+        redirect: "/system/manage",
+        children: [
+            {
+                name: "PermissionManage",
+                path: "manage",
+                meta: { title: "部门和权限", icon: "icon-department" },
+                component: () => import("@/views/system/permission/manage.vue"),
+            },
+            {
+                name: "Page1Detail",
+                path: "detail1",
+                meta: {
+                    title: "页面1的详情",
+                    visible: false,
+                    forName: "Page1",
+                    pathKey: "fullPath",
+                },
+                component: () => import("@/views/pages/detail1.vue"),
             },
         ],
     },
@@ -68,7 +91,7 @@ export const routes: RouteRecordRaw[] = [
             {
                 name: "Page1",
                 path: "page1",
-                meta: { title: "测试meta.pathKey" },
+                meta: { title: "测试meta.pathKey", icon: "Document" },
                 component: () => import("@/views/pages/page1.vue"),
             },
             {
@@ -85,39 +108,39 @@ export const routes: RouteRecordRaw[] = [
             {
                 name: "Page2",
                 path: "page2",
-                meta: { title: "测试meta.cacheable", cacheable: false },
+                meta: { title: "测试meta.cacheable", icon: "Document", cacheable: false },
                 component: () => import("@/views/pages/page2.vue"),
             },
             {
                 name: "PageGroup1",
                 path: "pagegroup1",
-                meta: { title: "页面组1" },
+                meta: { title: "页面组1", icon: "Files" },
                 component: DefaultLayout,
                 redirect: "/pages/pagegroup1/page1",
                 children: [
                     {
                         name: "NestedPage1",
                         path: "page1",
-                        meta: { title: "嵌套页面1" },
+                        meta: { title: "嵌套页面1", icon: "Document" },
                         component: () => import("@/views/pages/nested/page1.vue"),
                     },
                     {
                         name: "NestedPage2",
                         path: "page2",
-                        meta: { title: "嵌套页面2" },
+                        meta: { title: "嵌套页面2", icon: "Document" },
                         component: () => import("@/views/pages/nested/page2.vue"),
                     },
                     {
                         name: "NestedPageGroup1",
                         path: "pagegroup1",
-                        meta: { title: "嵌套页面组1" },
+                        meta: { title: "嵌套页面组1", icon: "Files" },
                         component: DefaultLayout,
                         redirect: "/pages/pagegroup1/pagegroup1/page1",
                         children: [
                             {
                                 name: "ThirdNestedPage1",
                                 path: "page1",
-                                meta: { title: "测试 route.params" },
+                                meta: { title: "测试 route.params", icon: "Document" },
                                 component: () => import("@/views/pages/nested/third-nested/page1.vue"),
                             },
                             {
@@ -129,27 +152,27 @@ export const routes: RouteRecordRaw[] = [
                             {
                                 name: "ThirdNestedPage2",
                                 path: "page2",
-                                meta: { title: "第三层嵌套页面2" },
+                                meta: { title: "第三层嵌套页面2", icon: "Document" },
                                 component: () => import("@/views/pages/nested/third-nested/page2.vue"),
                             },
                             {
                                 name: "FourthPageGroup1",
                                 path: "pagegroup1",
-                                meta: { title: "嵌套的嵌套页面组1" },
+                                meta: { title: "嵌套的嵌套页面组1", icon: "Files" },
                                 component: DefaultLayout,
                                 redirect: "/pages/pagegroup1/pagegroup1/pagegroup1/page1",
                                 children: [
                                     {
                                         name: "FourthNestedPage1",
                                         path: "page1",
-                                        meta: { title: "第四层嵌套页面1" },
+                                        meta: { title: "第四层嵌套页面1", icon: "Document" },
                                         component: () =>
                                             import("@/views/pages/nested/third-nested/fourth-nested/page1.vue"),
                                     },
                                     {
                                         name: "FourthNestedPage2",
                                         path: "page2",
-                                        meta: { title: "第四层嵌套页面2" },
+                                        meta: { title: "第四层嵌套页面2", icon: "Document" },
                                         component: () =>
                                             import("@/views/pages/nested/third-nested/fourth-nested/page2.vue"),
                                     },
@@ -173,6 +196,7 @@ export const routes: RouteRecordRaw[] = [
                 component: FakeLayout,
                 meta: {
                     title: "百度",
+                    icon: "icon-baidu",
                 },
             },
             {
@@ -180,6 +204,7 @@ export const routes: RouteRecordRaw[] = [
                 component: FakeLayout,
                 meta: {
                     title: "Bing",
+                    icon: "icon-edge",
                 },
             },
             {
@@ -188,6 +213,7 @@ export const routes: RouteRecordRaw[] = [
                 component: BlankPage,
                 meta: {
                     title: "Bing(内嵌)",
+                    icon: "icon-edge",
                     iframe: "https://www.bing.com",
                     cacheable: false,
                 },
@@ -198,8 +224,26 @@ export const routes: RouteRecordRaw[] = [
                 component: BlankPage,
                 meta: {
                     title: "Vue3(内嵌)",
+                    icon: "icon-vue",
                     iframe: "https://v3.cn.vuejs.org",
                     cacheable: false,
+                },
+            },
+        ],
+    },
+    {
+        path: "/user",
+        component: DefaultLayout,
+        meta: {
+            title: "用户相关路由",
+            visible: false,
+        },
+        children: [
+            {
+                path: "profile",
+                component: () => import("@/views/system/user/profile.vue"),
+                meta: {
+                    title: "个人资料",
                 },
             },
         ],

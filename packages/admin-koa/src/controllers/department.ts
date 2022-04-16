@@ -1,11 +1,15 @@
 import mongoose from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import { DEPARTMENT_CONTAINER_ID, DeptTreeNodesResult } from "admin-common";
-import { KoaContext } from "@/types/koa";
+import { KoaAjaxContext } from "@/types/koa";
 import { DepartmentModel } from "@/model/department";
 
-export async function getDeptTreeNodes(ctx: KoaContext<void, DeptTreeNodesResult>) {
-    const department = await DepartmentModel.findById<DeptTreeNodesResult>(DEPARTMENT_CONTAINER_ID).exec();
+export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesResult>) {
+    const query = DepartmentModel.findById<DeptTreeNodesResult>(DEPARTMENT_CONTAINER_ID);
+    query.setQuery({
+        doPopulate: true,
+    });
+    const department = await query.exec();
     ctx.status = StatusCodes.OK;
     ctx.body = {
         code: ctx.status,

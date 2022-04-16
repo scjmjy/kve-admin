@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
+import sharp from "sharp";
 import {
-    MsgShowType,
     UserProfileResult,
     LoginCredential,
     LoginResult,
@@ -13,13 +13,22 @@ import {
     UpdateUserAvatar,
     FindUsersParams,
     FindUsersResult,
+    CreateUserBody,
+    createUserRules,
+    UserProfileProjection,
+    IUser,
+    splitBase64,
+    FindUserProjection,
+    makeBase64,
 } from "admin-common";
 import { IUserMethods, UserModel } from "@/model/user";
 import { JWT_SECRET } from "@/middlewares/jwt";
-import { KoaContext } from "@/types/koa";
-import { throwUserNotFoundError } from "./errors";
+import { KoaAjaxContext, KoaContext } from "@/types/koa";
+import { throwBadRequestError, throwNotFoundError, throwUserNotFoundError } from "./errors";
+import { handlePaginationRequest } from "./utils";
+import Schema from "async-validator";
 
-export async function postLogin(ctx: KoaContext<Undefinable<LoginCredential>, LoginResult>) {
+export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
     if (ctx.session && ctx.session.loginErrorCount >= 5) {
         const elapsed = Date.now() - ctx.session.loginErrorTime;
         const rest = 1000 * 30 - elapsed;
@@ -27,7 +36,7 @@ export async function postLogin(ctx: KoaContext<Undefinable<LoginCredential>, Lo
             ctx.status = StatusCodes.FORBIDDEN;
             ctx.body = {
                 code: ctx.status,
-                showType: MsgShowType.NOTIFICATION,
+                showType: "NOTIFICATION",
                 msg: `连续错误多次，请在${rest / 1000}秒钟后重新尝试`,
             };
             return;
@@ -46,17 +55,12 @@ export async function postLogin(ctx: KoaContext<Undefinable<LoginCredential>, Lo
         } else {
             const valid = await existedUser.verifyPassword(password);
             if (!valid) {
-                ctx.status = StatusCodes.BAD_REQUEST;
-                ctx.body = {
-                    code: ctx.status,
-                    showType: MsgShowType.MESSAGE,
-                    msg: "请输入正确的用户名或密码！",
-                };
                 if (ctx.session) {
                     let count = ctx.session.loginErrorCount || 0;
                     ctx.session.loginErrorCount = ++count;
                     ctx.session.loginErrorTime = Date.now();
                 }
+                throwBadRequestError("请输入正确的用户名或密码！");
             } else {
                 const userId = existedUser.id as string;
                 const payload: JwtPayload = { id: userId };
@@ -64,7 +68,7 @@ export async function postLogin(ctx: KoaContext<Undefinable<LoginCredential>, Lo
                 ctx.status = StatusCodes.OK;
                 ctx.body = {
                     code: ctx.status,
-                    showType: MsgShowType.MESSAGE,
+                    showType: "MESSAGE",
                     msg: "登录成功",
                     data: {
                         token,
@@ -74,12 +78,7 @@ export async function postLogin(ctx: KoaContext<Undefinable<LoginCredential>, Lo
             }
         }
     } else {
-        ctx.status = StatusCodes.BAD_REQUEST;
-        ctx.body = {
-            code: ctx.status,
-            showType: MsgShowType.MESSAGE,
-            msg: "请输入完整的用户名或密码！",
-        };
+        throwBadRequestError("请输入完整的用户名或密码！");
     }
 }
 
@@ -101,11 +100,9 @@ interface JwtState {
     user: JwtPayload;
 }
 
-export async function getUserProfile(ctx: KoaContext<void, UserProfileResult, JwtState>) {
-    // console.log("[Session]: ", ctx.session = null);
-    // ctx.session = null;
+export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult, JwtState>) {
     const userId = ctx.state.user.id;
-    const existedUser = await UserModel.findById<UserProfileResult>(userId)
+    const existedUser = await UserModel.findById<UserProfileResult>(userId, UserProfileProjection.join(" "))
         .populate({
             path: "depts",
             select: "name",
@@ -119,9 +116,7 @@ export async function getUserProfile(ctx: KoaContext<void, UserProfileResult, Jw
         throwUserNotFoundError();
     } else {
         ctx.status = StatusCodes.OK;
-        const { _id, username, realname, email, mobileno, gender, avatar, depts, roles, createdAt, updatedAt } =
-            existedUser;
-        // console.log("[postLogin]", existedUser);
+        const { _id, username, realname, email, mobileno, gender, depts, roles, createdAt, updatedAt } = existedUser;
         ctx.body = {
             code: ctx.status,
             data: {
@@ -131,7 +126,6 @@ export async function getUserProfile(ctx: KoaContext<void, UserProfileResult, Jw
                 email,
                 mobileno,
                 gender,
-                avatar,
                 depts,
                 roles,
                 createdAt,
@@ -141,7 +135,7 @@ export async function getUserProfile(ctx: KoaContext<void, UserProfileResult, Jw
     }
 }
 
-export async function putUserProfile(ctx: KoaContext<UpdateUserProfile, void, JwtState>) {
+export async function putUserProfile(ctx: KoaAjaxContext<UpdateUserProfile, void, JwtState>) {
     const userId = ctx.state.user.id;
     const existedUser = await UserModel.findById<mongoose.Document & UpdateUserProfile>(
         userId,
@@ -163,35 +157,17 @@ export async function putUserProfile(ctx: KoaContext<UpdateUserProfile, void, Jw
     }
 }
 
-export async function putUserPassword(ctx: KoaContext<UpdateUserPassword, void, JwtState>) {
+export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword, void, JwtState>) {
     const userId = ctx.state.user.id;
     const { oldPassword, newPassword } = ctx.request.body || {};
     if (!oldPassword || !newPassword) {
-        ctx.status = StatusCodes.BAD_REQUEST;
-        ctx.body = {
-            code: ctx.status,
-            showType: MsgShowType.MESSAGE,
-            msg: "请提供必要的参数！",
-        };
-        return;
+        return throwBadRequestError("请提供必要的参数！");
     } else {
         const valid = isValidPassword(newPassword);
         if (valid === "fail-range") {
-            ctx.status = StatusCodes.BAD_REQUEST;
-            ctx.body = {
-                code: ctx.status,
-                showType: MsgShowType.MESSAGE,
-                msg: "密码长度错误！请提供 6-24 位字符。",
-            };
-            return;
+            throwBadRequestError("密码长度错误！请提供 6-24 位字符。");
         } else if (valid === "fail-strong") {
-            ctx.status = StatusCodes.BAD_REQUEST;
-            ctx.body = {
-                code: ctx.status,
-                showType: MsgShowType.MESSAGE,
-                msg: "密码强度错误！请提供 2 种以上的字符组合。",
-            };
-            return;
+            throwBadRequestError("密码强度错误！请提供 2 种以上的字符组合。");
         }
     }
     const existedUser = await UserModel.findById<mongoose.Document & { password: string } & IUserMethods>(
@@ -206,7 +182,7 @@ export async function putUserPassword(ctx: KoaContext<UpdateUserPassword, void, 
             ctx.status = StatusCodes.BAD_REQUEST;
             ctx.body = {
                 code: ctx.status,
-                showType: MsgShowType.MESSAGE,
+                showType: "MESSAGE",
                 msg: "当前密码错误！",
             };
         } else {
@@ -220,26 +196,47 @@ export async function putUserPassword(ctx: KoaContext<UpdateUserPassword, void, 
     }
 }
 
-export async function putUserAvatar(ctx: KoaContext<UpdateUserAvatar, void, JwtState>) {
-    const userId = ctx.state.user.id;
-    const { avatar } = ctx.request.body || {};
-    if (!avatar) {
-        ctx.status = StatusCodes.BAD_REQUEST;
-        ctx.body = {
-            code: ctx.status,
-            showType: MsgShowType.MESSAGE,
-            msg: "请提供 base64 格式的头像！",
-        };
-        return;
-    }
-    const existedUser = await UserModel.findById<mongoose.Document & { avatar: string } & IUserMethods>(
-        userId,
-        "avatar",
-    ).exec();
+export async function getUserAvatar(ctx: KoaContext<void, any, void, { userId: string }>) {
+    const userId = ctx.params.userId;
+    const existedUser = await UserModel.findById<Pick<IUser, "avatar">>(userId, "avatar").exec();
     if (!existedUser) {
         throwUserNotFoundError();
     } else {
+        const { avatar } = existedUser;
+        const base64 = splitBase64(avatar);
+        if (base64) {
+            const img = Buffer.from(base64.data, "base64");
+            ctx.status = StatusCodes.OK;
+            ctx.set({
+                "Content-Type": base64.type,
+                "Content-Length": img.length.toString(),
+                "Cache-Control": `max-age=${60 * 60 * 24}`, // 缓存一天
+            });
+            ctx.body = img;
+        } else {
+            throwNotFoundError("此用户没有设置头像", "SILENT");
+        }
+    }
+}
+
+export async function putUserAvatar(ctx: KoaAjaxContext<UpdateUserAvatar, void, JwtState>) {
+    const userId = ctx.state.user.id;
+    const { avatar = "" } = ctx.request.body || {};
+    const base64 = splitBase64(avatar || "");
+    if (!base64) {
+        return throwBadRequestError("请提供 base64 格式的头像！");
+    }
+    const existedUser = await UserModel.findById<
+        mongoose.Document & Pick<IUser, "avatar" | "thumbnail"> & IUserMethods
+    >(userId, "_id").exec();
+
+    if (!existedUser) {
+        throwUserNotFoundError();
+    } else {
+        const imgBuffer = Buffer.from(base64.data, "base64");
+        const thumbnail = (await sharp(imgBuffer).resize(50, 50).toBuffer()).toString("base64");
         existedUser.avatar = avatar;
+        existedUser.thumbnail = makeBase64(base64.type, thumbnail);
         await existedUser.save();
         ctx.status = StatusCodes.OK;
         ctx.body = {
@@ -248,4 +245,28 @@ export async function putUserAvatar(ctx: KoaContext<UpdateUserAvatar, void, JwtS
     }
 }
 
-export async function postFindUsers(ctx: KoaContext<Undefinable<FindUsersParams>, FindUsersResult>) {}
+export async function postFindUsers(ctx: KoaAjaxContext<Undefinable<FindUsersParams>, FindUsersResult>) {
+    const res = await handlePaginationRequest(UserModel, ctx.request.body, FindUserProjection.join(" "), {
+        doPopulate: true,
+    });
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        data: res,
+    };
+}
+
+export async function postCreateUser(ctx: KoaAjaxContext<Undefinable<CreateUserBody>, CreateResult>) {
+    const schema = new Schema(createUserRules);
+    const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as CreateUserBody;
+    const newUser = await UserModel.create(validBody);
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: "用户创建成功！",
+        data: {
+            _id: newUser._id,
+        },
+    };
+}

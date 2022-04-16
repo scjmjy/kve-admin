@@ -27,6 +27,7 @@ export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
         mobileno: { type: String },
         gender: { type: String },
         avatar: { type: String },
+        thumbnail: { type: String },
         depts: [{ type: mongoose.Types.ObjectId, ref: MODEL_NAME_DEPARTMENT }],
         roles: [{ type: mongoose.Types.ObjectId, ref: MODEL_NAME_ROLE }],
     },
@@ -36,6 +37,28 @@ export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
 );
 
 UserSchema.plugin(BcryptPlugin).plugin(mongoosePaginate);
+
+const preFind: mongoose.PreMiddlewareFunction<mongoose.Query<any, any>> = function (next) {
+    // @ts-ignore
+    const filter = this.getFilter() as mongoose.PopulateQuery<IUserDoc>;
+    if (!filter.doPopulate) {
+        return next();
+    }
+
+    this.populate([
+        {
+            path: "roles",
+            select: "name",
+        },
+        {
+            path: "depts",
+            select: "name",
+        },
+    ]);
+    next();
+};
+
+UserSchema.pre(["find", "findOne"], preFind);
 
 UserSchema.static("getStatistics", function () {
     return "100人";

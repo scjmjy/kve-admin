@@ -14,8 +14,11 @@ export abstract class StorableObject {
     //     this.save();
     // }
 
-    remove() {
+    remove<T>(Cls?: new () => T) {
         localStorage.removeItem(this.__STORAGE_KEY);
+        if (Cls) {
+            Object.assign(this, new Cls());
+        }
     }
 }
 

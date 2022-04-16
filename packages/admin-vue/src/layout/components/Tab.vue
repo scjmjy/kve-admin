@@ -13,9 +13,9 @@
             }"
             @click="navigate"
         >
-            <el-icon v-if="props.route.meta?.icon">
+            <!-- <el-icon v-if="props.route.meta?.icon">
                 <component :is="props.route.meta?.icon"></component>
-            </el-icon>
+            </el-icon> -->
             {{ props.route.meta?.title }}
             <CircleCloseFilled
                 class="el-icon--svg tab-close"

@@ -1,17 +1,23 @@
 <template>
     <el-card class="profileCard" shadow="never">
         <template #header>
-            <span>User Name</span>
-            <el-button class="button" type="primary" :loading="state.loggingOut" @click="logout">退出</el-button>
+            <span>{{ userStore.userProfile.realname }}</span>
+            <el-button class="button" type="danger" :loading="state.loggingOut" @click="logout">退出</el-button>
         </template>
-        <div v-for="o in 4" :key="o" class="text item">{{ "List item " + o }}</div>
+        <div>
+            <el-button type="text" @click="gotoProfile">更多...</el-button>
+        </div>
     </el-card>
 </template>
 
 <script setup lang="ts">
 import { reactive } from "vue";
 import { useUserStore } from "@/store/modules/user";
+import { useRouter } from "vue-router";
 
+const emit = defineEmits(["hideme"]);
+
+const router = useRouter();
 const userStore = useUserStore();
 
 const state = reactive({
@@ -20,7 +26,12 @@ const state = reactive({
 });
 function logout() {
     state.loggingOut = true;
+    emit("hideme");
     userStore.logout().finally(() => {});
+}
+function gotoProfile() {
+    router.push("/user/profile");
+    emit("hideme");
 }
 </script>
 

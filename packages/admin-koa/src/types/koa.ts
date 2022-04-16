@@ -10,7 +10,7 @@ interface IRouterContext<StateT, ParamsT extends Record<string, string>> extends
     params: ParamsT;
 }
 
-export interface KoaContext<
+export interface KoaAjaxContext<
     RequestBodyT = any,
     ResponseDataT = any,
     StateT = any,
@@ -21,4 +21,12 @@ export interface KoaContext<
     body: AjaxResult<ResponseDataT, ResponseErrDataT>;
 }
 
-// export interface KoaResponseContext<ResponseBody> extends KoaContext<any, ResponseBody> {}
+export interface KoaContext<
+    RequestBodyT = any,
+    ResponseBodyT = any,
+    StateT = any,
+    ParamsT extends Record<string, string> = Record<string, string>,
+> extends IRouterContext<StateT, ParamsT> {
+    request: KoaRequest<RequestBodyT>;
+    body: ResponseBodyT;
+}

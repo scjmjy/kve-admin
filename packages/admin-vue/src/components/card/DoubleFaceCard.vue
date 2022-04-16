@@ -25,18 +25,15 @@ const props = defineProps({
 <style scoped lang="scss">
 .doubleFaceCard {
     position: relative;
-    transition: all 0.8s ease;
+    transition: transform 0.8s ease, box-shadow 0.3s ease;
     transform-style: preserve-3d;
-    box-shadow: 0px 2px 4px 0px rgb(0 0 0 / 40%);
+    box-shadow: 0px 1px 2px 0px rgb(0 0 0 / 40%);
 
     &:hover {
-        // transform: scale3d(1.1, 1.1, 1.1);
-        // box-shadow: 0px 5px 40px 0px rgba(0, 0, 0, 0.8);
-        // box-shadow: 0px 5px 12px 0px rgba(0, 0, 0, 0.4);
         box-shadow: 0px 6px 12px 1px rgb(0 0 0 / 40%);
     }
     &.is-rotated {
-        transform: rotateY(-180deg);
+        transform: rotateY(180deg);
         // &:hover {
         //     transform: rotateY(-180deg) scale3d(1.1, 1.1, 1.1);
         // }

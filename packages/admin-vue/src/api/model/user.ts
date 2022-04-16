@@ -1,9 +1,41 @@
-import { StorableObject } from "@/utils/storage";
+import { Gender, UserProfileResult } from "admin-common";
 
-export class UserProfile extends StorableObject {
-    static STORAGE_KEY = "STORAGE_KEY_USER";
+const STORAGE_KEY_USER_TOKEN = "STORAGE_KEY_USER_TOKEN";
+const STORAGE_KEY_USER_AVATAR_TIMESTAMP = "STORAGE_KEY_USER_AVATAR_TIMESTAMP";
 
-    constructor(public username = "", public id = "", public avatar = "", public token = "") {
-        super(UserProfile.STORAGE_KEY);
+export class UserProfile implements UserProfileResult {
+    constructor(
+        public _id = "",
+        public username = "",
+        public realname = "",
+        public email = "",
+        public mobileno = "",
+        public gender = Gender.UNKNOWN,
+        public depts: UserProfileResult["depts"] = [],
+        public roles: UserProfileResult["roles"] = [],
+        public createdAt = "",
+        public updatedAt = "",
+    ) {
+        this.token = localStorage.getItem(STORAGE_KEY_USER_TOKEN) || "";
+        this.timestamp = localStorage.getItem(STORAGE_KEY_USER_AVATAR_TIMESTAMP) || "";
+        if (!this.timestamp) {
+            this.avatar = 1; // 更新 timestamp
+        }
+    }
+    public token: string;
+    private timestamp: string;
+    get avatar() {
+        return `/api/user/avatar/${this._id}?t=${this.timestamp}`;
+    }
+    set avatar(_val: any) {
+        this.timestamp = Date.now().toString();
+        localStorage.setItem(STORAGE_KEY_USER_AVATAR_TIMESTAMP, this.timestamp);
+    }
+
+    saveToken() {
+        localStorage.setItem(STORAGE_KEY_USER_TOKEN, this.token);
+    }
+    removeToken() {
+        localStorage.removeItem(STORAGE_KEY_USER_TOKEN);
     }
 }
