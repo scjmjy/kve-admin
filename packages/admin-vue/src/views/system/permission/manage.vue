@@ -1,7 +1,7 @@
 <template>
     <el-row class="permissionManage" :gutter="20">
         <el-col :xs="24" :sm="5" style="margin-bottom: 20px">
-            <el-input v-model="state.deptKeyword" placeholder="输入部门名称进行筛选" :prefix-icon="Search" />
+            <!-- <el-input v-model="state.deptKeyword" placeholder="输入部门名称进行筛选" :prefix-icon="Search" /> -->
             <el-tree
                 ref="refTree"
                 class="permissionManage-tree"
@@ -110,7 +110,7 @@ function onTreeNodeClick(data: DeptTreeNodesResult, node: TreeNode) {
 <style scoped lang="scss">
 .permissionManage {
     &-tree {
-        margin-top: 20px;
+        // margin-top: 20px;
     }
     &-tabs {
         box-shadow: 0 2px 5px #808080a6;

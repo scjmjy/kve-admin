@@ -2,7 +2,7 @@
     <el-switch :class="{ 'is-readonly': readonly }" v-bind="$attrs" @click.capture="onClick" />
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" name="ReadonlySwitch">
 const props = defineProps({
     readonly: {
         type: Boolean,

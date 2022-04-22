@@ -1,7 +1,8 @@
-import { CreateUserBody } from "./../../../admin-common/src/user";
 import { AxiosPromise } from "axios";
 // import { MsgSilent, MsgSilentHeader } from "admin-common/AjaxResult";
 import {
+    CreateUserBody,
+    UpdateUserBody,
     FindUsersParams,
     FindUsersResult,
     LoginCredential,
@@ -10,6 +11,7 @@ import {
     UpdateUserProfile,
     UpdateUserPassword,
     UpdateUserAvatar,
+    UserIdsBody,
 } from "admin-common";
 import { request } from "./request";
 
@@ -70,6 +72,51 @@ export function createUser(user: CreateUserBody): AxiosPromise<CreateResult> {
         method: "POST",
         url: "/api/user",
         data: user,
+    });
+}
+
+export function updateUser(user: UpdateUserBody): AxiosPromise<void> {
+    return request({
+        method: "PUT",
+        url: "/api/user",
+        data: user,
+    });
+}
+
+export function enableUsers(ids: string[]): AxiosPromise<void> {
+    return request({
+        method: "PUT",
+        url: "/api/user/enable",
+        data: {
+            ids,
+        } as UserIdsBody,
+    });
+}
+
+export function disableUsers(ids: string[]): AxiosPromise<void> {
+    return request({
+        method: "PUT",
+        url: "/api/user/disable",
+        data: {
+            ids,
+        } as UserIdsBody,
+    });
+}
+
+export function deleteUser(userId: string): AxiosPromise<void> {
+    return request({
+        method: "DELETE",
+        url: "/api/user/" + userId,
+    });
+}
+
+export function deleteUsers(ids: string[]): AxiosPromise<void> {
+    return request({
+        method: "PUT",
+        url: "/api/user/delete",
+        data: {
+            ids,
+        } as UserIdsBody,
     });
 }
 

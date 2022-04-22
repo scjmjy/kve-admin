@@ -1,11 +1,7 @@
-import { IBase, isValidPassword, ValidatorRules } from "./utils";
+import { FormItemRule, IBase, isValidPassword, ValidatorRules } from "./utils";
 import { IDepartment, IRole } from "./department";
 
-export enum Gender {
-    MALE = "MALE",
-    FEMALE = "FEMALE",
-    UNKNOWN = "UNKNOWN",
-}
+export type Gender = "MALE" | "FEMALE" | "UNKNOWN";
 
 export interface LoginCredential {
     username: string;
@@ -30,6 +26,9 @@ export interface IUser extends IBase {
     roles: IRole[];
 }
 
+export const USER_SUPERADMIN_ID = "000000000000000000000000";
+
+//#region UserProfile
 export const UserProfileProjection = [
     "_id",
     "username",
@@ -51,6 +50,7 @@ export interface UserProfileResult extends Pick<IUser, Exclude<UserProfileKeys, 
 }
 
 export type UpdateUserProfile = Pick<UserProfileResult, "realname" | "email" | "mobileno" | "gender">;
+//#endregion
 
 export interface UpdateUserPassword {
     oldPassword: string;
@@ -62,10 +62,7 @@ export interface UpdateUserAvatar {
     avatar: string;
 }
 
-export type UserFilter = PaginationFilter<
-    Pick<IUser, "username" | "realname" | "mobileno" | "email" | "status" | "depts">
->;
-
+//#region FindUser
 
 export const FindUserProjection = [
     "_id",
@@ -84,72 +81,124 @@ export const FindUserProjection = [
 
 type FindUserKeys = typeof FindUserProjection[number];
 
+export type UserFilter = Extract<keyof IUser, "username" | "realname" | "mobileno" | "email" | "status" | "depts">;
 export type FindUsersParams = PaginationParams<UserFilter>;
 export type FindUsersResult = PaginationResult<Pick<IUser, FindUserKeys>>;
 
-export type CreateUserBody = Pick<IUser, "username" | "realname" | "password"> &
-    Partial<Pick<IUser, "mobileno" | "email" | "gender" | "depts" | "roles" | "avatar">>;
+//#endregion
 
-export type CreateUserRules = ValidatorRules<CreateUserBody>;
+//#region CreateUser UpdateUser
+export interface CreateUserBody
+    extends Pick<IUser, "username" | "realname" | "password">,
+        Partial<Pick<IUser, "mobileno" | "email" | "gender" | "status">> {
+    depts: string[];
+    roles: string[];
+}
 
-export const createUserRules: CreateUserRules = {
-    username: [
-        {
+export interface UpdateUserBody extends Omit<CreateUserBody, "password"> {
+    _id: string;
+    password?: string;
+}
+
+export type UserRules = ValidatorRules<CreateUserBody & UpdateUserBody>;
+
+export function getUserRules(type: "create" | "update") {
+    const userRules: UserRules = {
+        _id: {
             required: true,
-            message: "用户名不能为空！",
-            trigger: ["change"],
+            len: 24,
+            message: "请提供正确的用户 ID！",
         },
-        {
-            min: 6,
-            max: 24,
-            message: "用户名为 6-24 位字符！",
-            trigger: ["change"],
-        },
-    ],
-    realname: [
-        {
-            required: true,
-            message: "真实姓名不能为空！",
-            trigger: ["change"],
-        },
-        {
-            min: 2,
-            max: 24,
-            message: "用户名为 2-24 个字符！",
-            trigger: ["change"],
-        },
-    ],
-    password: [
-        { required: true, message: "密码不能为空", trigger: ["change"] },
-        {
-            validator(rule, value, callback) {
-                const validation = isValidPassword(value);
-                if (validation === "fail-range") {
-                    callback(new Error("密码长度为 6 到 24 个字符！"));
-                } else if (validation === "fail-strong") {
-                    callback(new Error("密码必须同时包含数字，大、小字母，特殊字符中的 2 种！"));
-                } else {
-                    callback();
-                }
+        username: [
+            {
+                required: true,
+                message: "用户名不能为空！",
+                trigger: ["change"],
             },
+            {
+                min: 6,
+                max: 24,
+                message: "用户名为 6-24 位字符！",
+                trigger: ["change"],
+            },
+        ],
+        realname: [
+            {
+                required: true,
+                message: "真实姓名不能为空！",
+                trigger: ["change"],
+            },
+            {
+                min: 2,
+                max: 24,
+                message: "用户名为 2-24 个字符！",
+                trigger: ["change"],
+            },
+        ],
+        password: [
+            { required: true, message: "密码不能为空", trigger: ["change"] },
+            {
+                required: false,
+                validator(rule, value, callback) {
+                    if (!value) {
+                        return callback();
+                    }
+                    const validation = isValidPassword(value);
+                    if (validation === "fail-range") {
+                        callback(new Error("密码长度为 6 到 24 个字符！"));
+                    } else if (validation === "fail-strong") {
+                        callback(new Error("请包含数字、英文字母、特殊字符中的 2 种！"));
+                    } else {
+                        callback();
+                    }
+                },
+                trigger: ["change"],
+            },
+        ],
+        depts: {
+            required: true,
+            type: "array",
+            min: 1,
+            message: "所属部门不能为空！",
+        },
+        roles: {
+            required: true,
+            type: "array",
+            min: 1,
+            message: "拥有的角色不能为空！",
+        },
+        gender: {
+            required: true,
+            message: "请选择性别！",
             trigger: ["change"],
         },
-    ],
-    gender: {
-        required: true,
-        message: "请选择性别！",
-        trigger: ["change"],
-    },
-    email: {
-        required: false,
-        type: "email",
-        message: "'请输入正确的邮箱地址",
-        trigger: ["change"],
-    },
-    mobileno: {
-        required: false,
-        pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
-        message: "请输入正确的手机号码",
-        trigger: ["change"],
-    },
-};
+        email: {
+            required: false,
+            type: "email",
+            message: "'请输入正确的邮箱地址",
+            trigger: ["change"],
+        },
+        mobileno: {
+            required: false,
+            pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
+            message: "请输入正确的手机号码",
+            trigger: ["change"],
+        },
+    };
+    if (type === "create") {
+        (userRules._id as FormItemRule).required = false;
+    } else {
+        (userRules.password as Array<FormItemRule>).shift();
+    }
+    return userRules;
+}
+
+//#endregion
+
+//#region user status
+
+export interface UserIdsBody {
+    ids: string[];
+}
+
+//#endregion

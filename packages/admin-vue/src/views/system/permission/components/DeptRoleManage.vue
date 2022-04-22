@@ -9,6 +9,7 @@
                 :data="roleTreeNodes"
                 :props="treeProps"
                 highlight-current
+                default-expand-all
                 :expand-on-click-node="false"
                 @node-click="onTreeNodeClick"
             />
@@ -28,7 +29,7 @@
                 </template>
                 <template v-if="state2.deptInfo">
                     <el-descriptions-item label="部门名称">{{ state2.deptInfo.name }} </el-descriptions-item>
-                    <el-descriptions-item label="拥有角色">{{ state2.deptInfo.roles }} </el-descriptions-item>
+                    <el-descriptions-item label="包含角色">{{ state2.deptInfo.roles }} </el-descriptions-item>
                 </template>
                 <template v-else-if="state2.roleInfo">
                     <el-descriptions-item label="角色名称">{{ state2.roleInfo.name }} </el-descriptions-item>
@@ -53,44 +54,11 @@
 <script setup lang="ts" name="DeptRoleManage">
 import { computed, PropType, reactive, watch } from "vue";
 import { DeptTreeNodesResult } from "admin-common";
-
-type RoleType = DeptTreeNodesResult["roles"][0];
-interface DeptNode extends Pick<RoleType, "_id" | "name"> {
-    roles: RoleNode[];
-}
-type RoleNode = RoleType | DeptNode;
+import { isDept, makeDeepRoleNode, RoleNode } from "../composables/useRoleNodes";
 
 interface TreeNode {
     parent: TreeNode;
     data: RoleNode;
-}
-
-function isDept(node: RoleNode): node is DeptNode {
-    if ("roles" in node) {
-        return true;
-    }
-    return false;
-}
-
-function makeDeepNode(dept: DeptTreeNodesResult): RoleNode {
-    if (!dept.depts.length) {
-        return {
-            _id: dept._id,
-            name: dept.name,
-            roles: Array.from(dept.roles),
-        };
-    } else {
-        const deptNode = {
-            _id: dept._id,
-            name: dept.name,
-            roles: Array.from(dept.roles) as RoleNode[],
-        };
-        for (const d of dept.depts) {
-            const node = makeDeepNode(d);
-            deptNode.roles.push(node);
-        }
-        return deptNode;
-    }
 }
 
 const props = defineProps({
@@ -136,7 +104,7 @@ const state2 = reactive({
 
 const roleTreeNodes = computed<RoleNode[]>(() => {
     if (state.deep) {
-        return [makeDeepNode(props.dept)];
+        return [makeDeepRoleNode(props.dept)!];
     } else {
         return [
             {

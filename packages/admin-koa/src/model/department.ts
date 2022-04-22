@@ -45,7 +45,7 @@ export const DepartmentSchema = new mongoose.Schema<IDepartmentDoc, IDepartmentM
 
 const preFind: mongoose.PreMiddlewareFunction<mongoose.Query<any, any>> = function (next) {
     // @ts-ignore
-    const filter = this.getFilter() as mongoose.PopulateQuery<any>;
+    const filter = this.getFilter() as mongoose.MiddlewareQuery<any>;
 
     if (!filter.doPopulate) {
         return next();

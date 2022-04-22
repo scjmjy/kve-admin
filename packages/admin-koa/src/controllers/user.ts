@@ -14,12 +14,14 @@ import {
     FindUsersParams,
     FindUsersResult,
     CreateUserBody,
-    createUserRules,
+    getUserRules,
     UserProfileProjection,
     IUser,
     splitBase64,
     FindUserProjection,
     makeBase64,
+    UpdateUserBody,
+    UserIdsBody,
 } from "admin-common";
 import { IUserMethods, UserModel } from "@/model/user";
 import { JWT_SECRET } from "@/middlewares/jwt";
@@ -147,7 +149,7 @@ export async function putUserProfile(ctx: KoaAjaxContext<UpdateUserProfile, void
         ctx.status = StatusCodes.OK;
         const { realname, email, mobileno, gender } = ctx.request.body || {};
         realname && (existedUser.realname = realname);
-        existedUser.gender = gender || Gender.UNKNOWN;
+        existedUser.gender = gender || "UNKNOWN";
         existedUser.mobileno = mobileno || "";
         existedUser.email = email || "";
         await existedUser.save();
@@ -197,7 +199,7 @@ export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword, vo
 }
 
 export async function getUserAvatar(ctx: KoaContext<void, any, void, { userId: string }>) {
-    const userId = ctx.params.userId;
+    const { userId } = ctx.params;
     const existedUser = await UserModel.findById<Pick<IUser, "avatar">>(userId, "avatar").exec();
     if (!existedUser) {
         throwUserNotFoundError();
@@ -246,7 +248,11 @@ export async function putUserAvatar(ctx: KoaAjaxContext<UpdateUserAvatar, void, 
 }
 
 export async function postFindUsers(ctx: KoaAjaxContext<Undefinable<FindUsersParams>, FindUsersResult>) {
-    const res = await handlePaginationRequest(UserModel, ctx.request.body, FindUserProjection.join(" "), {
+    const params = ctx.request.body;
+    if (!params || !params.pageNum || !params.pageSize) {
+        return throwBadRequestError("分页参数错误！");
+    }
+    const res = await handlePaginationRequest(UserModel, params, FindUserProjection.join(" "), {
         doPopulate: true,
     });
     ctx.status = StatusCodes.OK;
@@ -256,10 +262,11 @@ export async function postFindUsers(ctx: KoaAjaxContext<Undefinable<FindUsersPar
     };
 }
 
-export async function postCreateUser(ctx: KoaAjaxContext<Undefinable<CreateUserBody>, CreateResult>) {
-    const schema = new Schema(createUserRules);
+export async function postUser(ctx: KoaAjaxContext<Undefinable<CreateUserBody>, CreateResult>) {
+    const schema = new Schema(getUserRules("create"));
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as CreateUserBody;
     const newUser = await UserModel.create(validBody);
+
     ctx.status = StatusCodes.OK;
     ctx.body = {
         code: ctx.status,
@@ -268,5 +275,111 @@ export async function postCreateUser(ctx: KoaAjaxContext<Undefinable<CreateUserB
         data: {
             _id: newUser._id,
         },
+    };
+}
+
+export async function putUser(ctx: KoaAjaxContext<Undefinable<UpdateUserBody>, void>) {
+    const schema = new Schema(getUserRules("update"));
+    const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateUserBody;
+    await UserModel.findByIdAndUpdate(validBody._id, validBody, {
+        projection: "_id",
+    });
+
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: "用户更新成功！",
+    };
+}
+
+export async function deleteUser(ctx: KoaAjaxContext<void, void, void, { userId: string }>) {
+    const { userId } = ctx.params;
+    const existedUser = await UserModel.findById<mongoose.Document & Pick<IUser, "status">>(userId, "status").exec();
+    if (!existedUser) {
+        return throwUserNotFoundError();
+    }
+    existedUser.status = "deleted";
+    await existedUser.save();
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: "用户删除成功！",
+    };
+}
+
+export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, void>) {
+    const { ids } = ctx.request.body || {};
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return throwBadRequestError("请提供 ID！");
+    }
+    const res = await UserModel.bulkWrite([
+        {
+            updateMany: {
+                filter: {
+                    _id: {
+                        $in: ids,
+                    },
+                },
+                update: { status: "enabled" },
+            },
+        },
+    ]);
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: `启用${res.modifiedCount}个用户！`,
+    };
+}
+
+export async function putDisableUsers(ctx: KoaAjaxContext<UserIdsBody, void, void>) {
+    const { ids } = ctx.request.body || {};
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return throwBadRequestError("请提供 ID！");
+    }
+    const res = await UserModel.bulkWrite([
+        {
+            updateMany: {
+                filter: {
+                    _id: {
+                        $in: ids,
+                    },
+                },
+                update: { status: "disabled" },
+            },
+        },
+    ]);
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: `禁用${res.modifiedCount}个用户！`,
+    };
+}
+
+export async function putDeleteUsers(ctx: KoaAjaxContext<UserIdsBody, void, void>) {
+    const { ids } = ctx.request.body || {};
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return throwBadRequestError("请提供 ID！");
+    }
+    const res = await UserModel.bulkWrite([
+        {
+            updateMany: {
+                filter: {
+                    _id: {
+                        $in: ids,
+                    },
+                },
+                update: { status: "deleted" },
+            },
+        },
+    ]);
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: `删除${res.modifiedCount}个用户！`,
     };
 }

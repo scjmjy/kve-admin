@@ -1,11 +1,12 @@
 <template>
     <div class="userAvatar">
-        <el-avatar :class="$attrs.class" :src="userStore.userProfile.avatar" :size="size"> </el-avatar>
+        <UserAvatar :class="$attrs.class" :src="userStore.userProfile.avatar" :size="size" @error="onAvatarError" />
         <SvgIcon class="userAvatar-maskIcon" :icon="state.maskIcon" @click="onMaskIconClick"></SvgIcon>
         <el-image-viewer
             v-if="action === 'view' && state.isShowViewer"
-            :url-list="[userStore.userProfile.avatar]"
+            :url-list="state.previewUrlList"
             teleported
+            hide-on-click-modal
             @close="state.isShowViewer = false"
         />
         <el-dialog
@@ -19,7 +20,7 @@
             @opened="onDlgOpened"
         >
             <el-row>
-                <el-col :xs="24" :md="14" class="m-flex is-vertical is-between" :style="{ height: '400px' }">
+                <el-col :xs="24" :md="14" class="is-flex is-vertical is-between" :style="{ height: '400px' }">
                     <VueCropper
                         ref="refCropper"
                         :img="state.options.img"
@@ -30,7 +31,7 @@
                         :fixedBox="state.options.fixedBox"
                         @realTime="onRealTime"
                     />
-                    <div class="m-flex is-between is-hFull" style="margin-top: 20px">
+                    <div class="is-flex is-between is-hFull" style="margin-top: 20px">
                         <FileSelectButton accept="image" :icon="Upload" @change="onFileChange"
                             >选择头像</FileSelectButton
                         >
@@ -42,12 +43,12 @@
                         </el-button-group>
                     </div>
                 </el-col>
-                <el-col :xs="24" :md="10" :style="{ height: '400px' }" class="m-flex is-vertical is-hCenter">
+                <el-col :xs="24" :md="10" :style="{ height: '400px' }" class="is-flex is-vertical is-hCenter">
                     <div class="userAvatar-dlg-avatar">
                         <img :src="state.previews.url" :style="state.previews.img" />
                     </div>
 
-                    <div class="m-flex is-hCenter">
+                    <div class="is-flex is-hCenter">
                         <el-button type="primary" :icon="UploadFilled" :loading="state.loading" @click="uploadAvatar"
                             >上传头像</el-button
                         >
@@ -63,6 +64,8 @@ import { PropType, reactive, ref } from "vue";
 import { VueCropper } from "vue-cropper";
 import { Minus, Plus, RefreshLeft, RefreshRight, Upload, UploadFilled } from "@element-plus/icons-vue";
 import { useUserStore } from "@/store/modules/user";
+import { defaultAvatar } from "@/assets";
+import { computed } from "@vue/reactivity";
 
 const props = defineProps({
     action: {
@@ -95,7 +98,13 @@ const state = reactive({
         url: userStore.userProfile.avatar,
         img: {},
     },
+    previewUrlList: [userStore.userProfile.avatar],
 });
+
+function onAvatarError() {
+    state.options.img = defaultAvatar;
+    state.previewUrlList = [defaultAvatar];
+}
 
 function onDlgOpened() {}
 
@@ -143,6 +152,8 @@ function uploadAvatar() {
             .uploadUserAvatar(base64)
             .then(() => {
                 state.isShowDlg = false;
+                state.options.img = userStore.userProfile.avatar;
+                state.previewUrlList = [userStore.userProfile.avatar];
                 emit("upload");
             })
             .finally(() => {

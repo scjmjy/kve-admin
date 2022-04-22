@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
+import "mongoose-paginate-v2";
 import { throwBadRequestError } from "./errors";
+declare module "mongoose" {
+    export interface ExtraQuery {
+        doPopulate?: boolean;
+        includeDeleted?: boolean;
+    }
+    export type MiddlewareQuery<T> = FilterQuery<T> & ExtraQuery;
+}
 
 export function makePaginationResult<T>(result: mongoose.PaginateResult<T>) {
     return {
@@ -20,17 +28,17 @@ export function makePaginationResult<T>(result: mongoose.PaginateResult<T>) {
  *
  * @param Model Mongoose Mddel，例如 UserModel
  * @param params 前端传过来的过滤条件和页码参数
- * @param extraFilter 用于控制 populate 的参数，例如 PopulateQuery
+ * @param extraFilter ExtraQuery
  * @returns
  */
-export async function handlePaginationRequest<T>(
+export async function handlePaginationRequest<T, FilterT extends string>(
     Model: mongoose.PaginateModel<T>,
-    params?: PaginationParams<T>,
+    params?: PaginationParams<FilterT>,
     projection?: string,
-    extraFilter?: Record<string, any>,
+    extraFilter?: mongoose.ExtraQuery,
 ) {
     const { filter, pageNum, pageSize } = params || {};
-    if (!filter || !pageNum || !pageSize) {
+    if (!pageNum || !pageSize) {
         throwBadRequestError("请提供正确的参数！");
         return Promise.reject();
     }
@@ -40,7 +48,7 @@ export async function handlePaginationRequest<T>(
         offset: (pageNum - 1) * pageSize,
         projection,
     };
-    const queryBuilder = new QueryBuilder<PaginationParams<T>["filter"]>(extraFilter);
+    const queryBuilder = new QueryBuilder<PaginationParams<FilterT>["filter"]>(extraFilter);
     for (const key in filter) {
         const value = filter[key];
         if (!value) {
@@ -49,19 +57,28 @@ export async function handlePaginationRequest<T>(
         // type: "regex" | "eq" | "ne" | "gte" | "gt" | "lte" | "lt" | "in" | "nin";
         switch (value.comparison) {
             case "regex":
+                // @ts-ignore
                 queryBuilder.regexp(key, value.value);
                 break;
             case "eq":
+                // @ts-ignore
                 queryBuilder.equal(key, value.value);
                 break;
+            case "ne":
+                // @ts-ignore
+                queryBuilder.notEqual(key, value.value);
+                break;
             case "range":
+                // @ts-ignore
                 queryBuilder.range(key, value.value);
                 break;
             case "in":
+                // @ts-ignore
                 queryBuilder.in(key, value.value);
                 break;
             case "nin":
-                queryBuilder.nin(key, value.value);
+                // @ts-ignore
+                queryBuilder.notIn(key, value.value);
                 break;
 
             default:
@@ -78,6 +95,15 @@ export class QueryBuilder<T> {
         if (keyword !== undefined && keyword !== null) {
             // @ts-ignore
             this.query[prop] = keyword;
+        }
+        return this;
+    }
+    notEqual(prop: keyof T, keyword?: string | number) {
+        if (keyword !== undefined && keyword !== null) {
+            // @ts-ignore
+            this.query[prop] = {
+                $ne: keyword,
+            };
         }
         return this;
     }
@@ -107,7 +133,7 @@ export class QueryBuilder<T> {
         }
         return this;
     }
-    nin(prop: keyof T, range?: (string | number)[]) {
+    notIn(prop: keyof T, range?: (string | number)[]) {
         if (range) {
             // @ts-ignore
             this.query[prop] = {

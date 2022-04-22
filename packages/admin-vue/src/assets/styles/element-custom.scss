@@ -1,4 +1,5 @@
 @use "./vars.scss" as *;
+@use "element-plus/theme-chalk/src/common/var.scss" as elementPlusVar;
 
 .is-3d {
     .el-button:not(.el-button--text) {
@@ -82,7 +83,7 @@
 // }
 
 .el-tree-node {
-    margin: 5px 0;
+    margin-bottom: 5px;
     &.is-current {
         > .el-tree-node__content {
             box-shadow: 0 0 5px #808080a6;
@@ -129,6 +130,23 @@
     }
 }
 
-.el-select {
-    width: 100%;
+.el-select,
+.el-date-editor {
+    width: 100% !important;
+}
+
+$dialog-widths: (
+    "90%": "(max-width: #{elementPlusVar.$sm})",
+    "80%": "(min-width: #{elementPlusVar.$sm})",
+    "70%": "(min-width: #{elementPlusVar.$md})",
+    "60%": "(min-width: #{elementPlusVar.$lg})",
+    "50%": "(min-width: #{elementPlusVar.$xl})",
+) !default;
+
+@each $width, $value in $dialog-widths {
+    @media only screen and #{$value} {
+        .el-dialog {
+            --el-dialog-width: #{$width};
+        }
+    }
 }

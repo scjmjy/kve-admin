@@ -20,7 +20,7 @@ export type IUserModel = mongoose.PaginateModel<IUserDoc> & IUserStatics;
 
 export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
     {
-        username: { type: String, required: true },
+        username: { type: String, required: true, unique: true },
         password: { type: String, required: true, bcrypt: true },
         realname: { type: String },
         email: { type: String },
@@ -28,6 +28,7 @@ export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
         gender: { type: String },
         avatar: { type: String },
         thumbnail: { type: String },
+        status: { type: String },
         depts: [{ type: mongoose.Types.ObjectId, ref: MODEL_NAME_DEPARTMENT }],
         roles: [{ type: mongoose.Types.ObjectId, ref: MODEL_NAME_ROLE }],
     },
@@ -40,7 +41,12 @@ UserSchema.plugin(BcryptPlugin).plugin(mongoosePaginate);
 
 const preFind: mongoose.PreMiddlewareFunction<mongoose.Query<any, any>> = function (next) {
     // @ts-ignore
-    const filter = this.getFilter() as mongoose.PopulateQuery<IUserDoc>;
+    const filter = this.getFilter() as mongoose.MiddlewareQuery<IUserDoc>;
+    if (!filter.includeDeleted && !filter.status) {
+        filter.status = {
+            $ne: "deleted",
+        };
+    }
     if (!filter.doPopulate) {
         return next();
     }

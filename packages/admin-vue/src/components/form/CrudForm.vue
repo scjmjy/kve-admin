@@ -11,11 +11,7 @@
     >
         <slot name="prepend" />
         <el-row :gutter="20">
-            <el-col
-                v-for="(item, index) of items"
-                :key="index"
-                :span="state.span || item.span || (1 / items.length) * 24"
-            >
+            <el-col v-for="(item, index) of items" :key="index" :span="Math.max(item.span || 0, state.span)">
                 <el-form-item
                     :label="item.label"
                     :prop="item.prop"
@@ -24,8 +20,8 @@
                     <component
                         v-model="formData[item.prop]"
                         :is="item.item.type"
-                        v-bind="item.item.props"
                         :readonly="state.readonly"
+                        v-bind="item.item.props"
                     ></component>
                 </el-form-item>
             </el-col>
@@ -41,13 +37,14 @@
                     @click="handleAction"
                     >{{ state.actionLabel }}</el-button
                 >
-                <el-button
-                    v-if="action === 'view' && formActions.deletable"
-                    class="crudForm-actions-delete"
-                    type="text"
-                    @click="handleDelete"
-                    >{{ formActions.labels.delete }}</el-button
-                >
+                <el-button-group class="crudForm-actions-extra" size="small">
+                    <el-button v-if="action === 'read' && formActions.editable" type="warning" @click="handleEdit">{{
+                        formActions.labels.edit
+                    }}</el-button>
+                    <el-button v-if="action === 'read' && formActions.deletable" type="danger" @click="handleDelete">{{
+                        formActions.labels.delete
+                    }}</el-button>
+                </el-button-group>
             </div>
             <slot v-else name="actions" class="crudForm-actions"></slot>
         </template>
@@ -55,25 +52,60 @@
 </template>
 
 <script setup lang="ts" name="CrudForm">
-import { computed, getCurrentInstance, PropType, reactive, ref, watch } from "vue";
-import { ElForm, ElMessage } from "element-plus";
-import { FormProps, FormItemProps, FormRules, InputProps,ElSelect, ElTreeSelect } from "element-plus";
-import type { BasicSelectProps } from "./BasicSelect.vue";
-import { useInvalidProps } from "@/composables/useForm";
+import { computed, getCurrentInstance, nextTick, onMounted, PropType, reactive, ref, watch } from "vue";
+import { ElForm, ElMessage, ElMessageBox } from "element-plus";
+import type {
+    FormProps,
+    FormItemProps,
+    FormRules,
+    InputInstance,
+    ElSelect,
+    SwitchInstance,
+    ElTree,
+    ElDatePicker,
+    ElSwitch,
+} from "element-plus";
 import { merge } from "lodash-es";
+import { ScreenMode, useSystemStore } from "@/store/modules/system";
+import { useInvalidProps } from "@/composables/useForm";
+import type ReadonlySwitch from "@/components/switch/ReadonlySwitch.vue";
+import type { BasicSelectProps } from "./BasicSelect.vue";
+import type { BasicTreeSelectProps } from "./BasicTreeSelect.vue";
 
 export type CrudFormItem =
     | {
-          type: "BasicSelect";
-          props: BasicSelectProps;
-      }
-    | {
           type: "ElInput";
-          props: Partial<InputProps>;
+          props?: InputInstance["$props"];
       }
     | {
-          type: "ElTreeSelect";
-          props: Record<string, any>;
+          type: "ElSwitch";
+          props?: InstanceType<typeof ElSwitch>["$props"];
+      }
+    | {
+          type: "ElDatePicker";
+          props?: InstanceType<typeof ElDatePicker>["$props"];
+      }
+    | {
+          type: "BasicSelect";
+          props?: BasicSelectProps & InstanceType<typeof ElSelect>["$props"];
+      }
+    | {
+          type: "GenderSelect";
+          props?: Omit<BasicSelectProps, "options"> & InstanceType<typeof ElSelect>["$props"];
+      }
+    | {
+          type: "StatusSelect";
+          props?: Omit<BasicSelectProps, "options"> & InstanceType<typeof ElSelect>["$props"];
+      }
+    | {
+          type: "BasicTreeSelect";
+          props?: BasicTreeSelectProps &
+              InstanceType<typeof ElSelect>["$props"] &
+              InstanceType<typeof ElTree>["$props"];
+      }
+    | {
+          type: "ReadonlySwitch";
+          props?: InstanceType<typeof ReadonlySwitch>["$props"] & SwitchInstance["$props"];
       };
 
 export interface ItemSchema {
@@ -86,20 +118,28 @@ export interface ItemSchema {
 
 export type FormAction = "create" | "read" | "update";
 
+export type ApiFn = () => Promise<any>;
+export type ReadApiFn = (forAction: "read" | "update") => Promise<any>;
+
 export interface ActionsProp {
+    /** 是否显示底部的 “返回” “更新” “提交” 等按钮 */
     show?: boolean;
-    deletable?: boolean;
-    resetable?: boolean;
-    backtip?: boolean;
-    labels?: { [k in FormAction | "delete"]: string };
+    /** 是否显示 “删除” 按钮；如果是 string 类型，则会把 formData[deletable] 作为名称 */
+    deletable?: boolean | string;
+    editable?: boolean;
+    labels?: { [k in FormAction | "edit" | "delete"]: string };
     apis?: {
-        [k in FormAction | "delete"]?: () => Promise<any>;
+        [k in "create" | "update" | "delete"]?: ApiFn;
+    } & {
+        read?: ReadApiFn;
     };
 }
 
+export type ColumnResponsive = Partial<Record<ScreenMode, number>>;
+
 export interface CrudFormProps {
+    column: number | ColumnResponsive | "responsive";
     action?: FormAction;
-    column?: number;
     actions?: ActionsProp;
     formData?: Record<string, any>;
     formProps?: Partial<FormProps>;
@@ -108,18 +148,25 @@ export interface CrudFormProps {
     items?: ItemSchema[];
 }
 
+export interface CrudFormEmits {
+    (event: "change", formData: Record<string, any>): void;
+    (event: "formaction", action: FormAction | "delete" | "back", err?: any): void;
+    (event: "update:action", action: FormAction): void;
+}
+
 const instance = getCurrentInstance();
 const props = withDefaults(defineProps<CrudFormProps>(), {
+    column: "responsive",
     action: "read",
     actions: () => ({
         show: true,
         deletable: true,
-        resetable: true,
-        backtip: true,
+        editable: true,
         labels: {
             create: "提交",
             read: "返回",
             update: "更新",
+            edit: "编辑",
             delete: "删除",
         },
         apis: {},
@@ -133,9 +180,46 @@ const props = withDefaults(defineProps<CrudFormProps>(), {
     items: () => [],
 });
 
-const emit = defineEmits(["change", "back"]);
+const emit = defineEmits<CrudFormEmits>();
 
-const { invalid, onValidate, resetValidation } = useInvalidProps(props.formData, props.rules);
+const { invalid, invalidProps, onValidate, resetValidation } = useInvalidProps(props.formData, props.rules, false);
+
+onMounted(() => {
+    watch(
+        () => props.action,
+        async (action) => {
+            switch (action) {
+                case "create":
+                    break;
+                case "read":
+                    const readApi = formActions.value.apis[action];
+                    if (readApi) {
+                        state.loading = true;
+                        await readApi(action).finally(() => {
+                            state.loading = false;
+                        });
+                    }
+                    break;
+                case "update":
+                    const readApiForUpdate = formActions.value.apis["read"];
+                    if (readApiForUpdate) {
+                        state.loading = true;
+                        await readApiForUpdate(action).finally(() => {
+                            state.loading = false;
+                        });
+                    }
+                    refForm.value?.validate();
+                default:
+                    break;
+            }
+            resetValidation(props.formData, props.rules);
+            state.changed = false;
+        },
+        {
+            immediate: true,
+        },
+    );
+});
 
 const formActions = computed<Required<ActionsProp>>(() => {
     const defaultActions = instance!.proxy!.$options.props.actions.default();
@@ -143,9 +227,28 @@ const formActions = computed<Required<ActionsProp>>(() => {
     return defaultActions;
 });
 
+const systemStore = useSystemStore();
+
 const state = reactive({
     loading: false,
-    span: computed(() => (props.column ? 24 / props.column : undefined)),
+    span: computed(() => {
+        if (props.column === "responsive") {
+            switch (systemStore.screen.mode) {
+                case "xl":
+                case "lg":
+                    return 8;
+                case "md":
+                case "sm":
+                    return 12;
+                default:
+                    return 24;
+            }
+        } else if (typeof props.column === "object") {
+            return 24 / (props.column[systemStore.screen.mode] || 2);
+        } else {
+            return 24 / props.column;
+        }
+    }),
     actionLabel: computed(() => {
         return formActions.value.labels[props.action];
     }),
@@ -172,35 +275,36 @@ const state = reactive({
 
 watch(
     () => props.formData,
-    () => {
+    (data) => {
         state.changed = true;
-        emit("change");
+        emit("change", data);
     },
     {
         deep: true,
     },
 );
-// const formData = reactive<Record<string, any>>({});
+
 const refForm = ref<InstanceType<typeof ElForm>>();
+
 function handleAction() {
     switch (props.action) {
         case "read":
-            emit("back");
+            emit("formaction", "back");
             break;
         case "create":
         case "update":
             refForm.value?.validate((isValid) => {
                 if (isValid) {
-                    const api = formActions.value.apis[props.action];
+                    const api = formActions.value.apis[props.action] as ApiFn;
                     if (api) {
                         state.loading = true;
                         api()
                             .then(() => {
-                                // resetValidation(props.formData, props.rules);
+                                emit("formaction", props.action);
                             })
                             .catch((err) => {
-                                // ElMessage.error("操作失败！");
-                                console.error("[CrudForm]", err);
+                                console.error("[CrudForm] handleAction error:", err);
+                                emit("formaction", props.action, err);
                             })
                             .finally(() => {
                                 state.loading = false;
@@ -215,7 +319,35 @@ function handleAction() {
             break;
     }
 }
-function handleDelete() {}
+async function handleDelete() {
+    const { deletable } = formActions.value;
+    const which = typeof deletable === "string" ? `【${props.formData[deletable]}】` : "";
+    const api = formActions.value.apis["delete"];
+    if (!api) {
+        return;
+    }
+    await ElMessageBox.confirm(`你确定删除${which}吗？`, "温馨提示");
+    state.loading = true;
+    api()
+        .then(() => {
+            emit("formaction", "delete");
+        })
+        .catch((err) => {
+            console.error("[CrudForm] handleDelete error:", err);
+            emit("formaction", "delete", err);
+        })
+        .finally(() => {
+            state.loading = false;
+        });
+}
+
+function handleEdit() {
+    emit("update:action", "update");
+}
+
+defineExpose({
+    state,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -231,7 +363,7 @@ function handleDelete() {}
             width: 50%;
         }
 
-        &-delete {
+        &-extra {
             color: var(--el-color-danger);
             position: absolute;
             right: 0;

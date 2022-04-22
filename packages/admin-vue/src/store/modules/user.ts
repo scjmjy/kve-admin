@@ -41,7 +41,7 @@ const storeDefinition = defineStore({
         },
         async uploadUserAvatar(base64: string) {
             await uploadUserAvatar(base64);
-            this.userProfile.avatar = 1; // 更新 avatar 的时间戳
+            this.userProfile.avatar = ''; // 更新 avatar 的时间戳
         },
         async logout() {
             this.cleanup();

@@ -63,15 +63,15 @@ const formItems = computed<ItemSchema[]>(() => [
                 options: [
                     {
                         label: "男",
-                        value: Gender.MALE,
+                        value: "MALE",
                     },
                     {
                         label: "女",
-                        value: Gender.FEMALE,
+                        value: "FEMALE",
                     },
                     {
                         label: "未知",
-                        value: Gender.UNKNOWN,
+                        value: "UNKNOWN",
                     },
                 ],
             },

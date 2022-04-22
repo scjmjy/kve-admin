@@ -12,7 +12,7 @@
     </el-button>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" name="FileSelectButton">
 import { computed, PropType, reactive, ref } from "vue";
 
 export type FileAccept = "*" | "image" | "word" | "pdf" | "excel" | "ppt" | "audio" | "video" | "zip";

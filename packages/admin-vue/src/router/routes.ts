@@ -68,17 +68,6 @@ export const routes: RouteRecordRaw[] = [
                 meta: { title: "部门和权限", icon: "icon-department" },
                 component: () => import("@/views/system/permission/manage.vue"),
             },
-            {
-                name: "Page1Detail",
-                path: "detail1",
-                meta: {
-                    title: "页面1的详情",
-                    visible: false,
-                    forName: "Page1",
-                    pathKey: "fullPath",
-                },
-                component: () => import("@/views/pages/detail1.vue"),
-            },
         ],
     },
     {

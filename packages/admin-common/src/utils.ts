@@ -27,12 +27,12 @@ declare global {
         value: string;
     }
 
-    export type PaginationFilter<T> = {
-        [key in keyof T]: PaginationCondition;
+    export type PaginationFilter<T extends string> = {
+        [key in T]: PaginationCondition;
     };
 
-    export interface PaginationParams<T> {
-        filter: PaginationFilter<Partial<T>>;
+    export interface PaginationParams<T extends string> {
+        filter?: Partial<PaginationFilter<T>>;
         pageNum: number;
         pageSize: number;
     }

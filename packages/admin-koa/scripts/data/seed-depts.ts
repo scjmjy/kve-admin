@@ -1,5 +1,13 @@
 import { ObjectId } from "bson";
-import { DEPARTMENT_CONTAINER_ID, Gender, IDepartment, IRole, IUser, ROLE_SUPERADMIN_ID } from "admin-common";
+import {
+    DEPARTMENT_CONTAINER_ID,
+    Gender,
+    IDepartment,
+    IRole,
+    IUser,
+    ROLE_SUPERADMIN_ID,
+    USER_SUPERADMIN_ID,
+} from "admin-common";
 
 interface InternalRole extends Omit<IRole, "_id" | "createdAt" | "updatedAt"> {
     _id: ObjectId;
@@ -438,19 +446,22 @@ export const internalDepts: InternalDepartment[] = [
     },
 ];
 
-interface InternalUser extends Omit<IUser, "_id" | "avatar" | "thumb" | "roles" | "depts" | "createdAt" | "updatedAt"> {
+interface InternalUser
+    extends Omit<IUser, "_id" | "avatar" | "thumbnail" | "roles" | "depts" | "createdAt" | "updatedAt"> {
+    _id?: string;
     roles: { _id: ObjectId }[];
     depts: { _id: ObjectId }[];
 }
 
 export const internalUsers: InternalUser[] = [
     {
+        _id: USER_SUPERADMIN_ID,
         username: "superadmin",
         realname: "Super Admin",
         password: "123456",
         email: "",
         mobileno: "",
-        gender: Gender.UNKNOWN,
+        gender: "UNKNOWN",
         status: "enabled",
         depts: [
             {
@@ -469,7 +480,7 @@ export const internalUsers: InternalUser[] = [
         password: "123456",
         email: "",
         mobileno: "",
-        gender: Gender.UNKNOWN,
+        gender: "UNKNOWN",
         status: "enabled",
         depts: [
             {

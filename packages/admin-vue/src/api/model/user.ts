@@ -10,7 +10,7 @@ export class UserProfile implements UserProfileResult {
         public realname = "",
         public email = "",
         public mobileno = "",
-        public gender = Gender.UNKNOWN,
+        public gender: Gender = "UNKNOWN",
         public depts: UserProfileResult["depts"] = [],
         public roles: UserProfileResult["roles"] = [],
         public createdAt = "",
@@ -24,7 +24,7 @@ export class UserProfile implements UserProfileResult {
     }
     public token: string;
     private timestamp: string;
-    get avatar() {
+    get avatar(): string {
         return `/api/user/avatar/${this._id}?t=${this.timestamp}`;
     }
     set avatar(_val: any) {
@@ -36,6 +36,8 @@ export class UserProfile implements UserProfileResult {
         localStorage.setItem(STORAGE_KEY_USER_TOKEN, this.token);
     }
     removeToken() {
+        this._id = "";
+        this.token = "";
         localStorage.removeItem(STORAGE_KEY_USER_TOKEN);
     }
 }

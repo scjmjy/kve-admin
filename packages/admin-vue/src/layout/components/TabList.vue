@@ -37,7 +37,9 @@ function horizontalScroll(evt: WheelEvent) {
 
 onMounted(() => {
     elWrapper = refScrollbar.value!.$refs.wrap$ as HTMLDivElement;
-    elWrapper.addEventListener("wheel", horizontalScroll);
+    elWrapper.addEventListener("wheel", horizontalScroll, {
+        passive: true,
+    });
 });
 onBeforeUnmount(() => {
     elWrapper?.removeEventListener("wheel", horizontalScroll);

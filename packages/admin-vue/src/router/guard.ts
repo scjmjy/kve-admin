@@ -1,4 +1,3 @@
-import { Undefinable } from "admin-common";
 import { ROUTE_PATH } from "./consts";
 import { RouteLocationRaw, Router } from "vue-router";
 import { useUserStore } from "@/store/modules/user";

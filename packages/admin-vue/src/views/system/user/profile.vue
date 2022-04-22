@@ -20,7 +20,7 @@
                         </span>
                     </el-descriptions-item>
                 </el-descriptions>
-                <UserAvatar class="userProfile-frontAvatar" />
+                <UploadUserAvatar class="userProfile-frontAvatar" />
             </template>
             <template #back>
                 <el-button type="text" @click="onBackClick">返回</el-button>
@@ -32,7 +32,7 @@
                         <PasswordForm action="update" @update="onUserPasswordUpdate"></PasswordForm>
                     </el-tab-pane>
                 </el-tabs>
-                <UserAvatar class="userProfile-backAvatar" action="edit" />
+                <UploadUserAvatar class="userProfile-backAvatar" action="edit" />
             </template>
         </DoubleFaceCard>
     </div>
@@ -46,7 +46,7 @@ import { useSystemStore } from "@/store/modules/system";
 import { i18n } from "@/i18n/message";
 import UserProfileForm from "./components/UserProfileForm.vue";
 import PasswordForm from "./components/PasswordForm.vue";
-import UserAvatar from "./components/UserAvatar.vue";
+import UploadUserAvatar from "./components/UploadUserAvatar.vue";
 
 const userStore = useUserStore();
 const systemStore = useSystemStore();

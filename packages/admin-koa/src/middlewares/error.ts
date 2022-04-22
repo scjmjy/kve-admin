@@ -1,3 +1,4 @@
+import { MongoServerError } from "mongodb";
 import type { IMiddleware } from "koa-router";
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
@@ -35,7 +36,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                 msg: "未授权的操作",
             };
         } else if (err instanceof AjaxError) {
-            ctx.status = StatusCodes.NOT_FOUND;
+            ctx.status = err.status;
             ctx.body = {
                 code: err.code,
                 showType: err.showType,
@@ -48,6 +49,26 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                 showType: "MESSAGE",
                 msg: err.errors.map((e) => e.message).join("\n"),
             };
+        } else if (err instanceof MongoServerError) {
+            // TODO MongoError CastError
+            // console.log("[MONGODB error]", JSON.stringify(err));
+            if (err.code === 11000) {
+                // 11000: E11000 duplicate key error
+                const keyValue = typeof err.keyValue === "object" ? Object.values(err.keyValue).join(", ") + ": " : "";
+                ctx.status = StatusCodes.BAD_REQUEST;
+                ctx.body = {
+                    code: ctx.status,
+                    showType: "NOTIFICATION",
+                    msg: `${keyValue} 资源已存在，不要重复创建`,
+                };
+            } else {
+                ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
+                ctx.body = {
+                    code: ctx.status,
+                    showType: "NOTIFICATION",
+                    msg: "数据库操作错误，请联系管理员！",
+                };
+            }
         } else {
             console.log("[服务器发生未知错误]", err);
 

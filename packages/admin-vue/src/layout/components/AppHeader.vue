@@ -11,7 +11,7 @@
     >
         <template #reference>
             <div class="appHeader-right" ref="refPopoverTrigger">
-                <el-avatar class="appHeader-avatar" :src="userStore.userProfile.avatar"></el-avatar>
+                <UserAvatar class="appHeader-avatar"></UserAvatar>
                 <el-icon :class="{ 'is-up': state.isProfileCardShow, 'el-icon__ani': true }"><arrow-down /></el-icon>
             </div>
         </template>
@@ -22,11 +22,9 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import { useSystemStore } from "@/store/modules/system";
-import { useUserStore } from "@/store/modules/user";
 import Hamburger from "@/components/Hamburger.vue";
 import ProfileCard from "./ProfileCard.vue";
 
-const userStore = useUserStore();
 const systemStore = useSystemStore();
 
 const state = reactive({
