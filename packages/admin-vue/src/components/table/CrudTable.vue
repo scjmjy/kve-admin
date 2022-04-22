@@ -58,6 +58,7 @@
             </el-button-group>
         </div>
         <el-table
+            ref="refTable"
             class="crudTable-table"
             v-loading="state.loading"
             :data="pageController.list"
@@ -379,8 +380,10 @@ async function onDeleteManyClick() {
         navigateToPage();
     }
 }
+const refTable = ref<InstanceType<typeof ElTable>>();
 function onMultiSelectClick() {
     state.hasSelection = !state.hasSelection;
+    refTable.value?.clearSelection();
 }
 function onRefreshClick() {
     navigateToPage(1);

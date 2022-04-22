@@ -165,16 +165,6 @@ const filterFormData = reactive<FilterFormData>({});
 
 const filterItems: ItemSchema[] = [
     {
-        label: "状态",
-        prop: "status",
-        item: {
-            type: "StatusSelect",
-            props: {
-                clearable: true,
-            },
-        },
-    },
-    {
         label: "含子部门",
         prop: "includeChildren",
         item: {
@@ -183,6 +173,16 @@ const filterItems: ItemSchema[] = [
                 activeText: "是",
                 activeValue: true,
                 inactiveValue: false,
+            },
+        },
+    },
+    {
+        label: "状态",
+        prop: "status",
+        item: {
+            type: "StatusSelect",
+            props: {
+                clearable: true,
             },
         },
     },
