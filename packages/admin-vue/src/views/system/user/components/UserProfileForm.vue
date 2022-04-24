@@ -14,7 +14,7 @@
 import { computed, reactive } from "vue";
 import type { FormRules } from "element-plus";
 import { Gender, UpdateUserProfile } from "admin-common";
-import CrudForm, { ItemSchema, ActionsProp } from "@/components/form/CrudForm.vue";
+import CrudForm, { ItemSchema, FormActions } from "@/components/form/CrudForm.vue";
 import { useUserStore } from "@/store/modules/user";
 import { useSystemStore } from "@/store/modules/system";
 
@@ -125,7 +125,7 @@ const formRules: FormRules = {
     },
 };
 
-const formActions: ActionsProp = {
+const formActions: FormActions = {
     apis: {
         update: async () => {
             await userStore.updateUserProfile(formData);

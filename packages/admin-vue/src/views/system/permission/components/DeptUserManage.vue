@@ -19,10 +19,20 @@
         :form-actions="crudForm.actions"
     >
         <template #header-actions>
-            <el-button icon="Check" type="success" :disabled="state.tableSelection.length === 0" @click="onEnableClick"
+            <el-button
+                icon="Check"
+                type="success"
+                :loading="state.loading"
+                :disabled="state.tableSelection.length === 0"
+                @click="onEnableClick('enabled')"
                 >启用</el-button
             >
-            <el-button icon="Close" type="warning" :disabled="state.tableSelection.length === 0" @click="onDisableClick"
+            <el-button
+                icon="Close"
+                type="warning"
+                :loading="state.loading"
+                :disabled="state.tableSelection.length === 0"
+                @click="onEnableClick('disabled')"
                 >禁用</el-button
             >
         </template>
@@ -55,7 +65,7 @@ import {
 } from "admin-common";
 import { ButtonInstance, ElTableColumn, dropdownItemProps, ElMessageBox } from "element-plus";
 import { debounce, isEmpty } from "lodash";
-import { enableUsers, disableUsers, deleteUsers, getUserList } from "@/api/user";
+import { enableUsers, getUserList } from "@/api/user";
 import CrudFormDlg from "@/components/dialog/CrudFormDlg.vue";
 import { ColumnResponsive, CrudFormProps, FormAction, ItemSchema } from "@/components/form/CrudForm.vue";
 import CrudTable, { CrudTableColumn, TableActionColumn, TableHeader } from "@/components/table/CrudTable.vue";
@@ -100,6 +110,7 @@ const tableHeader: TableHeader<DataType> = {
             if (row._id === USER_SUPERADMIN_ID) {
                 return false;
             }
+
             return true;
         },
     },
@@ -110,16 +121,17 @@ const tableHeader: TableHeader<DataType> = {
     },
     async onDeleteManyClick(selection: DataType[]) {
         const ids = selection.map((user) => user._id);
-        await deleteUsers(ids);
+        await enableUsers(ids, "deleted");
     },
 };
 
 const state = reactive({
+    loading: false,
     showCrudFormDlg: false,
     tableSelection: [] as DataType[],
 });
 
-async function onEnableClick() {
+async function onEnableClick(status: EnableStatus) {
     const ids = state.tableSelection.map((user) => user._id);
     const { deletable } = crudForm.actions || {};
     let which = "";
@@ -130,24 +142,11 @@ async function onEnableClick() {
         });
         which = `【${names.join(", ")}】`;
     }
-    await ElMessageBox.confirm(`你确定启用${which}吗？`, "温馨提示");
-    await enableUsers(ids);
-    crudTable.value?.navigateToPage();
-}
-
-async function onDisableClick() {
-    const ids = state.tableSelection.map((user) => user._id);
-    const { deletable } = crudForm.actions || {};
-    let which = "";
-    if (typeof deletable === "string") {
-        const names: string[] = [];
-        state.tableSelection.forEach((item: any) => {
-            names.push(item[deletable]);
-        });
-        which = `【${names.join(", ")}】`;
-    }
-    await ElMessageBox.confirm(`你确定禁用${which}吗？`, "温馨提示");
-    await disableUsers(ids);
+    await ElMessageBox.confirm(`你确定${status === "enabled" ? "启用" : "禁用"}${which}吗？`, "温馨提示");
+    state.loading = true;
+    await enableUsers(ids, status).finally(() => {
+        state.loading = false;
+    });
     crudTable.value?.navigateToPage();
 }
 
@@ -161,7 +160,9 @@ function postHandler(list: DataType[]) {
 }
 
 type FilterFormData = Partial<Record<UserFilter | "includeChildren", any>>;
-const filterFormData = reactive<FilterFormData>({});
+const filterFormData = reactive<FilterFormData>({
+    includeChildren: true,
+});
 
 const filterItems: ItemSchema[] = [
     {
@@ -325,13 +326,13 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
             showOverflowTooltip: true,
         },
     },
-    {
-        props: {
-            prop: "email",
-            label: "邮箱",
-            showOverflowTooltip: true,
-        },
-    },
+    // {
+    //     props: {
+    //         prop: "email",
+    //         label: "邮箱",
+    //         showOverflowTooltip: true,
+    //     },
+    // },
     {
         props: {
             prop: "depts",
@@ -340,6 +341,16 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
         },
         transform(row) {
             return row.depts.map((dept) => dept.name).join("，");
+        },
+    },
+    {
+        props: {
+            prop: "roles",
+            label: "拥有角色",
+            showOverflowTooltip: true,
+        },
+        transform(row) {
+            return row.roles.map((role) => role.name).join("，");
         },
     },
     {
@@ -444,7 +455,6 @@ function makeCreateFormData() {
         mobileno: "",
         email: "",
         gender: undefined,
-        status: "enabled",
         depts: [],
         roles: [],
     };
@@ -454,7 +464,7 @@ function makeCreateFormData() {
  * 用于 update 的 formdata
  */
 function makeUpdateFormData(row: DataType) {
-    const { _id, username, realname, mobileno, email, gender, status, depts, roles } = row;
+    const { _id, username, realname, mobileno, email, gender, depts, roles } = row;
     formData.value = {
         _id,
         username: username,
@@ -463,7 +473,6 @@ function makeUpdateFormData(row: DataType) {
         mobileno: mobileno,
         email: email,
         gender: gender,
-        status: status,
         depts: depts.map((item) => item._id),
         roles: roles.map((item) => item._id),
     };
@@ -473,7 +482,7 @@ function makeUpdateFormData(row: DataType) {
  * 用于 read 的 formdata
  */
 function makeReadFormData(row: DataType) {
-    const { _id, username, realname, mobileno, email, gender, status, depts, roles, createdAt, updatedAt } = row;
+    const { _id, username, realname, mobileno, email, gender, depts, roles, status, createdAt, updatedAt } = row;
     formData.value = {
         _id, // 用于 delete
         username,
@@ -638,6 +647,13 @@ const formItems = computed<ItemSchema[]>(() => {
 
     if (crudForm.action === "read") {
         items.push({
+            label: "状态",
+            prop: "status",
+            item: {
+                type: "StatusSelect",
+            },
+        });
+        items.push({
             label: "创建时间",
             prop: "createdAt",
             item: {
@@ -649,18 +665,6 @@ const formItems = computed<ItemSchema[]>(() => {
             prop: "updatedAt",
             item: {
                 type: "ElInput",
-            },
-        });
-    }
-    if (crudForm.action !== "create") {
-        items.push({
-            label: "状态",
-            prop: "status",
-            item: {
-                type: "StatusSelect",
-                props: {
-                    disabled: currentRow?._id === USER_SUPERADMIN_ID,
-                },
             },
         });
     }

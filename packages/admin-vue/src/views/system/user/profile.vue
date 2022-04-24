@@ -29,7 +29,7 @@
                         <UserProfileForm action="update" @update="onUserProfileUpdate"></UserProfileForm>
                     </el-tab-pane>
                     <el-tab-pane label="密码">
-                        <PasswordForm action="update" @update="onUserPasswordUpdate"></PasswordForm>
+                        <PasswordForm action="create" @update="onUserPasswordUpdate"></PasswordForm>
                     </el-tab-pane>
                 </el-tabs>
                 <UploadUserAvatar class="userProfile-backAvatar" action="edit" />

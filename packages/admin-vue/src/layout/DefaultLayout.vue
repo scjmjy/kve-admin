@@ -57,10 +57,9 @@ $footerHeight: 60px;
     height: 100%;
     &-header {
         --el-header-height: #{$headerHeight};
-        --el-header-padding: 0 20px 0 0px;
+        --el-header-padding: 0 5px 0 0;
         display: flex;
         align-items: center;
-        padding-right: 20px;
         // background: linear-gradient(45deg, rgb(104, 221, 196), rgb(72, 114, 206));
     }
     &-left {

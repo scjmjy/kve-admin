@@ -14,7 +14,7 @@
 import { computed, reactive } from "vue";
 import type { FormRules } from "element-plus";
 import { isValidPassword, UpdateUserPassword } from "admin-common";
-import CrudForm, { ItemSchema, ActionsProp } from "@/components/form/CrudForm.vue";
+import CrudForm, { ItemSchema, FormActions } from "@/components/form/CrudForm.vue";
 import { updateUserPassword } from "@/api/user";
 
 const emit = defineEmits(["update"]);
@@ -107,9 +107,9 @@ const formRules: FormRules = {
     ],
 };
 
-const formActions: ActionsProp = {
+const formActions: FormActions = {
     apis: {
-        update: async () => {
+        create: async () => {
             await updateUserPassword({
                 oldPassword: formData.oldPassword,
                 newPassword: formData.newPassword,

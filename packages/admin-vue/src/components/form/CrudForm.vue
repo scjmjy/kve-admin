@@ -11,20 +11,22 @@
     >
         <slot name="prepend" />
         <el-row :gutter="20">
-            <el-col v-for="(item, index) of items" :key="index" :span="Math.max(item.span || 0, state.span)">
-                <el-form-item
-                    :label="item.label"
-                    :prop="item.prop"
-                    v-bind="Object.assign($options.props.formItemProps.default(), formItemProps, item.attrs)"
-                >
-                    <component
-                        v-model="formData[item.prop]"
-                        :is="item.item.type"
-                        :readonly="state.readonly"
-                        v-bind="item.item.props"
-                    ></component>
-                </el-form-item>
-            </el-col>
+            <template v-for="(item, index) of items" :key="index">
+                <el-col v-if="item.visible !== false" :span="Math.max(item.span || 0, state.span)">
+                    <el-form-item
+                        :label="item.label"
+                        :prop="item.prop"
+                        v-bind="Object.assign($options.props.formItemProps.default(), formItemProps, item.attrs)"
+                    >
+                        <component
+                            v-model="formData[item.prop]"
+                            :is="item.item.type"
+                            :readonly="state.readonly"
+                            v-bind="item.item.props"
+                        ></component>
+                    </el-form-item>
+                </el-col>
+            </template>
         </el-row>
         <slot name="append" />
         <template v-if="formActions.show !== false">
@@ -38,12 +40,20 @@
                     >{{ state.actionLabel }}</el-button
                 >
                 <el-button-group class="crudForm-actions-extra" size="small">
-                    <el-button v-if="action === 'read' && formActions.editable" type="warning" @click="handleEdit">{{
-                        formActions.labels.edit
-                    }}</el-button>
-                    <el-button v-if="action === 'read' && formActions.deletable" type="danger" @click="handleDelete">{{
-                        formActions.labels.delete
-                    }}</el-button>
+                    <el-button
+                        v-if="action === 'read' && formActions.editable"
+                        plain
+                        type="warning"
+                        @click="handleEdit"
+                        >{{ formActions.labels.edit }}</el-button
+                    >
+                    <el-button
+                        v-if="action === 'read' && formActions.deletable"
+                        plain
+                        type="danger"
+                        @click="handleDelete"
+                        >{{ formActions.labels.delete }}</el-button
+                    >
                 </el-button-group>
             </div>
             <slot v-else name="actions" class="crudForm-actions"></slot>
@@ -108,11 +118,18 @@ export type CrudFormItem =
           props?: InstanceType<typeof ReadonlySwitch>["$props"] & SwitchInstance["$props"];
       };
 
+// export interface CrudFormItem {
+//     type: string;
+//     props?: Record<string, any>;
+// }
+
 export interface ItemSchema {
     label: string;
     prop: string;
     span?: number;
     attrs?: Record<string, any>;
+    /** 是否显示此 FormItem，默认 true */
+    visible?: boolean;
     item: CrudFormItem;
 }
 
@@ -121,7 +138,7 @@ export type FormAction = "create" | "read" | "update";
 export type ApiFn = () => Promise<any>;
 export type ReadApiFn = (forAction: "read" | "update") => Promise<any>;
 
-export interface ActionsProp {
+export interface FormActions {
     /** 是否显示底部的 “返回” “更新” “提交” 等按钮 */
     show?: boolean;
     /** 是否显示 “删除” 按钮；如果是 string 类型，则会把 formData[deletable] 作为名称 */
@@ -140,7 +157,7 @@ export type ColumnResponsive = Partial<Record<ScreenMode, number>>;
 export interface CrudFormProps {
     column: number | ColumnResponsive | "responsive";
     action?: FormAction;
-    actions?: ActionsProp;
+    actions?: FormActions;
     formData?: Record<string, any>;
     formProps?: Partial<FormProps>;
     formItemProps?: Partial<FormItemProps>;
@@ -221,7 +238,7 @@ onMounted(() => {
     );
 });
 
-const formActions = computed<Required<ActionsProp>>(() => {
+const formActions = computed<Required<FormActions>>(() => {
     const defaultActions = instance!.proxy!.$options.props.actions.default();
     merge(defaultActions, props.actions);
     return defaultActions;

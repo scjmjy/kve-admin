@@ -12,14 +12,22 @@ import {
     getUserAvatar,
     deleteUser,
     putEnableUsers,
-    putDisableUsers,
-    putDeleteUsers,
 } from "@/controllers/user";
 import { getHelloworld } from "@/controllers/helloworld";
 import { ObjectId } from "bson";
 import { koajwt } from "@/middlewares/jwt";
 import { getGridFsBucket, upload } from "@/middlewares/upload";
-import { getDeptTreeNodes } from "@/controllers/department";
+import {
+    getDeptTreeNodes,
+    postRole,
+    putRole,
+    putEnableRole,
+    postReorderDepts,
+    postReorderRoles,
+    putEnableDept,
+    putDept,
+    postDept,
+} from "@/controllers/department";
 
 export const router = new Router<any, any>();
 
@@ -27,9 +35,7 @@ router.post("/api/login", postLogin);
 router.post("/api/user", koajwt, postUser);
 router.put("/api/user", koajwt, putUser);
 router.delete("/api/user/:userId", koajwt, deleteUser);
-router.put("/api/user/enable", koajwt, putEnableUsers);
-router.put("/api/user/disable", koajwt, putDisableUsers);
-router.put("/api/user/delete", koajwt, putDeleteUsers);
+router.put("/api/user/status/:status", koajwt, putEnableUsers);
 router.get("/api/user/profile", koajwt, getUserProfile);
 router.put("/api/user/profile", koajwt, putUserProfile);
 router.put("/api/user/password", koajwt, putUserPassword);
@@ -40,6 +46,15 @@ router.post("/api/user/list", koajwt, postFindUsers);
 router.get("/api/helloworld", getHelloworld);
 
 router.get("/api/dept/tree", koajwt, getDeptTreeNodes);
+router.post("/api/dept/reorder", koajwt, postReorderDepts);
+router.post("/api/dept", koajwt, postDept);
+router.put("/api/dept", koajwt, putDept);
+router.put("/api/dept/status/:deptId/:status", koajwt, putEnableDept);
+
+router.post("/api/role", koajwt, postRole);
+router.put("/api/role", koajwt, putRole);
+router.put("/api/role/status/:roleId/:status", koajwt, putEnableRole);
+router.post("/api/role/reorder", koajwt, postReorderRoles);
 
 router.post("/api/upload", upload.single("avatar"), function (ctx) {
     // console.log("[avatar]", ctx.request.file);

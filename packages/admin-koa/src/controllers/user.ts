@@ -22,6 +22,7 @@ import {
     makeBase64,
     UpdateUserBody,
     UserIdsBody,
+    isValidStatus,
 } from "admin-common";
 import { IUserMethods, UserModel } from "@/model/user";
 import { JWT_SECRET } from "@/middlewares/jwt";
@@ -281,10 +282,12 @@ export async function postUser(ctx: KoaAjaxContext<Undefinable<CreateUserBody>, 
 export async function putUser(ctx: KoaAjaxContext<Undefinable<UpdateUserBody>, void>) {
     const schema = new Schema(getUserRules("update"));
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateUserBody;
-    await UserModel.findByIdAndUpdate(validBody._id, validBody, {
+    const res = await UserModel.findByIdAndUpdate(validBody._id, validBody, {
         projection: "_id",
     });
-
+    if (!res) {
+        return throwNotFoundError("用户不存在:" + validBody._id);
+    }
     ctx.status = StatusCodes.OK;
     ctx.body = {
         code: ctx.status,
@@ -309,10 +312,11 @@ export async function deleteUser(ctx: KoaAjaxContext<void, void, void, { userId:
     };
 }
 
-export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, void>) {
+export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, void, { status: EnableStatus }>) {
     const { ids } = ctx.request.body || {};
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return throwBadRequestError("请提供 ID！");
+    const { status } = ctx.params;
+    if (!ids || !Array.isArray(ids) || ids.length === 0 || !isValidStatus(status)) {
+        return throwBadRequestError("请提供有效的用户 ID 或 状态值！");
     }
     const res = await UserModel.bulkWrite([
         {
@@ -322,7 +326,7 @@ export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, void
                         $in: ids,
                     },
                 },
-                update: { status: "enabled" },
+                update: { status: status },
             },
         },
     ]);
@@ -330,56 +334,6 @@ export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, void
     ctx.body = {
         code: ctx.status,
         showType: "MESSAGE",
-        msg: `启用${res.modifiedCount}个用户！`,
-    };
-}
-
-export async function putDisableUsers(ctx: KoaAjaxContext<UserIdsBody, void, void>) {
-    const { ids } = ctx.request.body || {};
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return throwBadRequestError("请提供 ID！");
-    }
-    const res = await UserModel.bulkWrite([
-        {
-            updateMany: {
-                filter: {
-                    _id: {
-                        $in: ids,
-                    },
-                },
-                update: { status: "disabled" },
-            },
-        },
-    ]);
-    ctx.status = StatusCodes.OK;
-    ctx.body = {
-        code: ctx.status,
-        showType: "MESSAGE",
-        msg: `禁用${res.modifiedCount}个用户！`,
-    };
-}
-
-export async function putDeleteUsers(ctx: KoaAjaxContext<UserIdsBody, void, void>) {
-    const { ids } = ctx.request.body || {};
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return throwBadRequestError("请提供 ID！");
-    }
-    const res = await UserModel.bulkWrite([
-        {
-            updateMany: {
-                filter: {
-                    _id: {
-                        $in: ids,
-                    },
-                },
-                update: { status: "deleted" },
-            },
-        },
-    ]);
-    ctx.status = StatusCodes.OK;
-    ctx.body = {
-        code: ctx.status,
-        showType: "MESSAGE",
-        msg: `删除${res.modifiedCount}个用户！`,
+        msg: `${status === "enabled" ? "启用" : status === "disabled" ? "禁用" : "删除"}${res.modifiedCount}个用户！`,
     };
 }

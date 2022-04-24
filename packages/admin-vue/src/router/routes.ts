@@ -65,7 +65,7 @@ export const routes: RouteRecordRaw[] = [
             {
                 name: "PermissionManage",
                 path: "manage",
-                meta: { title: "部门和权限", icon: "icon-department" },
+                meta: { title: "部门角色", icon: "icon-department" },
                 component: () => import("@/views/system/permission/manage.vue"),
             },
         ],

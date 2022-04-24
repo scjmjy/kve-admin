@@ -83,20 +83,10 @@ export function updateUser(user: UpdateUserBody): AxiosPromise<void> {
     });
 }
 
-export function enableUsers(ids: string[]): AxiosPromise<void> {
+export function enableUsers(ids: string[], status: EnableStatus): AxiosPromise<void> {
     return request({
         method: "PUT",
-        url: "/api/user/enable",
-        data: {
-            ids,
-        } as UserIdsBody,
-    });
-}
-
-export function disableUsers(ids: string[]): AxiosPromise<void> {
-    return request({
-        method: "PUT",
-        url: "/api/user/disable",
+        url: "/api/user/status/" + status,
         data: {
             ids,
         } as UserIdsBody,
@@ -107,16 +97,6 @@ export function deleteUser(userId: string): AxiosPromise<void> {
     return request({
         method: "DELETE",
         url: "/api/user/" + userId,
-    });
-}
-
-export function deleteUsers(ids: string[]): AxiosPromise<void> {
-    return request({
-        method: "PUT",
-        url: "/api/user/delete",
-        data: {
-            ids,
-        } as UserIdsBody,
     });
 }
 

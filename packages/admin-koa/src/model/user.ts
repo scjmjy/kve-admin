@@ -3,6 +3,7 @@ import mongoosePaginate from "mongoose-paginate-v2";
 import { IUser } from "admin-common";
 import { BcryptPlugin } from "./plugin/bcrypt";
 import { MODEL_NAME_DEPARTMENT, MODEL_NAME_ROLE } from "./department";
+import type { MiddlewareQuery } from "@/controllers/utils";
 
 export const MODEL_NAME_USER = "User";
 
@@ -40,31 +41,34 @@ export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
 UserSchema.plugin(BcryptPlugin).plugin(mongoosePaginate);
 
 const preFind: mongoose.PreMiddlewareFunction<mongoose.Query<any, any>> = function (next) {
-    // @ts-ignore
-    const filter = this.getFilter() as mongoose.MiddlewareQuery<IUserDoc>;
+    const filter = this.getFilter() as MiddlewareQuery<IUserDoc>;
     if (!filter.includeDeleted && !filter.status) {
         filter.status = {
             $ne: "deleted",
         };
     }
-    if (!filter.doPopulate) {
-        return next();
+    if (filter.doPopulate) {
+        this.populate([
+            {
+                path: "roles",
+                select: "name",
+            },
+            {
+                path: "depts",
+                select: "name",
+            },
+        ]);
     }
-
-    this.populate([
-        {
-            path: "roles",
-            select: "name",
-        },
-        {
-            path: "depts",
-            select: "name",
-        },
-    ]);
     next();
 };
 
 UserSchema.pre(["find", "findOne"], preFind);
+UserSchema.pre("save", function (next) {
+    if (!this.status) {
+        this.status = "enabled";
+    }
+    next();
+});
 
 UserSchema.static("getStatistics", function () {
     return "100人";

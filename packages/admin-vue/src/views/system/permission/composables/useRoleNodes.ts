@@ -1,8 +1,8 @@
 import { DeptTreeNodesResult } from "admin-common";
 import { computed } from "vue";
 
-type RoleType = DeptTreeNodesResult["roles"][0];
-interface DeptNode extends Pick<RoleType, "_id" | "name"> {
+export type RoleType = DeptTreeNodesResult["roles"][0];
+export interface DeptNode extends Pick<RoleType, "_id" | "name"> {
     roles: RoleNode[];
 }
 
@@ -48,5 +48,50 @@ export function makeDeepRoleNode(
     }
     if (deptNode.roles.length !== 0) {
         return deptNode;
+    }
+}
+
+export function deepFindRole(nodes: RoleNode[], id: string): RoleType | undefined {
+    for (const node of nodes) {
+        if (isDept(node)) {
+            const found = deepFindRole(node.roles, id);
+            if (found) {
+                return found;
+            }
+        } else {
+            if (node._id === id) {
+                return node;
+            }
+        }
+    }
+}
+
+export function deepFindDept(nodes: RoleNode[], id: string): DeptNode | undefined {
+    for (const node of nodes) {
+        if (isDept(node)) {
+            if (node._id === id) {
+                return node;
+            }
+            const found = deepFindDept(node.roles, id);
+            if (found) {
+                return found;
+            }
+        }
+    }
+}
+
+export function filterDeletedRoleNodes(node: RoleNode) {
+    if (isDept(node)) {
+        node.roles = node.roles.filter((n) => {
+            if (isDept(n) || n.status !== "deleted") {
+                return true;
+            }
+            return false;
+        });
+        for (const n of node.roles) {
+            if (isDept(n)) {
+                filterDeletedRoleNodes(n);
+            }
+        }
     }
 }

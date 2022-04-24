@@ -154,6 +154,8 @@ async function emptyAll() {
  * @returns
  */
 async function seedBiz(force = false) {
+    console.log("[seedBiz] start");
+
     let client = new MongoClient("mongodb://mongodbadmin:33o93o6@localhost:27017");
     await client.connect();
     const dbAdmin = client.db("admin").admin();
@@ -168,6 +170,8 @@ async function seedBiz(force = false) {
             await dbBiz.dropDatabase();
             console.log("[seedBiz] drop biz database");
         }
+    } else {
+        console.log("[seedBiz] biz database doesn't exist");
     }
     const dbBiz = client.db("biz");
     await dbBiz.command({
@@ -186,10 +190,16 @@ async function seedBiz(force = false) {
     const m = await mongoose.connect("mongodb://biz:33o93o6@localhost:27017/biz");
 
     await RoleModel.insertMany(internalRoles);
+    console.log("[seedBiz] seed roles");
+
     await DepartmentModel.insertMany(internalDepts);
+    console.log("[seedBiz] seed depts");
+
     await UserModel.insertMany(internalUsers);
+    console.log("[seedBiz] seed users");
 
     await m.disconnect();
+    console.log("[seedBiz] completed!");
 }
 
 /**
@@ -212,7 +222,10 @@ async function seedGridFs(force = false) {
             await dbGridFs.dropDatabase();
             console.log("[seedGridFs] drop gridfs database");
         }
+    } else {
+        console.log("[seedGridFs] gridfs database doesn't exist");
     }
+
     const dbGridFs = client.db("gridfs");
     await dbGridFs.command({
         dropAllUsersFromDatabase: 1,
@@ -226,6 +239,7 @@ async function seedGridFs(force = false) {
         ],
     });
     await client.close();
+    console.log("[seedGridFs] completed!");
 }
 
 async function seedAll(force = false) {

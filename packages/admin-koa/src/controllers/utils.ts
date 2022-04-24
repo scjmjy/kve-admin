@@ -1,13 +1,12 @@
 import mongoose from "mongoose";
 import "mongoose-paginate-v2";
 import { throwBadRequestError } from "./errors";
-declare module "mongoose" {
-    export interface ExtraQuery {
-        doPopulate?: boolean;
-        includeDeleted?: boolean;
-    }
-    export type MiddlewareQuery<T> = FilterQuery<T> & ExtraQuery;
+
+export interface ExtraQuery {
+    doPopulate?: boolean;
+    includeDeleted?: boolean;
 }
+export type MiddlewareQuery<T> = mongoose.FilterQuery<T> & ExtraQuery;
 
 export function makePaginationResult<T>(result: mongoose.PaginateResult<T>) {
     return {
@@ -35,7 +34,7 @@ export async function handlePaginationRequest<T, FilterT extends string>(
     Model: mongoose.PaginateModel<T>,
     params?: PaginationParams<FilterT>,
     projection?: string,
-    extraFilter?: mongoose.ExtraQuery,
+    extraFilter?: ExtraQuery,
 ) {
     const { filter, pageNum, pageSize } = params || {};
     if (!pageNum || !pageSize) {

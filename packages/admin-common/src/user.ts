@@ -26,7 +26,7 @@ export interface IUser extends IBase {
     roles: IRole[];
 }
 
-export const USER_SUPERADMIN_ID = "000000000000000000000000";
+export const USER_SUPERADMIN_ID = "000000000000000000000001";
 
 //#region UserProfile
 export const UserProfileProjection = [
@@ -90,7 +90,7 @@ export type FindUsersResult = PaginationResult<Pick<IUser, FindUserKeys>>;
 //#region CreateUser UpdateUser
 export interface CreateUserBody
     extends Pick<IUser, "username" | "realname" | "password">,
-        Partial<Pick<IUser, "mobileno" | "email" | "gender" | "status">> {
+        Partial<Pick<IUser, "mobileno" | "email" | "gender">> {
     depts: string[];
     roles: string[];
 }

@@ -51,6 +51,10 @@ declare global {
     }
 }
 
+export function isValidStatus(status: string): status is EnableStatus {
+    return ["enabled", "disabled", "deleted"].includes(status);
+}
+
 import { RuleItem } from "async-validator";
 
 export interface FormItemRule extends RuleItem {
@@ -123,6 +127,9 @@ export function isValidPassword(password: string, option?: PasswordValidationOpt
 }
 
 export function splitBase64(base64: string) {
+    if (base64 === undefined || base64 === null) {
+        return;
+    }
     const commaIndex = base64.indexOf(",");
     if (commaIndex === -1) {
         return;

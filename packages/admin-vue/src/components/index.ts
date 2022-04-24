@@ -42,6 +42,7 @@ declare module "@vue/runtime-core" {
     export interface GlobalComponents {
         SvgIcon: typeof SvgIcon;
         VueCropper: typeof VueCropper.VueCropper;
+        StatusTag: typeof StatusTag;
         FileSelectButton: typeof FileSelectButton & typeof ElButton;
         UserAvatar: typeof UserAvatar & typeof ElAvatar;
         ReadonlySwitch: typeof ReadonlySwitch & typeof ElSwitch;

@@ -14,7 +14,12 @@
             <slot class="crudTable-title" name="title"></slot>
             <span class="crudTable-title" v-if="!$slots.title && header && header.title"> {{ header.title }} </span>
             <el-button-group class="crudTable-actions" size="small">
-                <el-button v-if="header && header.onAddClick" icon="Plus" type="primary" @click="onAddClick"
+                <el-button
+                    v-if="header && header.onAddClick"
+                    icon="Plus"
+                    type="primary"
+                    :loading="state.loading"
+                    @click="onAddClick"
                     >新增</el-button
                 >
                 <el-button
@@ -135,6 +140,7 @@
             v-if="formData && formItems"
             :model-value="showCrudFormDlg"
             @update:model-value="onUpdateShowCrudFormDlg"
+            :column="formColumn"
             :action="formAction"
             :actions="formActions"
             :items="formItems"
@@ -247,6 +253,9 @@ const props = defineProps({
     formData: {
         type: Object as PropType<Record<string, any>>,
         default: undefined,
+    },
+    formColumn: {
+        type: [String, Number, Object] as PropType<CrudFormProps["column"]>,
     },
     formAction: {
         type: String as PropType<CrudFormProps["action"]>,
