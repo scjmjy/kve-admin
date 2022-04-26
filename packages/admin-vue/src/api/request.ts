@@ -77,9 +77,8 @@ request.interceptors.response.use(
                         ElNotification.error(body.msg);
                         break;
                     case "FATAL":
-                        // TODO Logout and Navigate to Login Page
                         try {
-                            await ElMessageBox.confirm(body.msg || "xxx", "提示", {
+                            await ElMessageBox.confirm(body.msg || "发生了一个错误，需要重新登录", "提示", {
                                 type: "error",
                                 confirmButtonText: "重新登录",
                                 cancelButtonText: "忽略",

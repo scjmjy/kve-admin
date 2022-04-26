@@ -12,12 +12,23 @@
         <slot name="prepend" />
         <el-row :gutter="20">
             <template v-for="(item, index) of items" :key="index">
-                <el-col v-if="item.visible !== false" :span="Math.max(item.span || 0, state.span)">
+                <el-col v-if="item.visible !== false" :span="Math.max(item.span || 0, state.span)" :key="item.prop">
                     <el-form-item
                         :label="item.label"
                         :prop="item.prop"
                         v-bind="Object.assign($options.props.formItemProps.default(), formItemProps, item.attrs)"
                     >
+                        <template v-if="item.tooltip" #label>
+                            <el-tooltip placement="top" v-bind="(item.tooltip as any)">
+                                <SvgIcon
+                                    icon="QuestionFilled"
+                                    style="vertical-align: -2px; margin-right: 2px"
+                                ></SvgIcon>
+                            </el-tooltip>
+                            <span>
+                                {{ item.label }}
+                            </span>
+                        </template>
                         <component
                             v-model="formData[item.prop]"
                             :is="item.item.type"
@@ -63,7 +74,7 @@
 
 <script setup lang="ts" name="CrudForm">
 import { computed, getCurrentInstance, nextTick, onMounted, PropType, reactive, ref, watch } from "vue";
-import { ElForm, ElMessage, ElMessageBox } from "element-plus";
+import { ElForm, ElMessage, ElMessageBox, useTooltipProps } from "element-plus";
 import type {
     FormProps,
     FormItemProps,
@@ -74,11 +85,15 @@ import type {
     ElTree,
     ElDatePicker,
     ElSwitch,
+    RadioGroupProps,
+    RadioGroupEmits,
+    TooltipInstance,
 } from "element-plus";
 import { merge } from "lodash-es";
-import { ScreenMode, useSystemStore } from "@/store/modules/system";
+import { ResponsiveScreenMap, useSystemStore } from "@/store/modules/system";
 import { useInvalidProps } from "@/composables/useForm";
-import type ReadonlySwitch from "@/components/switch/ReadonlySwitch.vue";
+import type ReadonlySwitch from "@/components/form/ReadonlySwitch.vue";
+import type MenuTypeRadio from "@/components/form/MenuTypeRadio.vue";
 import type { BasicSelectProps } from "./BasicSelect.vue";
 import type { BasicTreeSelectProps } from "./BasicTreeSelect.vue";
 
@@ -116,6 +131,10 @@ export type CrudFormItem =
     | {
           type: "ReadonlySwitch";
           props?: InstanceType<typeof ReadonlySwitch>["$props"] & SwitchInstance["$props"];
+      }
+    | {
+          type: "MenuTypeRadio";
+          props?: InstanceType<typeof MenuTypeRadio>["$props"] & RadioGroupProps & RadioGroupEmits;
       };
 
 // export interface CrudFormItem {
@@ -125,6 +144,7 @@ export type CrudFormItem =
 
 export interface ItemSchema {
     label: string;
+    tooltip?: TooltipInstance["$props"];
     prop: string;
     span?: number;
     attrs?: Record<string, any>;
@@ -152,10 +172,8 @@ export interface FormActions {
     };
 }
 
-export type ColumnResponsive = Partial<Record<ScreenMode, number>>;
-
 export interface CrudFormProps {
-    column: number | ColumnResponsive | "responsive";
+    column: number | ResponsiveScreenMap | "responsive";
     action?: FormAction;
     actions?: FormActions;
     formData?: Record<string, any>;
@@ -226,10 +244,8 @@ onMounted(() => {
                         });
                     }
                     refForm.value?.validate();
-                default:
                     break;
             }
-            resetValidation(props.formData, props.rules);
             state.changed = false;
         },
         {
@@ -237,6 +253,16 @@ onMounted(() => {
         },
     );
 });
+
+watch(
+    () => [props.items, props.rules],
+    () => {
+        resetValidation(props.formData, props.rules);
+    },
+    {
+        immediate: true,
+    },
+);
 
 const formActions = computed<Required<FormActions>>(() => {
     const defaultActions = instance!.proxy!.$options.props.actions.default();

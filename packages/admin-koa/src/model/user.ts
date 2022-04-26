@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
-import { IUser } from "admin-common";
+import { IUser, StatusEnum } from "admin-common";
 import { BcryptPlugin } from "./plugin/bcrypt";
 import { MODEL_NAME_DEPARTMENT, MODEL_NAME_ROLE } from "./department";
 import type { MiddlewareQuery } from "@/controllers/utils";
@@ -29,7 +29,7 @@ export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
         gender: { type: String },
         avatar: { type: String },
         thumbnail: { type: String },
-        status: { type: String },
+        status: { type: String, enum: StatusEnum },
         depts: [{ type: mongoose.Types.ObjectId, ref: MODEL_NAME_DEPARTMENT }],
         roles: [{ type: mongoose.Types.ObjectId, ref: MODEL_NAME_ROLE }],
     },

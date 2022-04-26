@@ -6,7 +6,7 @@ declare global {
     export type Arrayable<T> = T | T[];
     export type Awaitable<T> = Promise<T> | T;
 
-    export type EnableStatus = "enabled" | "disabled" | "deleted";
+    export type EnableStatus = typeof StatusEnum[number];
 
     export interface CreateResult {
         _id: string;
@@ -50,9 +50,10 @@ declare global {
         pageHasNext: boolean;
     }
 }
+export const StatusEnum = ["enabled", "disabled", "deleted"] as const;
 
 export function isValidStatus(status: string): status is EnableStatus {
-    return ["enabled", "disabled", "deleted"].includes(status);
+    return StatusEnum.includes(status as any);
 }
 
 import { RuleItem } from "async-validator";
@@ -62,6 +63,10 @@ export interface FormItemRule extends RuleItem {
 }
 export type ValidatorRules<T> = {
     [P in keyof T]: Arrayable<FormItemRule>;
+};
+
+export type ValidatorRulesS<T extends string> = {
+    [P in T]: Arrayable<FormItemRule>;
 };
 
 export interface IBase {

@@ -4,7 +4,8 @@ import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
 import { UserModel } from "../src/model/user";
 import { DepartmentModel, RoleModel } from "../src/model/department";
-import { internalDepts, internalRoles, internalUsers } from "./data/seed-depts";
+import { PermissionModel } from "../src/model/permission";
+import { internalDepts, internalRoles, internalUsers, internalPerms } from "./data/seed-all";
 
 interface ArgsType {
     bd: string;
@@ -197,6 +198,9 @@ async function seedBiz(force = false) {
 
     await UserModel.insertMany(internalUsers);
     console.log("[seedBiz] seed users");
+
+    await PermissionModel.insertMany(internalPerms);
+    console.log("[seedBiz] seed permissions");
 
     await m.disconnect();
     console.log("[seedBiz] completed!");

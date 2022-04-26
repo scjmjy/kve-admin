@@ -63,10 +63,15 @@ function flattenRoute(flatRoutes: RouteRecordRaw[], route: RouteRecordRaw, paren
                 children.push(child);
             }
         });
+        let redirect = route.redirect ? makeFullpath(fullPath, route.redirect as string) : "";
+        if (!redirect && route.children.length) {
+            redirect = makeFullpath(fullPath, route.children[0].path);
+        }
         flatRoutes.push({
             ...route,
             path: fullPath,
-            children: children,
+            redirect,
+            children,
         });
     } else {
         flatRoutes.push(route);

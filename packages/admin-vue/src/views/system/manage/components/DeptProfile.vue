@@ -40,11 +40,11 @@
                     >
                 </el-button-group>
             </template>
-            <el-descriptions-item label="上级部门">
-                {{ parent || "无" }}
-            </el-descriptions-item>
             <el-descriptions-item label="部门名称">
                 {{ dept.name }}
+            </el-descriptions-item>
+            <el-descriptions-item label="上级部门">
+                {{ parent || "无" }}
             </el-descriptions-item>
             <el-descriptions-item label="状态">
                 <StatusTag v-model="dept.status" />

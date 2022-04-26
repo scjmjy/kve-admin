@@ -2,7 +2,7 @@ import { DeptTreeNodesResult } from "admin-common";
 import { computed } from "vue";
 
 export type RoleType = DeptTreeNodesResult["roles"][0];
-export interface DeptNode extends Pick<RoleType, "_id" | "name"> {
+export interface DeptNode extends Pick<RoleType, "_id" | "name" | "status"> {
     roles: RoleNode[];
 }
 
@@ -34,6 +34,7 @@ export function makeDeepRoleNode(
     const deptNode = {
         _id: dept._id,
         name: dept.name,
+        status: dept.status,
         roles: exclude ? [] : (Array.from(dept.roles) as RoleNode[]),
     };
     if (dept.depts.length) {

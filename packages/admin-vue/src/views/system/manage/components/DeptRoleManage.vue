@@ -34,7 +34,7 @@
                             v-if="state2.deptInfo"
                             icon="Plus"
                             type="primary"
-                            :disabled="!!state2.roleInfo"
+                            :disabled="state.disabled || !!state2.roleInfo"
                             :loading="state.loading"
                             @click="onAddClick"
                             >添加角色</el-button
@@ -43,7 +43,7 @@
                             v-if="state2.roleInfo"
                             icon="Edit"
                             type="warning"
-                            :disabled="state2.roleInfo.status !== 'enabled'"
+                            :disabled="state.disabled || state2.roleInfo.status !== 'enabled'"
                             :loading="state.loading"
                             @click="onEditClick"
                             >编辑</el-button
@@ -52,7 +52,7 @@
                             v-if="state2.roleInfo"
                             icon="Delete"
                             type="danger"
-                            :disabled="state2.roleInfo.status === 'deleted'"
+                            :disabled="state.disabled || state2.roleInfo.status === 'deleted'"
                             :loading="state.loading"
                             @click="updateRoleStatus('deleted')"
                             >删除</el-button
@@ -61,7 +61,7 @@
                             v-if="state2.roleInfo"
                             icon="Check"
                             type="success"
-                            :disabled="state2.roleInfo.status === 'enabled'"
+                            :disabled="state.disabled || state2.roleInfo.status === 'enabled'"
                             :loading="state.loading"
                             @click="updateRoleStatus('enabled')"
                             >启用</el-button
@@ -70,7 +70,7 @@
                             v-if="state2.roleInfo"
                             icon="Close"
                             type="warning"
-                            :disabled="state2.roleInfo.status !== 'enabled'"
+                            :disabled="state.disabled || state2.roleInfo.status !== 'enabled'"
                             :loading="state.loading"
                             @click="updateRoleStatus('disabled')"
                             >禁用</el-button
@@ -79,6 +79,9 @@
                 </template>
                 <template v-if="state2.deptInfo">
                     <el-descriptions-item label="部门名称">{{ state2.deptInfo.name }} </el-descriptions-item>
+                    <el-descriptions-item label="状态">
+                        <StatusTag v-model="state2.deptInfo.status" />
+                    </el-descriptions-item>
                     <el-descriptions-item label="包含角色">{{ state2.deptInfo.roles }} </el-descriptions-item>
                 </template>
                 <template v-else-if="state2.roleInfo">
@@ -145,7 +148,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["create", "update", "status"]);
+const emit = defineEmits(["create", "update", "status", "dragdrop"]);
 
 const treeProps = {
     label: "name",
@@ -161,21 +164,22 @@ const state = reactive({
     loading: false,
     currentNode: undefined as Undefinable<RoleNode>,
     showCrudFormDlg: false,
+    disabled: computed(() => props.dept.status !== "enabled"),
 });
 
 const state2 = reactive({
     deptInfo: computed(() => {
         const { currentNode } = state;
-        if (!currentNode || !isDept(currentNode)) {
-            return undefined;
+        if (currentNode && isDept(currentNode)) {
+            return {
+                name: currentNode.name,
+                status: currentNode.status,
+                roles: currentNode.roles
+                    .filter((role) => !isDept(role))
+                    .map((role) => role.name)
+                    .join("，"),
+            };
         }
-        return {
-            name: currentNode.name,
-            roles: currentNode.roles
-                .filter((role) => !isDept(role))
-                .map((role) => role.name)
-                .join("，"),
-        };
     }),
     roleInfo: computed(() => {
         const { currentNode } = state;
@@ -195,6 +199,7 @@ const roleTreeNodes = computed<RoleNode[]>(() => {
         node = {
             _id: props.dept._id,
             name: props.dept.name,
+            status: props.dept.status,
             roles: props.dept.roles,
         };
     }
@@ -334,6 +339,7 @@ async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "bef
     nextTick(() => {
         refTree.value?.setCurrentKey(draggingNode.data._id);
         state.currentNode = draggingNode.data;
+        emit("dragdrop", props.dept._id);
     });
 }
 function onCurrentNodeChange(data: RoleNode, node: TreeNode) {

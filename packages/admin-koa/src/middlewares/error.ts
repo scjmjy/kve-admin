@@ -53,13 +53,14 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
         } else if (err instanceof MongoServerError) {
             if (err.code === 11000) {
                 // 11000: E11000 duplicate key error
-                const keyValue = typeof err.keyValue === "object" ? Object.values(err.keyValue).join(", ") + ": " : "";
+                const keyValue = typeof err.keyValue === "object" ? Object.values(err.keyValue).join(", ") + "：" : "";
                 ctx.status = StatusCodes.BAD_REQUEST;
                 ctx.body = {
                     code: ctx.status,
                     showType: "NOTIFICATION",
-                    msg: `${keyValue} 资源已存在，不要重复创建`,
+                    msg: `${keyValue}资源已存在，不要重复创建`,
                 };
+                console.log("[数据库资源已存在]", err);
             } else {
                 ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
                 ctx.body = {
@@ -67,6 +68,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                     showType: "NOTIFICATION",
                     msg: "数据库操作错误，请联系管理员！",
                 };
+                console.log("[数据库操作错误]", err);
             }
         } else if (err instanceof mongoose.Error.ValidationError) {
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
@@ -75,6 +77,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                 showType: "NOTIFICATION",
                 msg: "数据库校验错误，请联系管理员！",
             };
+            console.log("[数据库校验错误]", err);
         } else if (err instanceof mongoose.Error.CastError) {
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
             ctx.body = {

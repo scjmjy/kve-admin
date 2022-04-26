@@ -103,32 +103,44 @@ function extractAllDepts(dept: DeptTreeNodesResult) {
 
 const crudTable = ref<InstanceType<typeof CrudTable>>();
 
-const tableHeader: TableHeader<DataType> = {
-    title: "用户列表",
-    selection: {
-        selectable(row: DataType) {
-            if (row._id === USER_SUPERADMIN_ID) {
-                return false;
-            }
-
-            return true;
-        },
-    },
-    onAddClick() {
-        makeCreateFormData();
-        crudForm.action = "create";
-        state.showCrudFormDlg = true;
-    },
-    async onDeleteManyClick(selection: DataType[]) {
-        const ids = selection.map((user) => user._id);
-        await enableUsers(ids, "deleted");
-    },
-};
-
 const state = reactive({
     loading: false,
     showCrudFormDlg: false,
     tableSelection: [] as DataType[],
+    disabled: computed(() => props.dept.status !== "enabled"),
+});
+
+const tableHeader = computed<TableHeader<DataType>>(() => {
+    return {
+        title: "用户列表",
+        selection: {
+            selectable(row: DataType) {
+                if (row._id === USER_SUPERADMIN_ID) {
+                    return false;
+                }
+
+                return true;
+            },
+        },
+        selectionBtnProps: {
+            disabled: state.disabled,
+        },
+        onAddClick() {
+            makeCreateFormData();
+            crudForm.action = "create";
+            state.showCrudFormDlg = true;
+        },
+        addBtnProps: {
+            disabled: state.disabled,
+        },
+        async onDeleteManyClick(selection: DataType[]) {
+            const ids = selection.map((user) => user._id);
+            await enableUsers(ids, "deleted");
+        },
+        deleteBtnProps: {
+            disabled: state.disabled,
+        },
+    };
 });
 
 async function onEnableClick(status: EnableStatus) {
@@ -253,6 +265,9 @@ watch(
             comparison: "in",
             value: depts,
         };
+        if (dept.status !== "enabled") {
+            crudTable.value?.toggleMultiSelect();
+        }
     },
     { immediate: true },
 );

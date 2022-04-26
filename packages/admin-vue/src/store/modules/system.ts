@@ -14,6 +14,9 @@ export interface MenuState {
 }
 
 export type ScreenMode = keyof typeof ElementPlusBreackpoints | "xs";
+
+export type ResponsiveScreenMap = Partial<Record<ScreenMode, number>>;
+
 export interface ScreenState {
     mode: ScreenMode;
     footer: boolean;
@@ -27,6 +30,9 @@ export interface RouterState {
     cachedTabs: string[];
     visitedRoutes: RouteRecordVisited[];
 }
+
+// const ;
+// console.log("pageModules", pageModules);
 
 const storeDefinition = defineStore({
     id: "system",
@@ -80,6 +86,7 @@ const storeDefinition = defineStore({
             if (
                 !path.startsWith(ROUTE_PATH.REDIRECT) &&
                 meta.cacheable !== false &&
+                !meta.iframe &&
                 name &&
                 typeof name === "string" &&
                 !this.router.cachedTabs.some((tab) => tab === name)

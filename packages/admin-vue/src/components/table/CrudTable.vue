@@ -19,6 +19,7 @@
                     icon="Plus"
                     type="primary"
                     :loading="state.loading"
+                    v-bind="header.addBtnProps"
                     @click="onAddClick"
                     >新增</el-button
                 >
@@ -28,6 +29,7 @@
                     type="danger"
                     :disabled="selection.length === 0"
                     :loading="state.loading"
+                    v-bind="header.deleteBtnProps"
                     @click="onDeleteManyClick"
                     >删除</el-button
                 >
@@ -42,12 +44,20 @@
                         :icon="state.hasSelection ? 'Minus' : 'Finished'"
                         circle
                         type="success"
-                        @click="onMultiSelectClick"
+                        v-bind="header?.selectionBtnProps"
+                        @click="toggleMultiSelect"
                     ></el-button>
                 </el-tooltip>
 
                 <el-tooltip effect="dark" content="刷新数据" placement="top">
-                    <el-button plain icon="Refresh" circle type="primary" @click="onRefreshClick"></el-button>
+                    <el-button
+                        plain
+                        icon="Refresh"
+                        circle
+                        type="primary"
+                        v-bind="header?.refreshBtnProps"
+                        @click="onRefreshClick"
+                    ></el-button>
                 </el-tooltip>
                 <el-tooltip effect="dark" content="清除筛选" placement="top">
                     <el-button
@@ -56,6 +66,7 @@
                         icon="Close"
                         circle
                         type="danger"
+                        v-bind="header?.filterBtnProps"
                         @click="onClearFilterClick"
                     ></el-button>
                 </el-tooltip>
@@ -105,7 +116,7 @@
                     <el-dropdown
                         v-if="actions.dropdowns && actions.dropdowns.items.length"
                         @visible-change="scope.row.__dropdown = !scope.row.__dropdown"
-                        @command="actions.dropdowns!.onCommand($event, scope.row)"
+                        @command="actions!.dropdowns!.onCommand($event, scope.row)"
                     >
                         <span class="el-dropdown-link">
                             {{ actions.dropdowns.more }}
@@ -176,8 +187,13 @@ export interface CrudTableColumn<T> {
 export interface TableHeader<T> {
     title: string;
     onAddClick(): void;
+    addBtnProps?: Partial<Omit<ButtonInstance, "onClick">>;
     onDeleteManyClick(selection: Array<T>): Promise<void>;
+    deleteBtnProps?: Partial<Omit<ButtonInstance, "onClick">>;
     selection?: Partial<TableColumnProps>;
+    selectionBtnProps?: Partial<Omit<ButtonInstance, "onClick">>;
+    refreshBtnProps?: Partial<Omit<ButtonInstance, "onClick">>;
+    filterBtnProps?: Partial<Omit<ButtonInstance, "onClick">>;
 }
 
 export type DropdownItemProps = Partial<InstanceType<typeof ElDropdownItem>>;
@@ -390,9 +406,11 @@ async function onDeleteManyClick() {
     }
 }
 const refTable = ref<InstanceType<typeof ElTable>>();
-function onMultiSelectClick() {
+function toggleMultiSelect() {
     state.hasSelection = !state.hasSelection;
-    refTable.value?.clearSelection();
+    if (!state.hasSelection) {
+        refTable.value?.clearSelection();
+    }
 }
 function onRefreshClick() {
     navigateToPage(1);
@@ -411,6 +429,7 @@ function onSelectionChange(selected: Array<any>) {
 
 defineExpose({
     navigateToPage,
+    toggleMultiSelect,
     // state,
     // pageController,
 });

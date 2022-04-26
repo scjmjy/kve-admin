@@ -36,14 +36,16 @@ export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesRe
 export async function postDept(ctx: KoaAjaxContext<CreateDeptBody, CreateResult>) {
     const schema = new Schema(getCreateDeptRules());
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as CreateDeptBody;
-    const parent = await DepartmentModel.findById<mongoose.Document & { depts: string[] }>(validBody.parent, "depts");
+    const parent = await DepartmentModel.findById<mongoose.Document & { depts: string[] }>(
+        validBody.parent,
+        "depts",
+    ).exec();
     if (!parent) {
         return throwNotFoundError(`父部门不存在：${validBody.parent}`);
     }
     const session = await mongoose.startSession();
     await session.withTransaction(async () => {
         const newDept = await DepartmentModel.create(validBody);
-
         parent.depts.push(newDept._id);
         await parent.save();
 
@@ -57,6 +59,7 @@ export async function postDept(ctx: KoaAjaxContext<CreateDeptBody, CreateResult>
             },
         };
     });
+    await session.endSession();
 }
 
 export async function putDept(ctx: KoaAjaxContext<UpdateDeptBody>) {
@@ -64,7 +67,7 @@ export async function putDept(ctx: KoaAjaxContext<UpdateDeptBody>) {
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateRoleBody;
     const res = await DepartmentModel.findByIdAndUpdate(validBody._id, validBody, {
         projection: "_id",
-    });
+    }).exec();
     if (!res) {
         return throwNotFoundError("部门不存在:" + validBody._id);
     }
@@ -89,7 +92,7 @@ export async function putEnableDept(ctx: KoaAjaxContext<void, void, void, { dept
         {
             projection: "_id",
         },
-    );
+    ).exec();
     if (!res) {
         return throwNotFoundError("部门不存在:" + deptId);
     }
@@ -104,7 +107,10 @@ export async function putEnableDept(ctx: KoaAjaxContext<void, void, void, { dept
 export async function postRole(ctx: KoaAjaxContext<CreateRoleBody, CreateResult>) {
     const schema = new Schema(getCreateRoleRules());
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as CreateRoleBody;
-    const dept = await DepartmentModel.findById<mongoose.Document & { roles: string[] }>(validBody.dept, "roles");
+    const dept = await DepartmentModel.findById<mongoose.Document & { roles: string[] }>(
+        validBody.dept,
+        "roles",
+    ).exec();
     if (!dept) {
         return throwNotFoundError(`部门不存在：${validBody.dept}`);
     }
@@ -125,6 +131,7 @@ export async function postRole(ctx: KoaAjaxContext<CreateRoleBody, CreateResult>
             },
         };
     });
+    await session.endSession();
 }
 
 export async function putRole(ctx: KoaAjaxContext<UpdateRoleBody>) {
@@ -132,7 +139,7 @@ export async function putRole(ctx: KoaAjaxContext<UpdateRoleBody>) {
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateRoleBody;
     const res = await RoleModel.findByIdAndUpdate(validBody._id, validBody, {
         projection: "_id",
-    });
+    }).exec();
     if (!res) {
         return throwNotFoundError("角色不存在:" + validBody._id);
     }
@@ -157,7 +164,7 @@ export async function putEnableRole(ctx: KoaAjaxContext<void, void, void, { role
         {
             projection: "_id",
         },
-    );
+    ).exec();
     if (!res) {
         return throwNotFoundError("角色不存在:" + roleId);
     }
@@ -177,7 +184,7 @@ export async function postReorderDepts(ctx: KoaAjaxContext<ReorderDeptsBody>) {
     const dept = await DepartmentModel.findById<mongoose.Document & { depts: mongoose.Types.ObjectId[] }>(
         deptId,
         "depts",
-    );
+    ).exec();
     if (!dept) {
         return throwNotFoundError(`部门不存在：${deptId}`);
     }
@@ -201,7 +208,7 @@ export async function postReorderRoles(ctx: KoaAjaxContext<ReorderRolesBody>) {
     const dept = await DepartmentModel.findById<mongoose.Document & { roles: mongoose.Types.ObjectId[] }>(
         deptId,
         "roles",
-    );
+    ).exec();
     if (!dept) {
         return throwNotFoundError(`部门不存在：${deptId}`);
     }

@@ -28,6 +28,7 @@ import {
     putDept,
     postDept,
 } from "@/controllers/department";
+import { getPermNodes, postPermission, putPermission } from "@/controllers/permission";
 
 export const router = new Router<any, any>();
 
@@ -55,6 +56,10 @@ router.post("/api/role", koajwt, postRole);
 router.put("/api/role", koajwt, putRole);
 router.put("/api/role/status/:roleId/:status", koajwt, putEnableRole);
 router.post("/api/role/reorder", koajwt, postReorderRoles);
+
+router.get("/api/perm/tree", koajwt, getPermNodes);
+router.post("/api/perm", koajwt, postPermission);
+router.put("/api/perm", koajwt, putPermission);
 
 router.post("/api/upload", upload.single("avatar"), function (ctx) {
     // console.log("[avatar]", ctx.request.file);

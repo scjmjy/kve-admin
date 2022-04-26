@@ -41,7 +41,7 @@ const props = withDefaults(defineProps<BasicSelectProps>(), {
 });
 
 const inputModelValue = computed(() => {
-    if (props.readonly && props.modelValue) {
+    if (props.readonly && props.modelValue !== undefined && props.modelValue !== null) {
         const modelValue = Array.isArray(props.modelValue) ? props.modelValue : [props.modelValue];
         const displayValue: (string | number)[] = [];
         for (const val of modelValue) {

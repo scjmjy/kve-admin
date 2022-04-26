@@ -1,13 +1,14 @@
 <template>
-    <el-row class="permissionManage" :gutter="20">
+    <el-row class="userManage" :gutter="20">
         <el-col :xs="24" :sm="5" style="margin-bottom: 20px">
             <!-- <el-input v-model="state.deptKeyword" placeholder="输入部门名称进行筛选" :prefix-icon="Search" /> -->
-            <div class="permissionManage-filter">
+            <div class="userManage-filter">
                 <el-switch v-model="state.includeDeleted" active-text="包含已删除" />
             </div>
             <el-tree
                 ref="refTree"
-                class="permissionManage-tree"
+                v-loading="state.loading"
+                class="userManage-tree"
                 node-key="_id"
                 :data="deptNodes"
                 :props="treeProps"
@@ -22,12 +23,7 @@
             />
         </el-col>
         <el-col :xs="24" :sm="19">
-            <el-tabs
-                v-if="state.currentNode"
-                v-model="state.currentTab"
-                class="permissionManage-tabs"
-                type="border-card"
-            >
+            <el-tabs v-if="state.currentNode" v-model="state.currentTab" class="userManage-tabs" type="border-card">
                 <el-tab-pane label="部门信息" name="profile">
                     <transition name="transition-3d">
                         <keep-alive name="DeptProfile">
@@ -51,6 +47,7 @@
                                 @create="onRoleCreate"
                                 @update="resetCurrentKey"
                                 @status="resetCurrentKey"
+                                @dragdrop="resetCurrentKey"
                             ></DeptRoleManage>
                         </keep-alive>
                     </transition>
@@ -70,7 +67,7 @@
     </el-row>
 </template>
 
-<script setup lang="ts" name="PermissionManage">
+<script setup lang="ts" name="UserManage">
 import { computed, nextTick, onActivated, reactive, ref, watch } from "vue";
 import { clone } from "lodash";
 import { DeptTreeNodesResult, UpdateDeptBody } from "admin-common";
@@ -95,6 +92,7 @@ const treeProps = {
     },
 };
 const state = reactive({
+    loading: false,
     includeDeleted: false,
     deptTreeNode: undefined as Undefinable<DeptTreeNodesResult>,
     currentNodeKey: "",
@@ -137,9 +135,14 @@ watch(
 const refTree = ref<InstanceType<typeof ElTree>>();
 
 function fetch() {
-    return getDeptTreeNodes().then((res) => {
-        state.deptTreeNode = res.data;
-    });
+    state.loading = true;
+    return getDeptTreeNodes()
+        .then((res) => {
+            state.deptTreeNode = res.data;
+        })
+        .finally(() => {
+            state.loading = false;
+        });
 }
 
 onActivated(() => {
@@ -205,7 +208,7 @@ function onRoleCreate() {
 </script>
 
 <style scoped lang="scss">
-.permissionManage {
+.userManage {
     &-tree {
         margin-top: 10px;
     }

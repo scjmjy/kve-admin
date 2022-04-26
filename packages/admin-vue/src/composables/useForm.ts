@@ -12,7 +12,7 @@ export function useInvalidProps(formData: Record<string, any>, formRules?: FormR
     const invalidProps = ref<InvalidProps>({});
 
     function init(data: Record<string, any>, rules: FormRules) {
-        invalidProps.value = {};
+        // console.log("[useInvalidProps] init", rules);
         const schema = new Schema(rules as Rules);
         schema.validate(data).catch((errors: AsyncValidationError) => {
             for (const field in errors.fields) {
@@ -31,8 +31,10 @@ export function useInvalidProps(formData: Record<string, any>, formRules?: FormR
         invalidProps,
         onValidate(prop: FormItemProp, isValid: boolean, _msg: string) {
             invalidProps.value[prop as string] = !isValid;
+            // console.log("[useInvalidProps]", invalidProps.value);
         },
         resetValidation(formData: Record<string, any>, formRules?: FormRules) {
+            invalidProps.value = {};
             if (formRules) {
                 init(formData, formRules);
             }

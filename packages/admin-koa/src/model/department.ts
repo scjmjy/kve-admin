@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { IDepartment, IRole } from "admin-common";
+import { IDepartment, IRole, StatusEnum } from "admin-common";
 import { MODEL_NAME_USER } from "./user";
 import type { MiddlewareQuery } from "@/controllers/utils";
 
@@ -12,7 +12,7 @@ interface IRoleModel extends mongoose.Model<IRoleDoc> {}
 export const RoleSchema = new mongoose.Schema<IRoleDoc, IRoleModel>(
     {
         name: { type: String, required: true, unique: true },
-        status: { type: String },
+        status: { type: String, enum: StatusEnum },
         description: { type: String },
     },
     {
@@ -36,7 +36,7 @@ interface IDepartmentModel extends mongoose.Model<IDepartmentDoc> {}
 export const DepartmentSchema = new mongoose.Schema<IDepartmentDoc, IDepartmentModel>(
     {
         name: { type: String, required: true, unique: true },
-        status: { type: String },
+        status: { type: String, enum: StatusEnum },
         depts: [{ type: mongoose.Types.ObjectId, ref: MODEL_NAME_DEPARTMENT }],
         roles: [{ type: mongoose.Types.ObjectId, ref: MODEL_NAME_ROLE }],
         description: { type: String },

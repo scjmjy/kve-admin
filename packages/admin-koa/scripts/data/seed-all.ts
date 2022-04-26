@@ -3,8 +3,10 @@ import {
     DEPARTMENT_CONTAINER_ID,
     Gender,
     IDepartment,
+    IPermission,
     IRole,
     IUser,
+    PERMISSION_CONTAINER_ID,
     ROLE_SUPERADMIN_ID,
     USER_SUPERADMIN_ID,
 } from "admin-common";
@@ -59,147 +61,126 @@ export const internalRoles: InternalRole[] = [
     {
         _id: _id_role_0,
         name: "超级管理员",
-        orderNo: 0,
         description: "拥有所有系统权限，由开发公司中的负责人持有。",
         status: "enabled",
     },
     {
         _id: _id_role_1,
         name: "通用角色",
-        orderNo: 0,
         description: "每个用户都可以拥有的角色。",
         status: "enabled",
     },
     {
         _id: _id_role_2,
         name: "开发通用角色",
-        orderNo: 1,
         description: "开发公司的通用角色。",
         status: "enabled",
     },
     {
         _id: _id_role_3,
         name: "项目主管负责人",
-        orderNo: 0,
         description: "由项目主管部门的负责人持有。",
         status: "enabled",
     },
     {
         _id: _id_role_4,
         name: "项目主管",
-        orderNo: 1,
         description: "项目主管部门的通用角色。",
         status: "enabled",
     },
     {
         _id: _id_role_5,
         name: "项目开发主管",
-        orderNo: 0,
         description: "由项目开发部门的负责人持有。",
         status: "enabled",
     },
     {
         _id: _id_role_6,
         name: "项目开发人员",
-        orderNo: 1,
         description: "项目开发部门的通用角色。",
         status: "enabled",
     },
     {
         _id: _id_role_7,
         name: "项目测试主管",
-        orderNo: 0,
         description: "由项目测试部门的负责人持有。",
         status: "enabled",
     },
     {
         _id: _id_role_8,
         name: "项目测试人员",
-        orderNo: 1,
         description: "项目测试部门的通用角色。",
         status: "enabled",
     },
     {
         _id: _id_role_9,
         name: "管理员",
-        orderNo: 0,
         description: "由甲方公司的负责人持有。",
         status: "enabled",
     },
     {
         _id: _id_role_10,
         name: "员工角色",
-        orderNo: 1,
         description: "甲方公司的通用员工角色。",
         status: "enabled",
     },
     {
         _id: _id_role_11,
         name: "部门A领导",
-        orderNo: 0,
         description: "由部门A的领导持有。",
         status: "enabled",
     },
     {
         _id: _id_role_12,
         name: "部门A通用角色",
-        orderNo: 1,
         description: "部门A的通用角色。",
         status: "enabled",
     },
     {
         _id: _id_role_13,
         name: "部门B领导",
-        orderNo: 0,
         description: "由部门B的领导持有。",
         status: "enabled",
     },
     {
         _id: _id_role_14,
         name: "部门B通用角色",
-        orderNo: 1,
         description: "部门B的通用角色。",
         status: "enabled",
     },
     {
         _id: _id_role_15,
         name: "部门A-1领导",
-        orderNo: 0,
         description: "由部门A-1的领导持有。",
         status: "enabled",
     },
     {
         _id: _id_role_16,
         name: "部门A-1通用角色",
-        orderNo: 1,
         description: "部门A-1的通用角色。",
         status: "enabled",
     },
     {
         _id: _id_role_17,
         name: "部门A-2领导",
-        orderNo: 0,
         description: "由部门A-2的领导持有。",
         status: "enabled",
     },
     {
         _id: _id_role_18,
         name: "部门A-2通用角色",
-        orderNo: 1,
         description: "部门A-2的通用角色。",
         status: "enabled",
     },
     {
         _id: _id_role_19,
         name: "部门B-1领导",
-        orderNo: 0,
         description: "由部门B-1的领导持有。",
         status: "enabled",
     },
     {
         _id: _id_role_20,
         name: "部门B-1通用角色",
-        orderNo: 1,
         description: "部门B-1的通用角色。",
         status: "enabled",
     },
@@ -239,7 +220,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_0,
         name: "主节点",
-        orderNo: 0,
         description: "部门主节点。",
         roles: [
             {
@@ -259,7 +239,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_1,
         name: "开发公司",
-        orderNo: 0,
         description: "开发公司的部门主节点。",
         roles: [
             {
@@ -285,7 +264,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_2,
         name: "项目主管部门",
-        orderNo: 0,
         description: "开发公司中负责此项目的主管所在的部门。",
         roles: [
             {
@@ -301,7 +279,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_3,
         name: "项目开发部门",
-        orderNo: 1,
         description: "负责开发此项目的开发人员所在的部门。",
         roles: [
             {
@@ -317,7 +294,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_4,
         name: "项目测试部门",
-        orderNo: 2,
         description: "负责测试此项目的开发人员所在的部门。",
         roles: [
             {
@@ -333,7 +309,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_5,
         name: "甲方公司",
-        orderNo: 1,
         description: "甲方公司的部门主节点。",
         roles: [
             {
@@ -356,7 +331,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_6,
         name: "部门A",
-        orderNo: 0,
         description: "部门A",
         roles: [
             {
@@ -379,7 +353,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_7,
         name: "部门B",
-        orderNo: 1,
         description: "部门B",
         roles: [
             {
@@ -399,7 +372,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_8,
         name: "部门A-1",
-        orderNo: 0,
         description: "部门A-1",
         roles: [
             {
@@ -415,7 +387,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_9,
         name: "部门A-2",
-        orderNo: 0,
         description: "部门A-2",
         roles: [
             {
@@ -431,7 +402,6 @@ export const internalDepts: InternalDepartment[] = [
     {
         _id: _id_dept_10,
         name: "部门B-1",
-        orderNo: 1,
         description: "部门B-1",
         roles: [
             {
@@ -492,5 +462,20 @@ export const internalUsers: InternalUser[] = [
                 _id: _id_role_9,
             },
         ],
+    },
+];
+
+interface InternalPerm extends Omit<IPermission, "createdAt" | "updatedAt"> {}
+
+export const internalPerms: InternalPerm[] = [
+    {
+        _id: PERMISSION_CONTAINER_ID,
+        title: "根节点",
+        name: "ContainerPerm",
+        code: "root",
+        type: "menugroup",
+        description: "权限根节点",
+        status: "enabled",
+        children: [],
     },
 ];

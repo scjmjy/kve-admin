@@ -10,6 +10,10 @@ import { ROUTE_PATH } from "./consts";
  *      - 对于 route.meta.cacheable=true (即需要 keep-alive )的页面，务必保证 route.name 和 \<script setup name="XXX"\>中的 name 一致，且全局唯一
  *      - 外部链接的 route.name 不能为空，且全局唯一
  *  2. route.path 不要以 ROUTE_PATH.REDIRECT 为开头，因为不会出现在 TabList 中
+ *  3. route.redirect
+ *     - 如果为空，flattenRoutes 会默认指定重定向至 children[0]
+ *     - 以 '/' 开头的，会被认为绝对路径
+ *     - 不以 '/' 开头的，会被认为是 children 中的某个 path，那么flattenRoutes 会自动计算。
  */
 export const routes: RouteRecordRaw[] = [
     {
@@ -30,7 +34,6 @@ export const routes: RouteRecordRaw[] = [
         name: "Login",
         component: () => import("@/views/system/user/login.vue"),
         meta: {
-            title: "登录",
             visible: false,
         },
     },
@@ -39,7 +42,6 @@ export const routes: RouteRecordRaw[] = [
         path: ROUTE_PATH.DASHBOARD,
         meta: { title: "仪表盘Demo" },
         component: DefaultLayout,
-        redirect: ROUTE_PATH.DASHBOARD,
         children: [
             {
                 name: "Index1",
@@ -60,13 +62,19 @@ export const routes: RouteRecordRaw[] = [
         path: "/system",
         meta: { title: "系统管理" },
         component: DefaultLayout,
-        redirect: "/system/manage",
+        redirect: "usermanage",
         children: [
             {
-                name: "PermissionManage",
-                path: "manage",
-                meta: { title: "部门角色", icon: "icon-department" },
-                component: () => import("@/views/system/permission/manage.vue"),
+                name: "UserManage",
+                path: "usermanage",
+                meta: { title: "用户角色", icon: "icon-department" },
+                component: () => import("@/views/system/manage/page-UserManage.vue"),
+            },
+            {
+                name: "MenuManage",
+                path: "menumanage",
+                meta: { title: "权限菜单", icon: "Menu" },
+                component: () => import("@/views/system/manage/page-MenuManage.vue"),
             },
         ],
     },
@@ -75,7 +83,7 @@ export const routes: RouteRecordRaw[] = [
         path: "/pages",
         meta: { title: "页面Demo" },
         component: DefaultLayout,
-        redirect: "/pages/page1",
+        redirect: "page1",
         children: [
             {
                 name: "Page1",
@@ -105,7 +113,7 @@ export const routes: RouteRecordRaw[] = [
                 path: "pagegroup1",
                 meta: { title: "页面组1", icon: "Files" },
                 component: DefaultLayout,
-                redirect: "/pages/pagegroup1/page1",
+                redirect: "page2", // 重定向至 page2
                 children: [
                     {
                         name: "NestedPage1",
@@ -124,7 +132,7 @@ export const routes: RouteRecordRaw[] = [
                         path: "pagegroup1",
                         meta: { title: "嵌套页面组1", icon: "Files" },
                         component: DefaultLayout,
-                        redirect: "/pages/pagegroup1/pagegroup1/page1",
+                        redirect: "page1",
                         children: [
                             {
                                 name: "ThirdNestedPage1",
@@ -149,7 +157,7 @@ export const routes: RouteRecordRaw[] = [
                                 path: "pagegroup1",
                                 meta: { title: "嵌套的嵌套页面组1", icon: "Files" },
                                 component: DefaultLayout,
-                                redirect: "/pages/pagegroup1/pagegroup1/pagegroup1/page1",
+                                redirect: "page1",
                                 children: [
                                     {
                                         name: "FourthNestedPage1",
@@ -204,7 +212,6 @@ export const routes: RouteRecordRaw[] = [
                     title: "Bing(内嵌)",
                     icon: "icon-edge",
                     iframe: "https://www.bing.com",
-                    cacheable: false,
                 },
             },
             {
@@ -215,7 +222,16 @@ export const routes: RouteRecordRaw[] = [
                     title: "Vue3(内嵌)",
                     icon: "icon-vue",
                     iframe: "https://v3.cn.vuejs.org",
-                    cacheable: false,
+                },
+            },
+            {
+                path: "KVE",
+                name: "KVE",
+                component: BlankPage,
+                meta: {
+                    title: "KVE(内嵌)",
+                    icon: "",
+                    iframe: "https://localhost:14400",
                 },
             },
         ],

@@ -6,8 +6,8 @@ import VueCropper from "vue-cropper";
 import "vue-cropper/dist/index.css";
 import { SvgiconPlugin } from "./svgicon";
 import FileSelectButton from "./button/FileSelectButton.vue";
-import ReadonlySwitch from "./switch/ReadonlySwitch.vue";
 import StatusTag from "./tag/StatusTag.vue";
+import MenuTypeTag from "./tag/MenuTypeTag.vue";
 import UserAvatar from "./avatar/UserAvatar.vue";
 import { setupCrudForm } from "./form";
 import { setupCrudTable } from "./table";
@@ -28,23 +28,23 @@ export function setupComponents(app: App) {
     app.use(VueCropper);
     app.use(SvgiconPlugin);
     app.component(FileSelectButton.name, FileSelectButton);
-    app.component(ReadonlySwitch.name, ReadonlySwitch);
     app.component(StatusTag.name, StatusTag);
+    app.component(MenuTypeTag.name, MenuTypeTag);
     app.component(UserAvatar.name, UserAvatar);
     setupCrudForm(app);
     setupCrudTable(app);
 }
 
 import type SvgIcon from "./svgicon/SvgIcon.vue";
-import type { ElButton, ElSwitch } from "element-plus";
+import type { ElButton, ElTag } from "element-plus";
 
 declare module "@vue/runtime-core" {
     export interface GlobalComponents {
         SvgIcon: typeof SvgIcon;
         VueCropper: typeof VueCropper.VueCropper;
-        StatusTag: typeof StatusTag;
+        StatusTag: typeof StatusTag & typeof ElTag;
+        MenuTypeTag: typeof MenuTypeTag & typeof ElTag;
         FileSelectButton: typeof FileSelectButton & typeof ElButton;
         UserAvatar: typeof UserAvatar & typeof ElAvatar;
-        ReadonlySwitch: typeof ReadonlySwitch & typeof ElSwitch;
     }
 }

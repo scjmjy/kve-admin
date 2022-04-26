@@ -8,7 +8,7 @@
                 popper-class="appMenu"
             >
                 <template #title>
-                    <SvgIcon :icon="route.meta?.icon"></SvgIcon>
+                    <SvgIcon :icon="route.meta?.icon || ''"></SvgIcon>
                     <span class="appMenu-title">{{ route.meta?.title }}</span>
                 </template>
                 <MenuItem
@@ -27,7 +27,7 @@
                 :class="{ 'has-detail': forRoute === route.path }"
                 @click="onMenuItemClick"
             >
-                <SvgIcon :icon="route.meta?.icon"></SvgIcon>
+                <SvgIcon :icon="route.meta?.icon || ''"></SvgIcon>
                 <template #title>
                     <span class="appMenu-title">{{ route.meta?.title }}</span>
                 </template>
@@ -66,8 +66,6 @@ function onMenuItemClick(item: MenuItemRegistered) {
     const { index: path } = item;
     if (isExternalLink(path)) {
         window.open(path, "_blank");
-    } else if (props.route.meta?.iframe) {
-        router.push(path);
     } else {
         router.push(path);
     }
