@@ -31,9 +31,6 @@
                                 v-if="state.currentTab === 'profile'"
                                 :parent="state.parentNodeName"
                                 :dept="state.currentNode"
-                                @create="onDeptCreate"
-                                @update="onDeptUpdate"
-                                @status="resetCurrentKey"
                             ></DeptProfile>
                         </keep-alive>
                     </transition>
@@ -44,10 +41,6 @@
                             <DeptRoleManage
                                 v-if="state.currentTab === 'role'"
                                 :dept="state.currentNode"
-                                @create="onRoleCreate"
-                                @update="resetCurrentKey"
-                                @status="resetCurrentKey"
-                                @dragdrop="resetCurrentKey"
                             ></DeptRoleManage>
                         </keep-alive>
                     </transition>
@@ -57,6 +50,7 @@
                         <keep-alive name="DeptUserManage">
                             <DeptUserManage
                                 v-if="state.currentTab === 'user'"
+                                :root="deptNodes[0]"
                                 :dept="state.currentNode"
                             ></DeptUserManage>
                         </keep-alive>
@@ -68,17 +62,24 @@
 </template>
 
 <script setup lang="ts" name="UserManage">
-import { computed, nextTick, onActivated, reactive, ref, watch } from "vue";
-import { clone } from "lodash";
-import { DeptTreeNodesResult, UpdateDeptBody } from "admin-common";
+import { computed, nextTick, onActivated, provide, reactive, ref, toRef, watch } from "vue";
+import { cloneDeep } from "lodash";
+import { DeptTreeNodesResult } from "admin-common";
 import { ElTree } from "element-plus";
 import { getDeptTreeNodes, reorderDepts } from "@/api/department";
 import DeptProfile from "./components/DeptProfile.vue";
 import DeptRoleManage from "./components/DeptRoleManage.vue";
 import DeptUserManage from "./components/DeptUserManage.vue";
-import { deepFindOriginalDept, filterDeletedDeptNodes } from "./composables/useDeptNodes";
+import {
+    symbolFetchDept,
+    symbolDeptOriginal,
+    symbolResetDeptCurrentKey,
+    deepFindOriginalDept,
+    filterDeletedDeptNodes,
+} from "./composables/useDeptNodes";
 
 interface TreeNode {
+    key: string;
     parent: TreeNode;
     data: DeptTreeNodesResult;
     childNodes: TreeNode[];
@@ -94,7 +95,7 @@ const treeProps = {
 const state = reactive({
     loading: false,
     includeDeleted: false,
-    deptTreeNode: undefined as Undefinable<DeptTreeNodesResult>,
+    deptOriginal: undefined as Undefinable<DeptTreeNodesResult>,
     currentNodeKey: "",
     currentNode: undefined as Undefinable<DeptTreeNodesResult>,
     parentNodeName: "",
@@ -102,16 +103,21 @@ const state = reactive({
 });
 
 const deptNodes = computed(() => {
-    if (!state.deptTreeNode) {
+    if (!state.deptOriginal) {
         return [];
     }
-    const node = clone(state.deptTreeNode);
+    const nodes = [cloneDeep(state.deptOriginal)];
+
     if (!state.includeDeleted) {
-        filterDeletedDeptNodes(node);
+        filterDeletedDeptNodes(nodes);
     }
 
-    return [node];
+    return nodes;
 });
+
+provide(symbolFetchDept, fetch);
+provide(symbolDeptOriginal, toRef(state, "deptOriginal"));
+provide(symbolResetDeptCurrentKey, resetCurrentKey);
 
 watch(
     () => deptNodes.value,
@@ -126,8 +132,9 @@ watch(
             }
             if (!state.currentNode) {
                 state.currentNode = nodes[0];
+                state.parentNodeName = "";
             }
-            refTree.value?.setCurrentKey(state.currentNode._id);
+            refTree.value?.setCurrentKey(state.currentNode!._id);
         });
     },
 );
@@ -138,7 +145,7 @@ function fetch() {
     state.loading = true;
     return getDeptTreeNodes()
         .then((res) => {
-            state.deptTreeNode = res.data;
+            state.deptOriginal = res.data;
         })
         .finally(() => {
             state.loading = false;
@@ -162,13 +169,13 @@ function allowDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "prev" | "i
 
 async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "before" | "after" | "inner") {
     const deptId = dropNode.parent.data._id;
-    const dept = deepFindOriginalDept(state.deptTreeNode!, deptId)!;
     const newChildNodes = dropNode.parent.childNodes;
     const newOrder = newChildNodes.map((item) => item.data._id);
     await reorderDepts({
         deptId,
         deptIds: newOrder,
     });
+    const dept = deepFindOriginalDept(state.deptOriginal!, deptId)!;
     // 按照最新的顺序重新排序
     dept.depts.sort((a, b) => {
         return newOrder.findIndex((id) => a._id === id) - newOrder.findIndex((id) => b._id === id);
@@ -177,33 +184,22 @@ async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "bef
 
 function onCurrentNodeChange(data: DeptTreeNodesResult, node: TreeNode) {
     state.currentNode = data;
-    if (node.parent) {
+    if (node.parent && node.parent.key) {
         state.parentNodeName = node.parent.data.name;
     } else {
         state.parentNodeName = "";
     }
 }
 
-function onDeptCreate() {
-    fetch();
-}
-
-function onDeptUpdate(data: UpdateDeptBody) {
-    const found = deepFindOriginalDept(state.deptTreeNode!, data._id);
-    if (found) {
-        Object.assign(found, data);
+function resetCurrentKey(deptId?: string) {
+    if (!deptId) {
+        deptId = state.currentNode?._id;
+    }
+    if (deptId) {
         nextTick(() => {
-            refTree.value?.setCurrentKey(state.currentNode!._id);
+            refTree.value?.setCurrentKey(deptId!);
         });
     }
-}
-function resetCurrentKey(deptId: string) {
-    nextTick(() => {
-        refTree.value?.setCurrentKey(deptId);
-    });
-}
-function onRoleCreate() {
-    fetch();
 }
 </script>
 

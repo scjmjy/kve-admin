@@ -32,14 +32,14 @@
                         </el-button>
                     </el-form-item>
                     <div class="login-findPassword">
-                        <el-button type="text" @click.prevent="rotateCard">找回密码</el-button>
+                        <el-link type="primary" @click.prevent="rotateCard">找回密码</el-link>
                     </div>
                 </el-form>
             </template>
             <template #back>
                 <el-form ref="formFind" class="is-3d login-form login-form_find" :model="find" :rules="findRules">
                     <h3 class="login-title text-3d">找回密码</h3>
-                    <el-form-item prop="userName">
+                    <el-form-item prop="username">
                         <el-input v-model="find.username" placeholder="输入用户名"></el-input>
                     </el-form-item>
                     <el-form-item prop="phoneNumber">
@@ -60,7 +60,7 @@
                         </el-button>
                     </el-form-item>
                     <div class="login-back2loign">
-                        <el-button class="is-3d" type="text" @click.prevent="rotateCard">返回登录</el-button>
+                        <el-link type="primary" @click.prevent="rotateCard">返回登录</el-link>
                     </div>
                 </el-form>
             </template>

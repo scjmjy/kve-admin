@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useSystemStore } from "@/store/modules/system";
 import { useRoute } from "vue-router";
 import MenuItem from "./MenuItem.vue";
@@ -101,7 +101,6 @@ $menuItemMarginCollapse: 0px 0px 5px !important;
 $menuItemBgDark: rgba(255, 255, 255, 0.3);
 $menuItemBgLight: rgba(255, 255, 255, 0.12);
 .appMenu {
-    padding: 20px 0;
     box-sizing: border-box;
     z-index: 100;
     background: left/cover linear-gradient(to right, #141e30d4, #243b55c7),
@@ -120,7 +119,7 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
                 position: absolute;
                 width: 3px;
                 height: 100%;
-                left: 0px;
+                left: -1px;
                 content: " ";
                 z-index: 100;
             }
@@ -159,6 +158,9 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
             .el-menu-item-group {
                 border-top: 2px solid rgba(255, 255, 255, 0.3);
                 padding: 5px 0;
+                &:first-of-type {
+                    margin-top: 5px;
+                }
             }
         }
     }

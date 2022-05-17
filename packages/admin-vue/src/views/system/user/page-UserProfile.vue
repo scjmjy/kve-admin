@@ -4,7 +4,7 @@
             <template #front>
                 <el-descriptions class="userProfile-front" title="个人信息" :column="state.column" border>
                     <template #extra>
-                        <el-button type="text" @click="onEditClick">编辑</el-button>
+                        <el-link type="primary" @click="onEditClick">编辑</el-link>
                     </template>
                     <el-descriptions-item v-for="item of state.items" :key="item.label">
                         <template #label>
@@ -23,7 +23,7 @@
                 <UploadUserAvatar class="userProfile-frontAvatar" />
             </template>
             <template #back>
-                <el-button type="text" @click="onBackClick">返回</el-button>
+                <el-link type="primary" @click="onBackClick">返回</el-link>
                 <el-tabs class="userProfile-tabs">
                     <el-tab-pane label="基本信息">
                         <UserProfileForm action="update" @update="onUserProfileUpdate"></UserProfileForm>

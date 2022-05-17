@@ -15,36 +15,39 @@
                         >编辑</el-button
                     >
                     <el-button
+                        v-if="!state.isContainerDept"
                         icon="Delete"
                         type="danger"
-                        :disabled="state.isContainerDept || dept.status === 'deleted'"
+                        :disabled="dept.status === 'deleted'"
                         :loading="state.loading"
                         @click="updateDeptStatus('deleted')"
                         >删除</el-button
                     >
                     <el-button
+                        v-if="!state.isContainerDept"
                         icon="Check"
                         type="success"
-                        :disabled="state.isContainerDept || dept.status === 'enabled'"
+                        :disabled="dept.status === 'enabled'"
                         :loading="state.loading"
                         @click="updateDeptStatus('enabled')"
                         >启用</el-button
                     >
                     <el-button
+                        v-if="!state.isContainerDept"
                         icon="Close"
                         type="warning"
-                        :disabled="state.isContainerDept || dept.status !== 'enabled'"
+                        :disabled="dept.status !== 'enabled'"
                         :loading="state.loading"
                         @click="updateDeptStatus('disabled')"
                         >禁用</el-button
                     >
                 </el-button-group>
             </template>
-            <el-descriptions-item label="部门名称">
-                {{ dept.name }}
-            </el-descriptions-item>
             <el-descriptions-item label="上级部门">
                 {{ parent || "无" }}
+            </el-descriptions-item>
+            <el-descriptions-item label="部门名称">
+                {{ dept.name }}
             </el-descriptions-item>
             <el-descriptions-item label="状态">
                 <StatusTag v-model="dept.status" />
@@ -73,7 +76,7 @@
 </template>
 
 <script setup lang="ts" name="DeptProfile">
-import { computed, PropType, reactive, ref } from "vue";
+import { computed, inject, PropType, reactive, Ref, ref } from "vue";
 import {
     DeptTreeNodesResult,
     CreateDeptBody,
@@ -85,6 +88,7 @@ import {
 import { FormAction, FormActions, ItemSchema } from "@/components/form/CrudForm.vue";
 import { createDept, updateDept, enableDept } from "@/api/department";
 import { formatDate } from "@/utils/date";
+import { useDeptInject, updateOriginalDept, updateOriginalDeptStatus } from "../composables/useDeptNodes";
 
 const props = defineProps({
     parent: {
@@ -97,13 +101,13 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["create", "update", "status"]);
-
 const state = reactive({
     loading: false,
     showCrudFormDlg: false,
     isContainerDept: computed(() => props.dept._id === DEPARTMENT_CONTAINER_ID),
 });
+
+const { deptOriginal, fetchDept, resetDeptCurrentKey } = useDeptInject();
 
 const formData = ref({} as CreateDeptBody | UpdateDeptBody);
 
@@ -117,7 +121,7 @@ const formActions = ref<FormActions>({
                 state.loading = false;
             });
             state.showCrudFormDlg = false;
-            emit("create", formData.value);
+            fetchDept();
         },
         async read(action) {
             if (action === "update") {
@@ -135,7 +139,8 @@ const formActions = ref<FormActions>({
                 state.loading = false;
             });
             state.showCrudFormDlg = false;
-            emit("update", formData.value);
+            updateOriginalDept(deptOriginal.value, props.dept._id, formData.value);
+            resetDeptCurrentKey();
         },
     },
 });
@@ -201,8 +206,9 @@ async function updateDeptStatus(status: EnableStatus) {
     await enableDept(props.dept._id, status).finally(() => {
         state.loading = false;
     });
-    props.dept.status = status;
-    emit("status", props.dept._id, status);
+    // props.dept.status = status;
+    updateOriginalDeptStatus(deptOriginal.value, props.dept._id, status);
+    resetDeptCurrentKey();
 }
 </script>
 

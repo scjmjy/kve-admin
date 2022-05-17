@@ -26,10 +26,13 @@ export function login(credential: LoginCredential): AxiosPromise<LoginResult> {
     });
 }
 
-export function getUserProfile(): AxiosPromise<UserProfileResult> {
+export function getUserProfile(perms = false): AxiosPromise<UserProfileResult> {
     return request({
         method: "GET",
         url: "/api/user/profile",
+        params: {
+            perms: perms ? "true" : "",
+        },
     });
 }
 
@@ -97,12 +100,5 @@ export function deleteUser(userId: string): AxiosPromise<void> {
     return request({
         method: "DELETE",
         url: "/api/user/" + userId,
-    });
-}
-
-export function getHelloworld() {
-    return request({
-        url: "/api/helloworld",
-        method: "GET",
     });
 }

@@ -18,6 +18,7 @@ export function useInvalidProps(formData: Record<string, any>, formRules?: FormR
             for (const field in errors.fields) {
                 invalidProps.value[field] = true;
             }
+            // console.log("[useInvalidProps] validate", formData, errors.fields);
         });
     }
 

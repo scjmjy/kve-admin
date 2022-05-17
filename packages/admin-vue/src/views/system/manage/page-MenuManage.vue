@@ -41,9 +41,9 @@
                         <keep-alive name="MenuProfile">
                             <MenuProfile
                                 v-if="state.currentNode"
-                                :parent="state.parentNodeName"
+                                :parentFullpath="state.parentFullpath"
+                                :parent="state.parent"
                                 :menu="state.currentNode"
-                                @create="onMenuCreate"
                             ></MenuProfile>
                         </keep-alive>
                     </transition>
@@ -54,17 +54,25 @@
 </template>
 
 <script setup lang="ts" name="MenuManage">
-import { computed, nextTick, onActivated, reactive, ref, watch } from "vue";
+import { computed, nextTick, onActivated, provide, reactive, ref, toRef, watch } from "vue";
 import { ElTree } from "element-plus";
-import { clone } from "lodash";
+import { cloneDeep } from "lodash";
 import { PermNodeResult } from "admin-common";
-import { deepFindMenu, filterDeletedMenuNodes } from "./composables/useMenuNodes";
-import { getPermNodes } from "@/api/permission";
+import {
+    symbolFetchPerm,
+    symbolPermOriginal,
+    symbolResetPermCurrentKey,
+    deepFindMenu,
+    filterDeletedMenuNodes,
+} from "./composables/useMenuNodes";
+import { getPermNodes, reorderPerms } from "@/api/permission";
 import MenuProfile from "./components/MenuProfile.vue";
+import { normalizePath } from "@/utils/url";
 
 type NodeType = PermNodeResult;
 
 interface TreeNode {
+    key: string;
     parent: TreeNode;
     data: NodeType;
     childNodes: TreeNode[];
@@ -83,15 +91,20 @@ const state = reactive({
     permNodes: undefined as Undefinable<PermNodeResult>,
     currentNodeKey: "",
     currentNode: undefined as Undefinable<NodeType>,
-    parentNodeName: "",
+    parent: undefined as Undefinable<PermNodeResult>,
+    parentFullpath: "",
     currentTab: "profile",
 });
+
+provide(symbolFetchPerm, fetch);
+provide(symbolPermOriginal, toRef(state, "permNodes"));
+provide(symbolResetPermCurrentKey, resetCurrentKey);
 
 const menuNodes = computed(() => {
     if (!state.permNodes) {
         return [];
     }
-    const nodes = [clone(state.permNodes)];
+    const nodes = [cloneDeep(state.permNodes)];
     if (!state.includeDeleted) {
         filterDeletedMenuNodes(nodes);
     }
@@ -111,6 +124,7 @@ watch(
             }
             if (!state.currentNode) {
                 state.currentNode = nodes[0];
+                state.parent = undefined;
             }
             refTree.value?.setCurrentKey(state.currentNode._id);
         });
@@ -141,31 +155,46 @@ function allowDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "prev" | "i
 }
 
 async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "before" | "after" | "inner") {
-    const deptId = dropNode.parent.data._id;
-    const dept = deepFindMenu([state.permNodes!], deptId)!;
+    const permId = dropNode.parent.data._id;
     const newChildNodes = dropNode.parent.childNodes;
     const newOrder = newChildNodes.map((item) => item.data._id);
-    // await reorderDepts({
-    //     deptId,
-    //     deptIds: newOrder,
-    // });
-    // // 按照最新的顺序重新排序
-    // dept.depts.sort((a, b) => {
-    //     return newOrder.findIndex((id) => a._id === id) - newOrder.findIndex((id) => b._id === id);
-    // });
+    await reorderPerms({
+        permId,
+        permIds: newOrder,
+    });
+    // 按照最新的顺序重新排序
+    const menu = deepFindMenu([state.permNodes!], permId)!;
+    menu.children!.sort((a, b) => {
+        return newOrder.findIndex((id) => a._id === id) - newOrder.findIndex((id) => b._id === id);
+    });
 }
 
 function onCurrentNodeChange(data: NodeType, node: TreeNode) {
+    // console.log("[onCurrentNodeChange]", node);
     state.currentNode = data;
-    if (node.parent) {
-        state.parentNodeName = node.parent.data.title || "";
+    if (node.parent && node.parent.key) {
+        state.parent = node.parent.data;
+        let currentNode: TreeNode = node;
+        let parentFullpath = "";
+        while ((currentNode = currentNode.parent) && currentNode.key) {
+            parentFullpath = normalizePath(currentNode.data.path || "", parentFullpath);
+        }
+        state.parentFullpath = parentFullpath;
     } else {
-        state.parentNodeName = "";
+        state.parent = undefined;
+        state.parentFullpath = "";
     }
 }
 
-function onMenuCreate() {
-    fetch();
+function resetCurrentKey(permId?: string) {
+    if (!permId) {
+        permId = state.currentNode?._id;
+    }
+    if (permId) {
+        nextTick(() => {
+            refTree.value?.setCurrentKey(permId!);
+        });
+    }
 }
 </script>
 

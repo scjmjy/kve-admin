@@ -1,5 +1,5 @@
-import { isExternalLink } from "@/utils/is";
-import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
+import { RouteRecordRaw } from "vue-router";
+import { normalizePath } from "@/utils/url";
 
 export const FakeLayout = () => Promise.resolve({ name: "FakeLayout" });
 
@@ -15,18 +15,8 @@ export function makeFullpathRoutes(routes: (RouteRecordRaw | RouteRecordMenuItem
     return normalizedRoutes;
 }
 
-function makeFullpath(parentPath: string, childPath: string) {
-    if (isExternalLink(childPath) || childPath.startsWith("/")) {
-        return childPath;
-    } else if (parentPath.endsWith("/")) {
-        return `${parentPath}${childPath}`;
-    } else {
-        return `${parentPath}/${childPath}`;
-    }
-}
-
 function makeFullpathRoute(route: RouteRecordRaw | RouteRecordMenuItem, parentPath = ""): RouteRecordMenuItem {
-    const fullPath = makeFullpath(parentPath, route.path);
+    const fullPath = normalizePath(parentPath, route.path);
     if (route.children && route.children.length) {
         return {
             name: route.name,
@@ -53,7 +43,7 @@ export function flattenRoutes(routes: RouteRecordRaw[]) {
 }
 
 function flattenRoute(flatRoutes: RouteRecordRaw[], route: RouteRecordRaw, parentPath = "") {
-    const fullPath = makeFullpath(parentPath, route.path);
+    const fullPath = normalizePath(parentPath, route.path);
     if (route.children && route.children.length) {
         const children: RouteRecordRaw[] = [];
         route.children.forEach((child) => {
@@ -63,9 +53,9 @@ function flattenRoute(flatRoutes: RouteRecordRaw[], route: RouteRecordRaw, paren
                 children.push(child);
             }
         });
-        let redirect = route.redirect ? makeFullpath(fullPath, route.redirect as string) : "";
+        let redirect = route.redirect ? normalizePath(fullPath, route.redirect as string) : "";
         if (!redirect && route.children.length) {
-            redirect = makeFullpath(fullPath, route.children[0].path);
+            redirect = normalizePath(fullPath, route.children[0].path);
         }
         flatRoutes.push({
             ...route,
@@ -74,6 +64,9 @@ function flattenRoute(flatRoutes: RouteRecordRaw[], route: RouteRecordRaw, paren
             children,
         });
     } else {
-        flatRoutes.push(route);
+        flatRoutes.push({
+            ...route,
+            path: fullPath,
+        });
     }
 }

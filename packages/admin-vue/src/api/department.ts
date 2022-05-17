@@ -7,6 +7,7 @@ import {
     UpdateRoleBody,
     CreateDeptBody,
     UpdateDeptBody,
+    UpdateRolePermsBody,
 } from "admin-common";
 import { request } from "./request";
 
@@ -76,5 +77,13 @@ export function reorderRoles(body: ReorderRolesBody): AxiosPromise<void> {
         method: "POST",
         url: "/api/role/reorder",
         data: body,
+    });
+}
+
+export function updateRolePerms(perms: UpdateRolePermsBody): AxiosPromise<void> {
+    return request({
+        method: "PUT",
+        url: "/api/role/perm",
+        data: perms,
     });
 }

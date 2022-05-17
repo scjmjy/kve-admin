@@ -79,6 +79,10 @@ const storeDefinition = defineStore({
     },
     actions: {
         onRouteChanged(route: RouteLocationNormalizedLoaded) {
+            if (!route.matched || !route.matched.length || route.matched[0].path === ROUTE_PATH.ERROR_404) {
+                // 404 页面
+                return;
+            }
             const { name, fullPath, path, meta } = route;
             // if (meta.title) {
             //     document.title = meta.title;

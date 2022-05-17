@@ -1,9 +1,9 @@
-import { Gender, UserProfileResult } from "admin-common";
+import { Gender, IPermission, UserProfileResult } from "admin-common";
 
 const STORAGE_KEY_USER_TOKEN = "STORAGE_KEY_USER_TOKEN";
 const STORAGE_KEY_USER_AVATAR_TIMESTAMP = "STORAGE_KEY_USER_AVATAR_TIMESTAMP";
 
-export class UserProfile implements UserProfileResult {
+export class UserProfile implements Omit<UserProfileResult, "perms"> {
     constructor(
         public _id = "",
         public username = "",
@@ -15,6 +15,7 @@ export class UserProfile implements UserProfileResult {
         public roles: UserProfileResult["roles"] = [],
         public createdAt = "",
         public updatedAt = "",
+        public perms: string[] = [],
     ) {
         this.token = localStorage.getItem(STORAGE_KEY_USER_TOKEN) || "";
         this.timestamp = localStorage.getItem(STORAGE_KEY_USER_AVATAR_TIMESTAMP) || "";

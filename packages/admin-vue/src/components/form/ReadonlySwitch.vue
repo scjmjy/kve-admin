@@ -1,5 +1,5 @@
 <template>
-    <el-switch :class="{ 'is-readonly': readonly }" @click.capture="onClick" />
+    <el-switch :class="{ 'is-readonly': readonly }"  v-bind="$attrs" @click.capture="onClick" />
 </template>
 
 <script setup lang="ts" name="ReadonlySwitch">

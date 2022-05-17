@@ -1,11 +1,11 @@
 import type { App } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
-import { flatRoutes } from "./routes";
+import { staticFlatRoutes } from "./routes";
 import { setupGuard } from "./guard";
 
 export const router = createRouter({
     history: createWebHashHistory(import.meta.env.VITE_PUBLIC_PATH),
-    routes: flatRoutes,
+    routes: staticFlatRoutes,
     strict: false,
     scrollBehavior(to, from, savedPosition) {
         if (savedPosition) {

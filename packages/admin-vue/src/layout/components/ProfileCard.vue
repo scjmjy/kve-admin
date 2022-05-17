@@ -5,7 +5,7 @@
             <el-button class="button" type="danger" :loading="state.loggingOut" @click="logout">退出</el-button>
         </template>
         <div>
-            <el-button type="text" @click="gotoProfile">更多...</el-button>
+            <el-link type="primary" @click="gotoProfile">更多...</el-link>
         </div>
     </el-card>
 </template>

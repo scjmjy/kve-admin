@@ -1,5 +1,5 @@
 <template>
-    <el-radio-group :class="{ 'is-readonly': readonly }" @click.capture="onClick">
+    <el-radio-group :class="{ 'is-readonly': readonly }"  v-bind="$attrs" @click.capture="onClick">
         <el-radio-button label="menugroup">菜单组</el-radio-button>
         <el-radio-button label="menuitem">菜单项</el-radio-button>
         <el-radio-button label="action">动作</el-radio-button>

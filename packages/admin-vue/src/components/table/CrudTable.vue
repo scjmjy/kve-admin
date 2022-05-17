@@ -115,10 +115,10 @@
                     </template>
                     <el-dropdown
                         v-if="actions.dropdowns && actions.dropdowns.items.length"
-                        @visible-change="scope.row.__dropdown = !scope.row.__dropdown"
+                        @visible-change="!$event && (scope.row.__dropdown = false)"
                         @command="actions!.dropdowns!.onCommand($event, scope.row)"
                     >
-                        <span class="el-dropdown-link">
+                        <span @mouseenter="scope.row.__dropdown = true">
                             {{ actions.dropdowns.more }}
                             <el-icon :class="{ 'is-up': scope.row.__dropdown, 'el-icon__ani': true }"
                                 ><arrow-down
@@ -169,7 +169,8 @@ import { PropType, reactive, ref, watch } from "vue";
 import { ButtonInstance, ElTable, ElTableColumn, ElDropdownItem, ElMessageBox } from "element-plus";
 import { debounce } from "lodash";
 import CrudFormDlg from "@/components/dialog/CrudFormDlg.vue";
-import { ColumnResponsive, CrudFormProps, FormAction, ItemSchema } from "@/components/form/CrudForm.vue";
+import { CrudFormProps, FormAction, ItemSchema } from "@/components/form/CrudForm.vue";
+import { ResponsiveScreenMap } from "@/store/modules/system";
 import { PageController } from "@/utils/page-controller";
 
 export type TableColumnProps = InstanceType<typeof ElTableColumn>;
@@ -241,7 +242,7 @@ const props = defineProps({
         default: undefined,
     },
     filterColumn: {
-        type: Object as PropType<ColumnResponsive>,
+        type: Object as PropType<ResponsiveScreenMap>,
         default: () => ({
             xs: 1,
             sm: 2,

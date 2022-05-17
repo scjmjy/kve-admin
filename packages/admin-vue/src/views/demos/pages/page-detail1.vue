@@ -1,23 +1,25 @@
 <template>
     <div>
-        <p>PageName: ThirdNestedPage1Detail</p>
-        <p>Count: {{ count }}</p>
-        <p>参数：{{ params }}</p>
+        <p>RouteName: Page1Detail</p>
+        <p>此页面进入次数: {{ count }}</p>
+        <p>此页面的 Query: {{ query }}</p>
     </div>
 </template>
 
-<script setup lang="ts" name="ThirdNestedPage1Detail">
+<script setup lang="ts" name="detail1">
 import { onActivated, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const route = useRoute();
 // 不需要使用 computed 来动态计算 query，只记录此页面起初的 query
-const { params } = route;
+const { query } = route;
 
 const count = ref(0);
 onActivated(() => {
     count.value++;
 });
+
+const inputValue = ref("");
 </script>
 
 <style scoped></style>

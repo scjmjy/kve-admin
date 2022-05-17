@@ -47,6 +47,12 @@
     height: 100%;
 }
 
+.is-line-1 {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .scrollbar {
     // &:hover {
     //     &::-webkit-scrollbar {

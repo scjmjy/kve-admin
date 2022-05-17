@@ -19,7 +19,7 @@
     </div>
 </template>
 
-<script setup lang="ts" name="Page1">
+<script setup lang="ts" name="page1">
 import { onActivated, ref } from "vue";
 import { useRouter } from "vue-router";
 import { findRouteFullpath } from "@/router/routes";
@@ -34,7 +34,7 @@ onActivated(() => {
 });
 
 function gotoDetail() {
-    const path = findRouteFullpath("Page1Detail");
+    const path = findRouteFullpath("detail1");
     if (path) {
         router.push({
             path,

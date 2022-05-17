@@ -14,7 +14,7 @@
 
                 <el-main class="defaultLayout-main" ref="refMain">
                     <el-scrollbar id="defaultLayoutScrollbar" class="is-vertical">
-                        <AppMain pageStyle="flex: 1; padding: 15px"></AppMain>
+                        <AppMain pageStyle="flex: 1; padding: 15px;"></AppMain>
                         <AppFooter></AppFooter>
                     </el-scrollbar>
                     <el-backtop target="#defaultLayoutScrollbar .el-scrollbar__wrap" :right="50" :bottom="50" />

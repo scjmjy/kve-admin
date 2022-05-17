@@ -11,8 +11,8 @@
     >
         <slot name="prepend" />
         <el-row :gutter="20">
-            <template v-for="(item, index) of items" :key="index">
-                <el-col v-if="item.visible !== false" :span="Math.max(item.span || 0, state.span)" :key="item.prop">
+            <template v-for="item in items" :key="item.prop">
+                <el-col v-if="item.visible !== false" :span="Math.max(item.span || 0, state.span)">
                     <el-form-item
                         :label="item.label"
                         :prop="item.prop"
@@ -37,6 +37,7 @@
                         ></component>
                     </el-form-item>
                 </el-col>
+                <el-col v-if="item.break" :span="24"></el-col>
             </template>
         </el-row>
         <slot name="append" />
@@ -74,7 +75,7 @@
 
 <script setup lang="ts" name="CrudForm">
 import { computed, getCurrentInstance, nextTick, onMounted, PropType, reactive, ref, watch } from "vue";
-import { ElForm, ElMessage, ElMessageBox, useTooltipProps } from "element-plus";
+import { ElForm, ElMessage, ElMessageBox, UploadInstance, useTooltipProps } from "element-plus";
 import type {
     FormProps,
     FormItemProps,
@@ -90,17 +91,28 @@ import type {
     TooltipInstance,
 } from "element-plus";
 import { merge } from "lodash-es";
-import { ResponsiveScreenMap, useSystemStore } from "@/store/modules/system";
+import { ResponsiveScreenMap, ScreenMode, useSystemStore } from "@/store/modules/system";
 import { useInvalidProps } from "@/composables/useForm";
 import type ReadonlySwitch from "@/components/form/ReadonlySwitch.vue";
 import type MenuTypeRadio from "@/components/form/MenuTypeRadio.vue";
 import type { BasicSelectProps } from "./BasicSelect.vue";
+import type PathInput from "./PathInput.vue";
+import type IconSelectInput from "./IconSelectInput.vue";
 import type { BasicTreeSelectProps } from "./BasicTreeSelect.vue";
+import type { BasicUploadProps } from "./BasicUpload.vue";
 
 export type CrudFormItem =
     | {
           type: "ElInput";
           props?: InputInstance["$props"];
+      }
+    | {
+          type: "PathInput";
+          props?: InstanceType<typeof PathInput>["$props"] & InputInstance["$props"];
+      }
+    | {
+          type: "IconSelectInput";
+          props?: InstanceType<typeof IconSelectInput>["$props"] & InputInstance["$props"];
       }
     | {
           type: "ElSwitch";
@@ -117,6 +129,10 @@ export type CrudFormItem =
     | {
           type: "GenderSelect";
           props?: Omit<BasicSelectProps, "options"> & InstanceType<typeof ElSelect>["$props"];
+      }
+    | {
+          type: "BasicUpload";
+          props?: BasicUploadProps & Omit<UploadInstance["$props"], "action" | "accept" | "list-type">;
       }
     | {
           type: "StatusSelect";
@@ -147,6 +163,8 @@ export interface ItemSchema {
     tooltip?: TooltipInstance["$props"];
     prop: string;
     span?: number;
+    /** 是否换行 */
+    break?: boolean;
     attrs?: Record<string, any>;
     /** 是否显示此 FormItem，默认 true */
     visible?: boolean;
@@ -173,7 +191,7 @@ export interface FormActions {
 }
 
 export interface CrudFormProps {
-    column: number | ResponsiveScreenMap | "responsive";
+    column?: number | Partial<Record<ScreenMode, number>> | "responsive";
     action?: FormAction;
     actions?: FormActions;
     formData?: Record<string, any>;
@@ -219,6 +237,10 @@ const emit = defineEmits<CrudFormEmits>();
 
 const { invalid, invalidProps, onValidate, resetValidation } = useInvalidProps(props.formData, props.rules, false);
 
+function resetFormValidation() {
+    resetValidation(props.formData, props.rules);
+}
+
 onMounted(() => {
     watch(
         () => props.action,
@@ -233,6 +255,7 @@ onMounted(() => {
                         await readApi(action).finally(() => {
                             state.loading = false;
                         });
+                        resetFormValidation();
                     }
                     break;
                 case "update":
@@ -242,6 +265,7 @@ onMounted(() => {
                         await readApiForUpdate(action).finally(() => {
                             state.loading = false;
                         });
+                        resetFormValidation();
                     }
                     refForm.value?.validate();
                     break;
@@ -252,17 +276,17 @@ onMounted(() => {
             immediate: true,
         },
     );
-});
 
-watch(
-    () => [props.items, props.rules],
-    () => {
-        resetValidation(props.formData, props.rules);
-    },
-    {
-        immediate: true,
-    },
-);
+    watch(
+        () => [props.items, props.rules],
+        () => {
+            resetFormValidation();
+        },
+        {
+            immediate: true,
+        },
+    );
+});
 
 const formActions = computed<Required<FormActions>>(() => {
     const defaultActions = instance!.proxy!.$options.props.actions.default();
@@ -390,6 +414,10 @@ function handleEdit() {
 
 defineExpose({
     state,
+    resetFormValidation,
+    handleAction,
+    handleDelete,
+    handleEdit,
 });
 </script>
 

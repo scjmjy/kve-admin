@@ -40,37 +40,24 @@
 </template>
 
 <script setup lang="ts" name="DeptUserManage">
-import {
-    computed,
-    ExtractPropTypes,
-    onMounted,
-    PropType,
-    reactive,
-    ref,
-    shallowReactive,
-    shallowRef,
-    watch,
-} from "vue";
-import { AxiosPromise } from "axios";
+import { computed, PropType, reactive, ref, shallowReactive, shallowRef, watch } from "vue";
 import {
     CreateUserBody,
     UpdateUserBody,
     getUserRules,
     DeptTreeNodesResult,
-    FindUsersParams,
     FindUsersResult,
-    Gender,
     UserFilter,
     USER_SUPERADMIN_ID,
 } from "admin-common";
-import { ButtonInstance, ElTableColumn, dropdownItemProps, ElMessageBox } from "element-plus";
-import { debounce, isEmpty } from "lodash";
+import { ElMessageBox } from "element-plus";
+import { isEmpty } from "lodash";
 import { enableUsers, getUserList } from "@/api/user";
-import CrudFormDlg from "@/components/dialog/CrudFormDlg.vue";
-import { ColumnResponsive, CrudFormProps, FormAction, ItemSchema } from "@/components/form/CrudForm.vue";
+import { CrudFormProps, ItemSchema } from "@/components/form/CrudForm.vue";
 import CrudTable, { CrudTableColumn, TableActionColumn, TableHeader } from "@/components/table/CrudTable.vue";
 import { createUser, deleteUser, updateUser } from "@/api/user";
-import { makeDeepRoleNode, RoleNode } from "../composables/useRoleNodes";
+import { extractAllDepts, extractAllRoles } from "../composables/useDeptNodes";
+import { isDept, makeDeepRoleNode, RoleNode } from "../composables/useRoleNodes";
 import { formatDate } from "@/utils/date";
 
 // export type PostHandler<DataT> = (list: DataT[]) => void;
@@ -83,23 +70,11 @@ const props = defineProps({
         type: Object as PropType<DeptTreeNodesResult>,
         required: true,
     },
+    root: {
+        type: Object as PropType<DeptTreeNodesResult>,
+        required: true,
+    },
 });
-
-/**
- * 把 dept 和 dept.depts 提取到一个 string[] 里
- * @param dept
- */
-function extractAllDepts(dept: DeptTreeNodesResult) {
-    if (dept.depts.length) {
-        const depts = [dept._id];
-        for (const d of dept.depts) {
-            depts.push(...extractAllDepts(d));
-        }
-        return depts;
-    } else {
-        return [dept._id];
-    }
-}
 
 const crudTable = ref<InstanceType<typeof CrudTable>>();
 
@@ -108,6 +83,8 @@ const state = reactive({
     showCrudFormDlg: false,
     tableSelection: [] as DataType[],
     disabled: computed(() => props.dept.status !== "enabled"),
+    allDeptIds: computed(() => extractAllDepts(props.root)),
+    allRoleIds: computed(() => extractAllRoles(props.root)),
 });
 
 const tableHeader = computed<TableHeader<DataType>>(() => {
@@ -138,7 +115,7 @@ const tableHeader = computed<TableHeader<DataType>>(() => {
             await enableUsers(ids, "deleted");
         },
         deleteBtnProps: {
-            disabled: state.disabled,
+            disabled: state.disabled || state.tableSelection.length === 0,
         },
     };
 });
@@ -323,7 +300,7 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
             prop: "username",
             label: "用户名",
             showOverflowTooltip: true,
-            width: 100,
+            width: 120,
         },
     },
     {
@@ -331,7 +308,7 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
             prop: "realname",
             label: "真实姓名",
             showOverflowTooltip: true,
-            width: 100,
+            width: 120,
         },
     },
     {
@@ -393,7 +370,7 @@ const tableActions = shallowRef<TableActionColumn<DataType>>({
     props: {
         label: "操作",
         align: "center",
-        width: "110px",
+        width: "130px",
     },
     buttons: [
         {
@@ -409,7 +386,8 @@ const tableActions = shallowRef<TableActionColumn<DataType>>({
                 state.showCrudFormDlg = true;
             },
             props: {
-                type: "text",
+                type: "primary",
+                text: true,
             },
         },
     ],
@@ -551,10 +529,31 @@ const formRules = computed(() => {
     }
 });
 
+/**
+ * 把 dept 的所有 roles 提取到一个 string[] 里
+ * @param dept
+ * @param filters 只有包含在此数组里的 dept 的 roles 才会返回
+ */
+function extractAllRoles2(roleNode: RoleNode) {
+    const ids: string[] = [];
+    if (isDept(roleNode)) {
+        for (const node of roleNode.roles) {
+            ids.push(...extractAllRoles2(node));
+        }
+    } else {
+        ids.push(roleNode._id);
+    }
+    return ids;
+}
+
 const formItems = computed<ItemSchema[]>(() => {
     let roleNodes: RoleNode[] = [];
-    if (formData.value.depts && formData.value.depts.length) {
-        const roleNode = makeDeepRoleNode(props.dept, formData.value.depts as string[]);
+    if (formData.value.depts && crudForm.action !== "read") {
+        const depts = formData.value.depts as string[];
+        depts.sort((a, b) => {
+            return state.allDeptIds.indexOf(a) - state.allDeptIds.indexOf(b);
+        });
+        const roleNode = makeDeepRoleNode(props.root, depts);
         if (roleNode) {
             roleNodes.push(roleNode);
         }
@@ -630,13 +629,21 @@ const formItems = computed<ItemSchema[]>(() => {
                         value: "_id",
                         children: "depts",
                     },
-                    data: [props.dept],
+                    nodeKey: "_id",
+                    data: [props.root],
                     checkStrictly: true,
                     defaultExpandAll: true,
                     multiple: true,
-                    onChange() {
-                        // 选中的部门改变了，所以重新角色
-                        formData.value.roles = [];
+                    onChange(depts: string[]) {
+                        depts.sort((a, b) => {
+                            return state.allDeptIds.indexOf(a) - state.allDeptIds.indexOf(b);
+                        });
+                        const roleNode = makeDeepRoleNode(props.root, depts)!;
+                        const validRoles = extractAllRoles2(roleNode);
+                        // 选中的部门改变了，过滤掉无效的角色
+                        formData.value.roles = (formData.value.roles as string[]).filter((role) =>
+                            validRoles.includes(role),
+                        );
                     },
                 },
             },
@@ -652,9 +659,15 @@ const formItems = computed<ItemSchema[]>(() => {
                         value: "_id",
                         children: "roles",
                     },
+                    nodeKey: "_id",
                     defaultExpandAll: true,
                     data: roleNodes,
                     multiple: true,
+                    onChange(roles: string[]) {
+                        roles.sort((a, b) => {
+                            return state.allRoleIds.indexOf(a) - state.allRoleIds.indexOf(b);
+                        });
+                    },
                 },
             },
         },

@@ -4,7 +4,7 @@
     <span class="appHeader-title">KVE 后台管理系统</span>
     <el-popover
         placement="bottom-end"
-        :width="200"
+        :width="240"
         trigger="hover"
         @before-enter="toggleProfileCardShow"
         @before-leave="toggleProfileCardShow"
@@ -54,9 +54,9 @@ function onHideme() {
         font-weight: bold;
         font-size: 1.4em;
         color: var(--el-color-primary);
-        .is-xs & {
-            display: none;
-        }
+        // .is-xs & {
+        //     display: none;
+        // }
     }
     &-right {
         margin-left: auto;

@@ -49,7 +49,7 @@
                             >编辑</el-button
                         >
                         <el-button
-                            v-if="state2.roleInfo"
+                            v-if="state2.roleInfo && state2.roleInfo._id !== ROLE_SUPERADMIN_ID"
                             icon="Delete"
                             type="danger"
                             :disabled="state.disabled || state2.roleInfo.status === 'deleted'"
@@ -58,7 +58,7 @@
                             >删除</el-button
                         >
                         <el-button
-                            v-if="state2.roleInfo"
+                            v-if="state2.roleInfo && state2.roleInfo._id !== ROLE_SUPERADMIN_ID"
                             icon="Check"
                             type="success"
                             :disabled="state.disabled || state2.roleInfo.status === 'enabled'"
@@ -67,13 +67,22 @@
                             >启用</el-button
                         >
                         <el-button
-                            v-if="state2.roleInfo"
+                            v-if="state2.roleInfo && state2.roleInfo._id !== ROLE_SUPERADMIN_ID"
                             icon="Close"
                             type="warning"
                             :disabled="state.disabled || state2.roleInfo.status !== 'enabled'"
                             :loading="state.loading"
                             @click="updateRoleStatus('disabled')"
                             >禁用</el-button
+                        >
+                        <el-button
+                            v-if="state2.roleInfo && state2.roleInfo._id !== ROLE_SUPERADMIN_ID"
+                            icon="Menu"
+                            type="primary"
+                            :disabled="state.disabled || state2.roleInfo.status !== 'enabled'"
+                            :loading="state.loading"
+                            @click="state.showPermDlg = true"
+                            >菜单权限</el-button
                         >
                     </el-button-group>
                 </template>
@@ -89,6 +98,9 @@
                     <el-descriptions-item label="状态">
                         <StatusTag v-model="state2.roleInfo.status" />
                     </el-descriptions-item>
+                    <el-descriptions-item min-width="80px" label="菜单权限">
+                        {{ state2.roleInfo.perms.map((perm) => perm.title || "").join(", ") }}
+                    </el-descriptions-item>
                     <el-descriptions-item label="描述">{{ state2.roleInfo.description }} </el-descriptions-item>
                     <el-descriptions-item label="创建时间">
                         {{ formatDate(state2.roleInfo.createdAt) }}
@@ -100,7 +112,7 @@
             </el-descriptions>
         </el-col>
         <CrudFormDlg
-            v-model="state.showCrudFormDlg"
+            v-model="state.showRoleDlg"
             :action="formAction"
             :actions="formActions"
             :column="1"
@@ -108,11 +120,19 @@
             :form-data="formData"
             :rules="formRules"
         ></CrudFormDlg>
+        <CrudFormDlg
+            v-model="state.showPermDlg"
+            action="update"
+            :actions="formActionsPerm"
+            :column="1"
+            :items="formItemsPerm"
+            :form-data="formDataPerm"
+        ></CrudFormDlg>
     </el-row>
 </template>
 
 <script setup lang="ts" name="DeptRoleManage">
-import { computed, nextTick, PropType, reactive, ref, watch } from "vue";
+import { computed, inject, nextTick, PropType, reactive, Ref, ref, watch } from "vue";
 import { ElTree } from "element-plus";
 import {
     CreateRoleBody,
@@ -120,9 +140,13 @@ import {
     getCreateRoleRules,
     getUpdateRoleRules,
     UpdateRoleBody,
+    UpdateRolePermsBody,
+    PermNodeResult,
+    ROLE_SUPERADMIN_ID,
 } from "admin-common";
 import { FormAction, FormActions, ItemSchema } from "@/components/form/CrudForm.vue";
-import { createRole, enableRole, reorderRoles, updateRole } from "@/api/department";
+import { createRole, enableRole, reorderRoles, updateRole, updateRolePerms } from "@/api/department";
+import { makePermTreeSelectOpts, extractAllPermIds, sortPermIds } from "../composables/useMenuNodes";
 import {
     isDept,
     makeDeepRoleNode,
@@ -132,8 +156,15 @@ import {
     deepFindDept,
     filterDeletedRoleNodes,
 } from "../composables/useRoleNodes";
-import { deepFindOriginalDept } from "../composables/useDeptNodes";
+import {
+    deepFindOriginalDept,
+    updateOriginalRole,
+    updateOriginalRoleStatus,
+    useDeptInject,
+    updateOriginalRolePerms,
+} from "../composables/useDeptNodes";
 import { formatDate } from "@/utils/date";
+import { getPermNodes } from "@/api/permission";
 
 interface TreeNode {
     parent: TreeNode;
@@ -148,8 +179,6 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["create", "update", "status", "dragdrop"]);
-
 const treeProps = {
     label: "name",
     children: "roles",
@@ -158,14 +187,20 @@ const treeProps = {
     },
 };
 
+const { deptOriginal, fetchDept, resetDeptCurrentKey } = useDeptInject();
+
 const state = reactive({
     includeDeleted: false,
     deep: false,
     loading: false,
     currentNode: undefined as Undefinable<RoleNode>,
-    showCrudFormDlg: false,
+    showRoleDlg: false,
+    showPermDlg: false,
     disabled: computed(() => props.dept.status !== "enabled"),
+    permNode: undefined as Undefinable<PermNodeResult>,
 });
+
+let g_allPermIds: string[] = [];
 
 const state2 = reactive({
     deptInfo: computed(() => {
@@ -244,8 +279,8 @@ const formActions = ref<FormActions>({
             await createRole(formData.value as CreateRoleBody).finally(() => {
                 state.loading = false;
             });
-            state.showCrudFormDlg = false;
-            emit("create", formData.value);
+            state.showRoleDlg = false;
+            fetchDept();
         },
         async read(action) {
             if (action === "update") {
@@ -260,11 +295,11 @@ const formActions = ref<FormActions>({
         async update() {
             state.loading = true;
             await updateRole(formData.value as UpdateRoleBody).finally(() => {
-                state.loading = true;
+                state.loading = false;
             });
-            state.showCrudFormDlg = false;
-            Object.assign(state.currentNode, formData.value);
-            emit("update", props.dept._id);
+            state.showRoleDlg = false;
+            updateOriginalRole(deptOriginal.value, state.currentNode!._id, formData.value);
+            resetDeptCurrentKey();
         },
     },
 });
@@ -312,6 +347,60 @@ const formRules = computed(() => {
     return getUpdateRoleRules();
 });
 
+async function fetchPermNode() {
+    const res = await getPermNodes({
+        status: "enabled",
+    });
+    state.permNode = res.data;
+    g_allPermIds = extractAllPermIds(state.permNode);
+}
+
+const formDataPerm = ref({} as UpdateRolePermsBody);
+
+const formActionsPerm = ref<FormActions>({
+    apis: {
+        async read(action) {
+            if (action === "update") {
+                const { _id, perms } = state.currentNode as RoleType;
+                formDataPerm.value = { _id, perms: perms.map((p) => p._id) };
+                await fetchPermNode();
+            }
+        },
+        async update() {
+            state.loading = true;
+            await updateRolePerms(formDataPerm.value).finally(() => {
+                state.loading = false;
+            });
+            state.showPermDlg = false;
+            updateOriginalRolePerms(deptOriginal.value, state.permNode!, formDataPerm.value._id, formDataPerm.value.perms);
+            resetDeptCurrentKey();
+        },
+    },
+});
+
+const formItemsPerm = computed<ItemSchema[]>(() => {
+    const data = state.permNode ? makePermTreeSelectOpts(state.permNode) : [];
+    return [
+        {
+            label: "权限",
+            prop: "perms",
+            item: {
+                type: "BasicTreeSelect",
+                props: {
+                    defaultExpandAll: true,
+                    multiple: true,
+                    showCheckbox: true,
+                    data,
+                    nodeKey: "value",
+                    onChange(val: string[]) {
+                        sortPermIds(val, g_allPermIds);
+                    },
+                },
+            },
+        },
+    ];
+});
+
 function allowDrag(node: TreeNode) {
     return !isDept(node.data);
 }
@@ -339,7 +428,6 @@ async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "bef
     nextTick(() => {
         refTree.value?.setCurrentKey(draggingNode.data._id);
         state.currentNode = draggingNode.data;
-        emit("dragdrop", props.dept._id);
     });
 }
 function onCurrentNodeChange(data: RoleNode, node: TreeNode) {
@@ -351,12 +439,12 @@ function onAddClick() {
     formData.value = {
         dept: props.dept._id,
     } as CreateRoleBody;
-    state.showCrudFormDlg = true;
+    state.showRoleDlg = true;
 }
 
 function onEditClick() {
     formAction.value = "update";
-    state.showCrudFormDlg = true;
+    state.showRoleDlg = true;
 }
 
 async function updateRoleStatus(status: EnableStatus) {
@@ -364,9 +452,9 @@ async function updateRoleStatus(status: EnableStatus) {
     await enableRole(state2.roleInfo!._id, status).finally(() => {
         state.loading = false;
     });
-    state2.roleInfo!.status = status;
+    updateOriginalRoleStatus(deptOriginal.value, state.currentNode!._id, status);
+    resetDeptCurrentKey();
     nextTick(() => {
-        emit("status", props.dept._id);
         refTree.value?.setCurrentKey(state.currentNode!._id);
     });
 }

@@ -1,7 +1,6 @@
-const PUBLIC_PATH = import.meta.env.VITE_PUBLIC_PATH;
 export const ROUTE_PATH = {
-    DASHBOARD: PUBLIC_PATH,
-    LOGIN: PUBLIC_PATH + "login",
+    DASHBOARD: "/",
+    LOGIN: "/login",
     REDIRECT: "/redirect",
-    IFRAME: "/iframe",
+    ERROR_404: "/:path*",
 };

@@ -10,7 +10,7 @@
         </div>
         <p>
             <el-input v-model="param" placeholder="输入 param 值" style="width: 120px; margin-right: 10px" />
-            <el-button type="primary" @click="gotoDetail">前往详情页</el-button>
+            <el-button type="primary" :disabled="!param" @click="gotoDetail">前往详情页</el-button>
         </p>
     </div>
 </template>
@@ -31,7 +31,7 @@ onActivated(() => {
 });
 
 function gotoDetail() {
-    let path = findRouteFullpath("ThirdNestedPage1Detail");
+    let path = findRouteFullpath("ThirdNestedPageDetail1");
     if (path) {
         path = path.replace(/:id$/, param.value);
         router.push(path);

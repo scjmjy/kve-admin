@@ -65,7 +65,6 @@ import { VueCropper } from "vue-cropper";
 import { Minus, Plus, RefreshLeft, RefreshRight, Upload, UploadFilled } from "@element-plus/icons-vue";
 import { useUserStore } from "@/store/modules/user";
 import { defaultAvatar } from "@/assets";
-import { computed } from "@vue/reactivity";
 
 const props = defineProps({
     action: {

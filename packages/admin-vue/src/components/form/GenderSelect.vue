@@ -1,5 +1,5 @@
 <template>
-    <BasicSelect :options="options"></BasicSelect>
+    <BasicSelect :options="options" v-bind="$attrs"></BasicSelect>
 </template>
 
 <script setup lang="ts" name="GenderSelect">

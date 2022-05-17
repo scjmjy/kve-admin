@@ -2,7 +2,7 @@
 @use "element-plus/theme-chalk/src/common/var.scss" as elementPlusVar;
 
 .is-3d {
-    .el-button:not(.el-button--text) {
+    .el-button:not(.is-text) {
         box-shadow: $shodow-convex;
         &:active:not(.is-disabled) {
             transform: translateY(3px);

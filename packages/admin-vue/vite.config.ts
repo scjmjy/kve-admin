@@ -8,6 +8,7 @@ export default defineConfig(({ mode, command }) => {
     const env = loadEnv(mode, cwd) as unknown as AdminDotEnv;
     // console.log("[VITE-CONFIG]", mode, cwd, env);
     return {
+        base: env.VITE_PUBLIC_PATH,
         resolve: {
             alias: {
                 "@": path.resolve(cwd, "src"),

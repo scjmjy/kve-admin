@@ -1,5 +1,8 @@
 <template>
     <div class="page404">
+        <div class="page404-action">
+            <el-link type="primary" @click="onBackClick">回到首页</el-link>
+        </div>
         <svg
             xmlns:xlink="http://www.w3.org/1999/xlink"
             xmlns="http://www.w3.org/2000/svg"
@@ -441,13 +444,30 @@
     </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ROUTE_PATH } from "@/router/consts";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+function onBackClick() {
+    router.replace(ROUTE_PATH.DASHBOARD);
+}
+</script>
 
 <style scoped lang="scss">
 .page404 {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    position: relative;
+    &-action {
+        position: absolute;
+        top: 95%;
+        left: 0;
+        right: 0;
+        text-align: center;
+    }
     svg {
         width: 100% !important;
         height: 100% !important;

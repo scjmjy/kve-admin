@@ -1,5 +1,7 @@
 <template>
-    <el-tag :type="tag.type" size="small" effect="dark" round>{{ tag.label }}</el-tag>
+    <el-tag v-if="!(compact && modelValue !== 'action')" :type="tag.type" size="small" effect="dark" round>{{
+        tag.label
+    }}</el-tag>
 </template>
 
 <script setup lang="ts" name="MenuTypeTag">
@@ -20,12 +22,12 @@ const tag = computed<{ label: string; type: "" | "success" | "warning" | "info" 
     switch (props.modelValue) {
         case "menugroup":
             return {
-                label: props.compact ? "组" : "菜单组",
+                label: "菜单组",
                 type: "",
             };
         case "menuitem":
             return {
-                label: props.compact ? "项" : "菜单项",
+                label: "菜单项",
                 type: "success",
             };
         case "action":

@@ -7,17 +7,22 @@ import {
     UpdateMenuActionBody,
     UpdateMenuGroupBody,
     UpdateMenuItemBody,
+    ReorderPermsBody,
+    GetPermNodeQuery,
 } from "admin-common";
 import { request } from "./request";
 
-export function getPermNodes(): AxiosPromise<PermNodeResult> {
+export function getPermNodes(query?: GetPermNodeQuery): AxiosPromise<PermNodeResult> {
     return request({
         method: "GET",
         url: "/api/perm/tree",
+        params: query || {},
     });
 }
 
-export function createPerm(body: CreateMenuActionBody | CreateMenuGroupBody | CreateMenuItemBody): AxiosPromise<CreateResult> {
+export function createPerm(
+    body: CreateMenuActionBody | CreateMenuGroupBody | CreateMenuItemBody,
+): AxiosPromise<CreateResult> {
     return request({
         method: "POST",
         url: "/api/perm",
@@ -37,5 +42,13 @@ export function enablePerm(permId: string, status: EnableStatus): AxiosPromise<v
     return request({
         method: "PUT",
         url: `/api/perm/status/${permId}/${status}`,
+    });
+}
+
+export function reorderPerms(body: ReorderPermsBody): AxiosPromise<void> {
+    return request({
+        method: "POST",
+        url: "/api/perm/reorder",
+        data: body,
     });
 }

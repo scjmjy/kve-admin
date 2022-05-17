@@ -1,6 +1,10 @@
-import { ROUTE_PATH } from "./consts";
+import nProgress from "nprogress";
+import "nprogress/nprogress.css";
 import { RouteLocationRaw, Router } from "vue-router";
 import { useUserStore } from "@/store/modules/user";
+import { ROUTE_PATH } from "./consts";
+
+nProgress.configure({ showSpinner: false });
 
 const WHITE_LIST = [ROUTE_PATH.LOGIN];
 
@@ -8,6 +12,7 @@ export function setupGuard(router: Router) {
     const userStore = useUserStore();
 
     router.beforeEach(async (to, from, next) => {
+        nProgress.start();
         // console.log("[setupGuard]", to, from);
         const loginLocation: RouteLocationRaw = {
             path: ROUTE_PATH.LOGIN,
@@ -25,8 +30,15 @@ export function setupGuard(router: Router) {
                 };
             } else if (!_id) {
                 try {
-                    await userStore.getUserProfile();
+                    await userStore.getUserProfile(true);
+                    // hack方法 确保addRoutes已完成
+                    location = {
+                        ...to,
+                        replace: true,
+                    };
                 } catch (error) {
+                    console.error(error);
+
                     userStore.cleanup();
                     location = loginLocation;
                 }
@@ -42,6 +54,7 @@ export function setupGuard(router: Router) {
         } else {
             next();
         }
+        nProgress.done();
     });
 
     // router.afterEach((to, from) => {

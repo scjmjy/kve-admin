@@ -37,14 +37,12 @@ export function makeDeepRoleNode(
         status: dept.status,
         roles: exclude ? [] : (Array.from(dept.roles) as RoleNode[]),
     };
-    if (dept.depts.length) {
-        for (const d of dept.depts) {
-            // exclude=false 说明 dept 没有被 filter 掉
-            // 所以它的子 depts 也全通过，跳过 filters 过滤
-            const node = makeDeepRoleNode(d, filters, !exclude);
-            if (node) {
-                deptNode.roles.push(node);
-            }
+    for (const d of dept.depts) {
+        // exclude=false 说明 dept 没有被 filter 掉
+        // 所以它的子 depts 也全通过，跳过 filters 过滤
+        const node = makeDeepRoleNode(d, filters, !exclude);
+        if (node) {
+            deptNode.roles.push(node);
         }
     }
     if (deptNode.roles.length !== 0) {

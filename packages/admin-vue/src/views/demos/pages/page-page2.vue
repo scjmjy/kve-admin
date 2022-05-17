@@ -12,7 +12,7 @@
     </div>
 </template>
 
-<script setup lang="ts" name="Page2">
+<script setup lang="ts" name="page2">
 import { onBeforeMount, onBeforeUnmount, ref } from "vue";
 
 const count = ref(0);

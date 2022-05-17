@@ -25,7 +25,7 @@
                             type="danger"
                             :disabled="menu.status === 'deleted'"
                             :loading="state.loading"
-                            @click="updateDeptStatus('deleted')"
+                            @click="updatePermStatus('deleted')"
                             >删除</el-button
                         >
                         <el-button
@@ -33,7 +33,7 @@
                             type="success"
                             :disabled="menu.status === 'enabled'"
                             :loading="state.loading"
-                            @click="updateDeptStatus('enabled')"
+                            @click="updatePermStatus('enabled')"
                             >启用</el-button
                         >
                         <el-button
@@ -41,35 +41,56 @@
                             type="warning"
                             :disabled="menu.status !== 'enabled'"
                             :loading="state.loading"
-                            @click="updateDeptStatus('disabled')"
+                            @click="updatePermStatus('disabled')"
                             >禁用</el-button
                         >
                     </template>
                 </el-button-group>
             </template>
             <el-descriptions-item label="上级菜单">
-                {{ parent || "无" }}
+                {{ parent?.title || "无" }}
             </el-descriptions-item>
-            <el-descriptions-item label="菜单类型">
+            <el-descriptions-item v-if="parent" label="菜单类型">
                 <MenuTypeTag :model-value="menu.type" size="default"></MenuTypeTag>
             </el-descriptions-item>
             <el-descriptions-item label="菜单标题">
                 {{ menu.title }}
             </el-descriptions-item>
-            <el-descriptions-item v-if="menu.type === 'menuitem'" label="菜单名称">
-                {{ menu.name }}
+            <el-descriptions-item v-if="menu.type !== 'action'" label="菜单图标">
+                <SvgIcon v-if="menu.icon" :icon="menu.icon" />
             </el-descriptions-item>
+            <el-descriptions-item v-if="state.menuName" label="菜单名称"> {{ state.menuName }} </el-descriptions-item>
             <el-descriptions-item label="权限标识">
                 {{ menu.code }}
             </el-descriptions-item>
-            <el-descriptions-item v-if="menu.type !== 'action'" label="菜单路径">
-                {{ menu.path }}
+            <el-descriptions-item v-if="parent && menu.type !== 'action'" label="菜单路径">
+                <input
+                    type="text"
+                    :value="normalizePath(parentFullpath, menu.path || '')"
+                    readonly
+                    style="outline: none; border: none"
+                />
             </el-descriptions-item>
-            <el-descriptions-item v-if="menu.type === 'menuitem'" label="组件路径">
-                {{ menu.component }}
+            <el-descriptions-item v-if="parent && menu.type === 'menugroup'" label="布局名称">
+                {{ layoutOpts.find((opt) => opt.value === menu.layout)?.label || menu.layout }}
+            </el-descriptions-item>
+            <el-descriptions-item v-if="state.componentPath" label="组件路径">
+                {{ state.componentPath }}
+            </el-descriptions-item>
+            <el-descriptions-item v-if="menu.type === 'menuitem' && !menu.visible" label="高亮菜单">
+                {{ menu.forName }}
             </el-descriptions-item>
             <el-descriptions-item label="状态">
                 <StatusTag v-model="menu.status" />
+            </el-descriptions-item>
+            <el-descriptions-item v-if="menu.type === 'menuitem'" label="是否显示">
+                {{ menu.visible ? "是" : "否" }}
+            </el-descriptions-item>
+            <el-descriptions-item
+                v-if="menu.type === 'menuitem' && menu.component !== ExternalLinkEnum.ExternalLink"
+                label="是否固定"
+            >
+                {{ menu.pinned ? "是" : "否" }}
             </el-descriptions-item>
             <el-descriptions-item label="创建时间">
                 {{ formatDate(menu.createdAt) }}
@@ -96,7 +117,7 @@
 
 <script setup lang="ts" name="MenuProfile">
 import { computed, PropType, reactive, ref } from "vue";
-import { toLower, pick } from "lodash";
+import { pick } from "lodash";
 import {
     PermNodeResult,
     CreateMenuActionBody,
@@ -124,14 +145,22 @@ import { createPerm, updatePerm, enablePerm } from "@/api/permission";
 import { formatDate } from "@/utils/date";
 import { useResponsiveCollumn } from "@/composables/useDescriptions";
 import { usePageModules } from "@/composables/usePageModules";
+import { useLayout } from "@/layout";
 import { isExternalLink } from "@/utils/is";
+import { normalizePath } from "@/utils/url";
+
+import { usePermInject, updateOriginalMenu, updateOriginalMenuStatus } from "../composables/useMenuNodes";
 
 type CreatePermBody = CreateMenuActionBody & CreateMenuGroupBody & CreateMenuItemBody;
 type UpdatePermBody = UpdateMenuActionBody & UpdateMenuGroupBody & UpdateMenuItemBody;
 
 const props = defineProps({
-    parent: {
+    parentFullpath: {
         type: String,
+        default: "",
+    },
+    parent: {
+        type: Object as PropType<PermNodeResult>,
         default: undefined,
     },
     menu: {
@@ -140,12 +169,36 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["create", "update", "status"]);
-
 const state = reactive({
     loading: false,
     showCrudFormDlg: false,
+    menuName: computed(() => {
+        if (props.menu.type !== "menuitem") {
+            return "";
+        }
+        const isExternal =
+            props.menu.component === ExternalLinkEnum.ExternalLink ||
+            props.menu.component === ExternalLinkEnum.ExternalLinkIframe;
+        if (isExternal) {
+            return "";
+        }
+        return props.menu.name;
+    }),
+    componentPath: computed(() => {
+        if (props.menu.type !== "menuitem") {
+            return "";
+        }
+        const isExternal =
+            props.menu.component === ExternalLinkEnum.ExternalLink ||
+            props.menu.component === ExternalLinkEnum.ExternalLinkIframe;
+        if (isExternal) {
+            return "";
+        }
+        return props.menu.component;
+    }),
 });
+
+const { permOriginal, fetchPerm, resetPermCurrentKey } = usePermInject();
 
 const { column } = useResponsiveCollumn();
 
@@ -161,7 +214,7 @@ const formActions = ref<FormActions>({
                 state.loading = false;
             });
             state.showCrudFormDlg = false;
-            emit("create", formData.value);
+            fetchPerm();
         },
         async read(action) {
             if (action === "update") {
@@ -187,18 +240,32 @@ const formActions = ref<FormActions>({
                 state.loading = false;
             });
             state.showCrudFormDlg = false;
-            emit("update", formData.value);
+            updateOriginalMenu(permOriginal.value, props.menu._id, formData.value);
+            resetPermCurrentKey();
         },
     },
 });
 
 const { pageModuleOpts } = usePageModules();
+const { layoutOpts } = useLayout();
 
 const formItems = computed(() => {
     const isExternal =
         formData.value.component === ExternalLinkEnum.ExternalLink ||
         formData.value.component === ExternalLinkEnum.ExternalLinkIframe;
     const isExternalIframe = formData.value.component === ExternalLinkEnum.ExternalLinkIframe;
+
+    const { children } = formAction.value === "create" ? props.menu : props.parent || {};
+    const forNameOpts = children
+        ? children
+              .filter((item) => !!item.name)
+              .map((item) => ({ label: `${item.name}(${item.title})`, value: item.name! }))
+        : [];
+
+    const pathPrefix =
+        formAction.value === "create"
+            ? normalizePath(props.parentFullpath, props.menu.path || "")
+            : props.parentFullpath;
 
     const items: ItemSchema[] = [
         {
@@ -249,15 +316,20 @@ const formItems = computed(() => {
                             const data = formData.value;
                             data.name = val;
                             if (val === ExternalLinkEnum.ExternalLink) {
-                                data.path = "https://";
-                                data.code = "";
+                                if (!data.path) {
+                                    data.path = "https://";
+                                }
                             } else if (val === ExternalLinkEnum.ExternalLinkIframe) {
-                                data.path = "";
-                                data.code = "";
-                                data.iframe = "https://";
+                                if (!data.iframe) {
+                                    data.iframe = "https://";
+                                }
                             } else {
-                                data.path = toLower(val);
-                                data.code = data.path;
+                                if (!data.path) {
+                                    data.path = val.toLowerCase();
+                                }
+                                if (!data.code) {
+                                    data.code = data.path;
+                                }
                             }
                         }
                     },
@@ -265,12 +337,23 @@ const formItems = computed(() => {
             },
         },
         {
-            label: "菜单名称",
+            label: "布局名称",
+            prop: "layout",
+            item: {
+                type: "BasicSelect",
+                props: {
+                    options: layoutOpts,
+                },
+            },
+        },
+        {
+            label: "路由名称",
             prop: "name",
             visible: !isExternal,
             item: {
                 type: "ElInput",
                 props: {
+                    placeholder: "此菜单对应的路由名称",
                     disabled: true,
                 },
             },
@@ -278,16 +361,31 @@ const formItems = computed(() => {
         {
             label: "路由路径",
             prop: "path",
+            tooltip: {
+                content: "‘/’开头表示绝对路径",
+            },
             item: {
-                type: "ElInput",
+                type: "PathInput",
                 props: {
-                    disabled: formData.value.type === "menuitem" && !isExternal,
+                    prefix: pathPrefix,
                     onChange(val: string) {
-                        if (!isExternalLink(val)) {
+                        if (!formData.value.code && !isExternalLink(val)) {
                             formData.value.code = val;
                         }
                     },
                 },
+            },
+        },
+        {
+            label: "内嵌网页",
+            prop: "iframe",
+            visible: isExternalIframe,
+            tooltip: {
+                content: "内嵌 http(s):// 开头的网页地址",
+            },
+            item: {
+                type: "ElInput",
+                props: { clearable: true },
             },
         },
         {
@@ -296,7 +394,7 @@ const formItems = computed(() => {
             item: {
                 type: "ElInput",
                 props: {
-                    disabled: formData.value.type === "menuitem" && !isExternal,
+                    placeholder: "全局唯一的标识",
                 },
             },
         },
@@ -304,7 +402,7 @@ const formItems = computed(() => {
             label: "菜单图标",
             prop: "icon",
             item: {
-                type: "ElInput",
+                type: "IconSelectInput",
                 props: {
                     clearable: true,
                 },
@@ -352,9 +450,12 @@ const formItems = computed(() => {
                 content: "此菜单激活时所高亮的菜单项(仅在 visible=false 时有效)",
             },
             item: {
-                type: "ElInput",
+                type: "BasicSelect",
                 props: {
-                    placeholder: "填写菜单对应的路由名称",
+                    placeholder: "填写需要高亮的路由名称",
+                    allowCreate: true,
+                    filterable: true,
+                    options: forNameOpts,
                 },
             },
         },
@@ -387,18 +488,6 @@ const formItems = computed(() => {
                     inactiveText: "path",
                     inactiveValue: "path",
                 },
-            },
-        },
-        {
-            label: "内嵌网页",
-            prop: "iframe",
-            visible: isExternalIframe,
-            tooltip: {
-                content: "内嵌 http(s):// 开头的网页地址",
-            },
-            item: {
-                type: "ElInput",
-                props: { clearable: true },
             },
         },
         {
@@ -484,13 +573,13 @@ function onEditClick() {
     state.showCrudFormDlg = true;
 }
 
-async function updateDeptStatus(status: EnableStatus) {
+async function updatePermStatus(status: EnableStatus) {
     state.loading = true;
     await enablePerm(props.menu!._id, status).finally(() => {
         state.loading = false;
     });
-    props.menu!.status = status;
-    emit("status", props.menu!._id, status);
+    updateOriginalMenuStatus(permOriginal.value, props.menu._id, status);
+    resetPermCurrentKey();
 }
 </script>
 
