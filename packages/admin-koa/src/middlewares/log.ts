@@ -5,9 +5,9 @@ import log4js from "log4js";
 export let logDir = "";
 
 export function setupLog(app: koa) {
-    const { dev } = app.context.config;
+    const { isDev: dev } = app.context.config;
 
-    logDir = resolve(app.context.config.rootDir, "logs");
+    logDir = resolve(app.context.config.workDir, "logs");
 
     log4js.configure({
         appenders: {
@@ -37,11 +37,4 @@ export function setupLog(app: koa) {
     app.context.logger = log4js.getLogger();
     app.context.loggerAccess = log4js.getLogger("AccessLog");
     app.context.logger.info("[LogDir] ", logDir);
-}
-
-declare module "koa" {
-    interface BaseContext {
-        logger: log4js.Logger;
-        loggerAccess: log4js.Logger;
-    }
 }

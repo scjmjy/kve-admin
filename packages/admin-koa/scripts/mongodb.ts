@@ -5,7 +5,8 @@ import mongoose from "mongoose";
 import { UserModel } from "../src/model/user";
 import { DepartmentModel, RoleModel } from "../src/model/department";
 import { PermissionModel } from "../src/model/permission";
-import { internalDepts, internalRoles, internalUsers, internalPerms } from "./data/seed-all";
+import { internalDepts, internalUsers, internalPerms } from "./data/seed-all";
+import { createRecursively } from "./utils/create-recursively";
 
 interface ArgsType {
     bd: string;
@@ -190,16 +191,28 @@ async function seedBiz(force = false) {
 
     const m = await mongoose.connect("mongodb://biz:33o93o6@localhost:27017/biz");
 
-    await RoleModel.insertMany(internalRoles);
-    console.log("[seedBiz] seed roles");
-
-    await DepartmentModel.insertMany(internalDepts);
-    console.log("[seedBiz] seed depts");
+    await createRecursively(DepartmentModel, internalDepts, [
+        {
+            field: "depts",
+            model: DepartmentModel,
+        },
+        {
+            field: "roles",
+            model: RoleModel,
+            recursive: false,
+        },
+    ]);
+    console.log("[seedBiz] seed depts,roles");
 
     await UserModel.insertMany(internalUsers);
     console.log("[seedBiz] seed users");
 
-    await PermissionModel.insertMany(internalPerms);
+    await createRecursively(PermissionModel, internalPerms, [
+        {
+            field: "children",
+            model: PermissionModel,
+        },
+    ]);
     console.log("[seedBiz] seed permissions");
 
     await m.disconnect();

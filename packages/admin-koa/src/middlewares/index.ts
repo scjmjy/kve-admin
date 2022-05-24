@@ -8,16 +8,13 @@ import { setupStatic } from "./static";
 import { setupSession } from "./session";
 
 export function setupPreMiddlewares(app: koa) {
-    setupLog(app);
-
     app.use(cors());
-
+    setupLog(app);
     setupSession(app);
-
     setupStatic(app);
-
     app.use(errorMiddleware).use(responseTime).use(bodyparser());
 }
+
 export function setupPostMiddlewares(app: koa) {
     app.use(error404);
 }

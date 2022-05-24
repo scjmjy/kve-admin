@@ -3,7 +3,6 @@ import mongoosePaginate from "mongoose-paginate-v2";
 import { IUser, StatusEnum } from "admin-common";
 import { BcryptPlugin } from "./plugin/bcrypt";
 import { MODEL_NAME_DEPARTMENT, MODEL_NAME_ROLE } from "./department";
-import type { MiddlewareQuery } from "@/controllers/utils";
 
 export const MODEL_NAME_USER = "User";
 
@@ -40,14 +39,29 @@ export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
 
 UserSchema.plugin(BcryptPlugin).plugin(mongoosePaginate);
 
-const preFind: mongoose.PreMiddlewareFunction<mongoose.Query<any, any>> = function (next) {
-    const filter = this.getFilter() as MiddlewareQuery<IUserDoc>;
-    if (!filter.includeDeleted && !filter.status) {
-        filter.status = {
-            $ne: "deleted",
-        };
+UserSchema.pre("save", function (next) {
+    if (!this.status) {
+        this.status = "enabled";
     }
-    if (filter.doPopulate) {
+    next();
+});
+UserSchema.pre("insertMany", function (next: mongoose.CallbackWithoutResultAndOptionalError, docs: any[]) {
+    for (const doc of docs) {
+        if (!doc.status) {
+            doc.status = "enabled";
+        }
+    }
+    next();
+});
+
+UserSchema.pre(["find", "findOne"], function (next) {
+    const query = this.getQuery();
+    if (!query.status) {
+        query.status = "enabled";
+    }
+
+    const opt = this.getOptions();
+    if (opt.doPopulate) {
         this.populate([
             {
                 path: "roles",
@@ -58,14 +72,6 @@ const preFind: mongoose.PreMiddlewareFunction<mongoose.Query<any, any>> = functi
                 select: "name",
             },
         ]);
-    }
-    next();
-};
-
-UserSchema.pre(["find", "findOne"], preFind);
-UserSchema.pre("save", function (next) {
-    if (!this.status) {
-        this.status = "enabled";
     }
     next();
 });

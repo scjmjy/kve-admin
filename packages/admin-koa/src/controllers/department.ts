@@ -14,6 +14,8 @@ import {
     getCreateDeptRules,
     UpdateDeptBody,
     getUpdateDeptRules,
+    getStatusLabel,
+    UpdateRolePermsBody,
 } from "admin-common";
 import { KoaAjaxContext } from "@/types/koa";
 import { DepartmentModel, RoleModel } from "@/model/department";
@@ -21,10 +23,10 @@ import Schema from "async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
 
 export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesResult>) {
-    const query = DepartmentModel.findById<DeptTreeNodesResult>(DEPARTMENT_CONTAINER_ID);
-    query.setQuery({
+    const query = DepartmentModel.findById<DeptTreeNodesResult>(DEPARTMENT_CONTAINER_ID, null, {
         doPopulate: true,
-    });
+    }).where("status", /.*/);
+
     const department = await query.exec();
     ctx.status = StatusCodes.OK;
     ctx.body = {
@@ -43,23 +45,35 @@ export async function postDept(ctx: KoaAjaxContext<CreateDeptBody, CreateResult>
     if (!parent) {
         return throwNotFoundError(`父部门不存在：${validBody.parent}`);
     }
-    const session = await mongoose.startSession();
-    await session.withTransaction(async () => {
-        const newDept = await DepartmentModel.create(validBody);
-        parent.depts.push(newDept._id);
-        await parent.save();
+    // TODO mongodb 现在是单节点部署，不支持 Transaction
+    mongoose
+        .startSession()
+        .then((session) =>
+            session.withTransaction(async () => {
+                const newDept = await DepartmentModel.create(validBody);
+                parent.depts.push(newDept._id);
+                await parent.save();
 
-        ctx.status = StatusCodes.OK;
-        ctx.body = {
-            code: ctx.status,
-            showType: "MESSAGE",
-            msg: "部门创建成功！",
-            data: {
-                _id: newDept._id,
-            },
-        };
-    });
-    await session.endSession();
+                ctx.status = StatusCodes.OK;
+                ctx.body = {
+                    code: ctx.status,
+                    showType: "MESSAGE",
+                    msg: "部门创建成功！",
+                    data: {
+                        _id: newDept._id,
+                    },
+                };
+            }),
+        )
+        .catch((err) => {
+            ctx.logger.error("[postDept]", err);
+            ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
+            ctx.body = {
+                code: ctx.status,
+                showType: "MESSAGE",
+                msg: "部门创建失败！",
+            };
+        });
 }
 
 export async function putDept(ctx: KoaAjaxContext<UpdateDeptBody>) {
@@ -79,7 +93,7 @@ export async function putDept(ctx: KoaAjaxContext<UpdateDeptBody>) {
     };
 }
 
-export async function putEnableDept(ctx: KoaAjaxContext<void, void, void, { deptId: string; status: EnableStatus }>) {
+export async function putEnableDept(ctx: KoaAjaxContext<void, void, { deptId: string; status: EnableStatus }>) {
     const { deptId, status } = ctx.params;
     if (!deptId || deptId.length !== 24 || !isValidStatus(status)) {
         return throwBadRequestError("请提供有效的部门 ID 或 状态值！");
@@ -100,7 +114,7 @@ export async function putEnableDept(ctx: KoaAjaxContext<void, void, void, { dept
     ctx.body = {
         code: ctx.status,
         showType: "MESSAGE",
-        msg: (status === "enabled" ? "启用" : status === "disabled" ? "禁用" : "删除") + "部门成功！",
+        msg: getStatusLabel(status) + "部门成功！",
     };
 }
 
@@ -114,24 +128,36 @@ export async function postRole(ctx: KoaAjaxContext<CreateRoleBody, CreateResult>
     if (!dept) {
         return throwNotFoundError(`部门不存在：${validBody.dept}`);
     }
-    const session = await mongoose.startSession();
-    await session.withTransaction(async () => {
-        const newRole = await RoleModel.create(validBody);
+    // TODO mongodb 现在是单节点部署，不支持 Transaction
+    await mongoose
+        .startSession()
+        .then((session) =>
+            session.withTransaction(async () => {
+                const newRole = await RoleModel.create(validBody);
 
-        dept.roles.push(newRole._id);
-        await dept.save();
+                dept.roles.push(newRole._id);
+                await dept.save();
 
-        ctx.status = StatusCodes.OK;
-        ctx.body = {
-            code: ctx.status,
-            showType: "MESSAGE",
-            msg: "角色创建成功！",
-            data: {
-                _id: newRole._id,
-            },
-        };
-    });
-    await session.endSession();
+                ctx.status = StatusCodes.OK;
+                ctx.body = {
+                    code: ctx.status,
+                    showType: "MESSAGE",
+                    msg: "角色创建成功！",
+                    data: {
+                        _id: newRole._id,
+                    },
+                };
+            }),
+        )
+        .catch((err) => {
+            ctx.logger.error("[postRole]", err);
+            ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
+            ctx.body = {
+                code: ctx.status,
+                showType: "MESSAGE",
+                msg: "角色创建失败！",
+            };
+        });
 }
 
 export async function putRole(ctx: KoaAjaxContext<UpdateRoleBody>) {
@@ -151,7 +177,7 @@ export async function putRole(ctx: KoaAjaxContext<UpdateRoleBody>) {
     };
 }
 
-export async function putEnableRole(ctx: KoaAjaxContext<void, void, void, { roleId: string; status: EnableStatus }>) {
+export async function putEnableRole(ctx: KoaAjaxContext<void, void, { roleId: string; status: EnableStatus }>) {
     const { roleId, status } = ctx.params;
     if (!roleId || roleId.length !== 24 || !isValidStatus(status)) {
         return throwBadRequestError("请提供有效的角色 ID 或 状态值！");
@@ -172,7 +198,7 @@ export async function putEnableRole(ctx: KoaAjaxContext<void, void, void, { role
     ctx.body = {
         code: ctx.status,
         showType: "MESSAGE",
-        msg: (status === "enabled" ? "启用" : status === "disabled" ? "禁用" : "删除") + "角色成功！",
+        msg: getStatusLabel(status) + "角色成功！",
     };
 }
 
@@ -221,5 +247,30 @@ export async function postReorderRoles(ctx: KoaAjaxContext<ReorderRolesBody>) {
         code: ctx.status,
         showType: "MESSAGE",
         msg: "角色排序成功！",
+    };
+}
+
+export async function putRolePerms(ctx: KoaAjaxContext<UpdateRolePermsBody>) {
+    const { _id, perms } = ctx.request.body || {};
+    if (!_id || !Array.isArray(perms)) {
+        return throwBadRequestError("请提供角色 ID 或 权限 ID 列表！");
+    }
+    const res = await RoleModel.findByIdAndUpdate(
+        _id,
+        {
+            perms,
+        },
+        {
+            projection: "_id",
+        },
+    ).exec();
+    if (!res) {
+        return throwNotFoundError("角色不存在:" + _id);
+    }
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: "角色权限更新成功！",
     };
 }

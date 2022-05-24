@@ -1,110 +1,82 @@
 import type koa from "koa";
 import Router from "koa-router";
-import {
-    postLogin,
-    getUserProfile,
-    putUserProfile,
-    putUserPassword,
-    putUserAvatar,
-    postFindUsers,
-    postUser,
-    putUser,
-    getUserAvatar,
-    deleteUser,
-    putEnableUsers,
-} from "@/controllers/user";
-import { getHelloworld } from "@/controllers/helloworld";
+import koajwt_ from "koa-jwt";
+import { GridFSBucketReadStream } from "mongodb";
+import { postLogin } from "@/controllers/user";
 import { ObjectId } from "bson";
-import { koajwt } from "@/middlewares/jwt";
-import { getGridFsBucket, upload } from "@/middlewares/upload";
-import {
-    getDeptTreeNodes,
-    postRole,
-    putRole,
-    putEnableRole,
-    postReorderDepts,
-    postReorderRoles,
-    putEnableDept,
-    putDept,
-    postDept,
-} from "@/controllers/department";
-import { getPermNodes, postPermission, putPermission } from "@/controllers/permission";
+import { KoaContext } from "@/types/koa";
+import { getGridFsBucket } from "@/middlewares/upload";
+import { userRouter } from "./user";
+import { deptRouter, roleRouter } from "./department";
+import { permRouter } from "./permission";
+import { demoCollRouter } from "./demo-collection";
+import { AjaxResult } from "admin-common";
+import { extname } from "path";
 
-export const router = new Router<any, any>();
-
-router.post("/api/login", postLogin);
-router.post("/api/user", koajwt, postUser);
-router.put("/api/user", koajwt, putUser);
-router.delete("/api/user/:userId", koajwt, deleteUser);
-router.put("/api/user/status/:status", koajwt, putEnableUsers);
-router.get("/api/user/profile", koajwt, getUserProfile);
-router.put("/api/user/profile", koajwt, putUserProfile);
-router.put("/api/user/password", koajwt, putUserPassword);
-router.put("/api/user/avatar", koajwt, putUserAvatar);
-router.get("/api/user/avatar/:userId", getUserAvatar);
-router.post("/api/user/list", koajwt, postFindUsers);
-
-router.get("/api/helloworld", getHelloworld);
-
-router.get("/api/dept/tree", koajwt, getDeptTreeNodes);
-router.post("/api/dept/reorder", koajwt, postReorderDepts);
-router.post("/api/dept", koajwt, postDept);
-router.put("/api/dept", koajwt, putDept);
-router.put("/api/dept/status/:deptId/:status", koajwt, putEnableDept);
-
-router.post("/api/role", koajwt, postRole);
-router.put("/api/role", koajwt, putRole);
-router.put("/api/role/status/:roleId/:status", koajwt, putEnableRole);
-router.post("/api/role/reorder", koajwt, postReorderRoles);
-
-router.get("/api/perm/tree", koajwt, getPermNodes);
-router.post("/api/perm", koajwt, postPermission);
-router.put("/api/perm", koajwt, putPermission);
-
-router.post("/api/upload", upload.single("avatar"), function (ctx) {
-    // console.log("[avatar]", ctx.request.file);
-    ctx.status = 200;
-    ctx.body = {
-        code: 200,
-        data: ctx.request.file,
-    };
+const router = new Router<any, any>({
+    prefix: "/api",
 });
 
-router.get("/api/download/:id", async function (ctx) {
-    const id = ctx.params.id;
-    if (!id || id.length !== 24) {
-        ctx.status = 400;
-        ctx.body = {
-            code: 400,
-            showType: "MESSAGE",
-            msg: "文件 ID 格式错误！",
-        };
-        return;
-    }
-    const objId = new ObjectId(id);
-    const bucket = getGridFsBucket();
-    const cursor = bucket.find({
-        _id: objId,
-    });
-    const file = await cursor.next();
-    if (!file) {
-        ctx.status = 404;
-        ctx.body = {
-            code: 404,
-            showType: "MESSAGE",
-            msg: "文件或图片未找到！",
-        };
-    } else {
-        ctx.set({
-            "Content-Type": file.contentType || "",
-            "Content-Length": file.length.toString(),
-            "Cache-Control": `max-age=${60 * 60 * 24}`, // 缓存一天
+router.post("/login", postLogin);
+
+router.get(
+    "/download/:id",
+    async function (ctx: KoaContext<void, AjaxResult | GridFSBucketReadStream, { id: string }>) {
+        const id = ctx.params.id;
+        if (!id || id.length !== 24) {
+            ctx.status = 400;
+            ctx.body = {
+                code: 400,
+                showType: "MESSAGE",
+                msg: "文件 ID 格式错误！",
+            };
+            return;
+        }
+        const objId = new ObjectId(id);
+        const bucket = getGridFsBucket();
+        const cursor = bucket.find({
+            _id: objId,
         });
-        ctx.status = 200;
-        ctx.body = bucket.openDownloadStream(new ObjectId(id));
-    }
-});
+        const file = await cursor.next();
+        if (!file) {
+            ctx.status = 404;
+            ctx.body = {
+                code: 404,
+                showType: "MESSAGE",
+                msg: "文件或图片未找到！",
+            };
+        } else {
+            let contentType = file.contentType || "";
+            const ext = extname(file.filename);
+            if (ext === ".7z") {
+                contentType = "application/x-7z-compressed";
+            }
+            ctx.set({
+                "Content-Type": contentType,
+                "Content-Length": file.length.toString(),
+                "Cache-Control": `max-age=${60 * 60 * 24}`, // 缓存一天
+            });
+            ctx.status = 200;
+            ctx.body = bucket.openDownloadStream(objId);
+        }
+    },
+);
+
+router
+    .use("", userRouter.routes(), userRouter.allowedMethods())
+    .use("", deptRouter.routes(), deptRouter.allowedMethods())
+    .use("", roleRouter.routes(), roleRouter.allowedMethods())
+    .use("", permRouter.routes(), permRouter.allowedMethods())
+    .use("", demoCollRouter.routes(), demoCollRouter.allowedMethods());
 
 export function setupRouter(app: koa) {
-    app.use(router.routes()).use(router.allowedMethods());
+    const koajwt = koajwt_({
+        secret: app.context.config.jwtSecret,
+        cookie: "Authorization",
+        debug: process.env.NODE_ENV === "development",
+    }).unless({
+        // 以下路由不需要校验 token
+        path: ["/api/login"],
+    });
+    app.use(koajwt).use(router.routes()).use(router.allowedMethods());
 }

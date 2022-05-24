@@ -8,6 +8,20 @@ declare global {
 
     export type EnableStatus = typeof StatusEnum[number];
 
+    export interface GridFsFile {
+        /** 文件名称 */
+        name: string;
+        /** 
+         * 可以直接访问的地址，有以下 2 种类型：
+         * 
+         * 1. /api/download/:objId 
+         * 2. 当内联时，url 为 base64 格式的数据：data:xxx/xxx;base64,....
+         */
+        url: string;
+        size: number;
+        mimetype: string;
+    }
+
     export interface CreateResult {
         _id: string;
     }
@@ -51,6 +65,19 @@ declare global {
     }
 }
 export const StatusEnum = ["enabled", "disabled", "deleted"] as const;
+
+export function getStatusLabel(status: EnableStatus) {
+    switch (status) {
+        case "enabled":
+            return "启用";
+        case "disabled":
+            return "禁用";
+        case "deleted":
+            return "删除";
+        default:
+            return "";
+    }
+}
 
 export function isValidStatus(status: string): status is EnableStatus {
     return StatusEnum.includes(status as any);
@@ -129,6 +156,18 @@ export function isValidPassword(password: string, option?: PasswordValidationOpt
         count++;
     }
     return count >= validationOption.strong ? "valid" : "fail-strong";
+}
+
+export function isBase64(str: string) {
+    return !!str.match(/^data:(.*);base64,/);
+}
+
+export function getBase64Type(str: string) {
+    const match = str.match(/^data:(.*);base64,/);
+    if (!match) {
+        return "";
+    }
+    return match[1];
 }
 
 export function splitBase64(base64: string) {

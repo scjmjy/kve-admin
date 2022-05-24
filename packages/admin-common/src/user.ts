@@ -1,3 +1,4 @@
+import { IPermission } from "admin-common";
 import { FormItemRule, IBase, isValidPassword, ValidatorRules } from "./utils";
 import { IDepartment, IRole } from "./department";
 
@@ -45,8 +46,9 @@ export const UserProfileProjection = [
 type UserProfileKeys = typeof UserProfileProjection[number];
 
 export interface UserProfileResult extends Pick<IUser, Exclude<UserProfileKeys, "depts" | "roles">> {
-    depts: Pick<IDepartment, "_id" | "name">[];
-    roles: Pick<IRole, "_id" | "name">[];
+    depts: Pick<IDepartment, "_id" | "name" | "status">[];
+    roles: Pick<IRole, "_id" | "name" | "status">[];
+    perms?: IPermission[];
 }
 
 export type UpdateUserProfile = Pick<UserProfileResult, "realname" | "email" | "mobileno" | "gender">;

@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import { IPermission, StatusEnum, PermissionTypeEnum } from "admin-common";
-import type { MiddlewareQuery } from "@/controllers/utils";
 
 export const MODEL_NAME_PERMISSION = "Permission";
 
@@ -11,9 +10,10 @@ interface IPermissionModel extends mongoose.Model<IPermissionDoc> {}
 export const PermissionSchema = new mongoose.Schema<IPermissionDoc, IPermissionModel>(
     {
         name: { type: String },
-        code: { type: String, required: true },
+        code: { type: String, required: true, unique: true },
         type: { type: String, enum: PermissionTypeEnum },
         path: { type: String },
+        layout: { type: String },
         component: { type: String },
         redirect: { type: String },
         status: { type: String, enum: StatusEnum },
@@ -38,17 +38,31 @@ PermissionSchema.pre("save", function (next) {
     }
     next();
 });
+PermissionSchema.pre("insertMany", function (next: mongoose.CallbackWithoutResultAndOptionalError, docs: any[]) {
+    for (const doc of docs) {
+        if (!doc.status) {
+            doc.status = "enabled";
+        }
+    }
+    next();
+});
 PermissionSchema.pre(["find", "findOne"], function (next) {
-    const filter = this.getFilter() as MiddlewareQuery<any>;
-    if (filter.doPopulate) {
-        this.populate([
-            {
-                path: "children",
-                match: {
-                    doPopulate: true, // 深度 populate
-                },
+    const query = this.getQuery();
+    if (!query.status) {
+        query.status = "enabled";
+    }
+
+    const opt = this.getOptions();
+    if (opt.doPopulate) {
+        this.populate({
+            path: "children",
+            match: {
+                status: query.status,
             },
-        ]);
+            options: {
+                doPopulate: true, // 深度 populate
+            },
+        });
     }
     next();
 });

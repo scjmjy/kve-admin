@@ -18,17 +18,27 @@ import {
     PERMISSION_CONTAINER_ID,
     PermNodeResult,
     ExternalLinkEnum,
+    isValidStatus,
+    getStatusLabel,
+    ReorderPermsBody,
+    GetPermNodeQuery,
 } from "admin-common";
 import { KoaAjaxContext } from "@/types/koa";
 import { PermissionModel } from "@/model/permission";
 import Schema from "async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
 
-export async function getPermNodes(ctx: KoaAjaxContext<void, PermNodeResult>) {
-    const query = PermissionModel.findById<IPermission>(PERMISSION_CONTAINER_ID);
-    query.setQuery({
+export async function getPermNodes(ctx: KoaAjaxContext<void, PermNodeResult, any, GetPermNodeQuery>) {
+    const query = PermissionModel.findById<IPermission>(PERMISSION_CONTAINER_ID, null, {
         doPopulate: true,
     });
+
+    const { status } = ctx.query;
+    if (isValidStatus(status as string)) {
+        query.where("status", status);
+    } else {
+        query.where("status", /.*/);
+    }
     const res = await query.exec();
     if (!res) {
         return throwNotFoundError("权限根节点不存在！");
@@ -68,25 +78,37 @@ export async function postPermission(ctx: KoaAjaxContext<CreatePermBody, CreateR
             return throwNotFoundError(`父菜单不存在：${validBody.parent}`);
         }
     }
-    const session = await mongoose.startSession();
-    await session.withTransaction(async () => {
-        const newDoc = await PermissionModel.create(validBody);
-        if (parent) {
-            parent.children.push(newDoc._id);
-            await parent.save();
-        }
+    // TODO mongodb 现在是单节点部署，不支持 Transaction
+    mongoose
+        .startSession()
+        .then((session) =>
+            session.withTransaction(async () => {
+                const newDoc = await PermissionModel.create(validBody);
+                if (parent) {
+                    parent.children.push(newDoc._id);
+                    await parent.save();
+                }
 
-        ctx.status = StatusCodes.OK;
-        ctx.body = {
-            code: ctx.status,
-            showType: "MESSAGE",
-            msg: "菜单创建成功！",
-            data: {
-                _id: newDoc._id,
-            },
-        };
-    });
-    await session.endSession();
+                ctx.status = StatusCodes.OK;
+                ctx.body = {
+                    code: ctx.status,
+                    showType: "MESSAGE",
+                    msg: "菜单创建成功！",
+                    data: {
+                        _id: newDoc._id,
+                    },
+                };
+            }),
+        )
+        .catch((err) => {
+            ctx.logger.error("[postPermission]", err);
+            ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
+            ctx.body = {
+                code: ctx.status,
+                showType: "MESSAGE",
+                msg: "菜单创建失败！",
+            };
+        });
 }
 
 export async function putPermission(ctx: KoaAjaxContext<UpdatePermBody, void>) {
@@ -116,5 +138,54 @@ export async function putPermission(ctx: KoaAjaxContext<UpdatePermBody, void>) {
         code: ctx.status,
         showType: "MESSAGE",
         msg: "菜单更新成功！",
+    };
+}
+
+export async function putEnablePerm(ctx: KoaAjaxContext<void, void, { permId: string; status: EnableStatus }>) {
+    const { permId, status } = ctx.params;
+    if (!permId || permId.length !== 24 || !isValidStatus(status)) {
+        return throwBadRequestError("请提供有效的部门 ID 或 状态值！");
+    }
+    const res = await PermissionModel.findByIdAndUpdate(
+        permId,
+        {
+            status: status,
+        },
+        {
+            projection: "_id",
+        },
+    ).exec();
+    if (!res) {
+        return throwNotFoundError("菜单不存在:" + permId);
+    }
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: getStatusLabel(status) + "菜单成功！",
+    };
+}
+
+export async function postReorderPerms(ctx: KoaAjaxContext<ReorderPermsBody>) {
+    const { permId, permIds } = ctx.request.body || {};
+    if (!permId || !Array.isArray(permIds) || permIds.length === 0) {
+        return throwBadRequestError("请提供有效的菜单 ID！");
+    }
+    const perm = await PermissionModel.findById<mongoose.Document & { children: mongoose.Types.ObjectId[] }>(
+        permId,
+        "children",
+    ).exec();
+    if (!perm) {
+        return throwNotFoundError(`菜单不存在：${permId}`);
+    }
+    perm.children.sort((a, b) => {
+        return permIds.findIndex((id) => a.equals(id)) - permIds.findIndex((id) => b.equals(id));
+    });
+    await perm.save();
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: "菜单排序成功！",
     };
 }

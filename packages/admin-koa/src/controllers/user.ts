@@ -7,7 +7,6 @@ import {
     LoginCredential,
     LoginResult,
     UpdateUserProfile,
-    Gender,
     UpdateUserPassword,
     isValidPassword,
     UpdateUserAvatar,
@@ -23,13 +22,17 @@ import {
     UpdateUserBody,
     UserIdsBody,
     isValidStatus,
+    IPermission,
+    PERMISSION_CONTAINER_ID,
+    ROLE_SUPERADMIN_ID,
 } from "admin-common";
 import { IUserMethods, UserModel } from "@/model/user";
-import { JWT_SECRET } from "@/middlewares/jwt";
-import { KoaAjaxContext, KoaContext } from "@/types/koa";
+import { JwtPayload, KoaAjaxContext, KoaContext } from "@/types/koa";
 import { throwBadRequestError, throwNotFoundError, throwUserNotFoundError } from "./errors";
 import { handlePaginationRequest } from "./utils";
 import Schema from "async-validator";
+import { PermissionModel } from "@/model/permission";
+import { DepartmentModel } from "@/model/department";
 
 export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
     if (ctx.session && ctx.session.loginErrorCount >= 5) {
@@ -44,19 +47,18 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
             };
             return;
         } else {
-            ctx.session.loginErrorCount = 0;
-            ctx.session.loginErrorTime = 0;
+            delete ctx.session.loginErrorCount;
+            delete ctx.session.loginErrorTime;
         }
     }
-    const credential = ctx.request.body;
-    const { username, password } = credential || {};
+    const { username, password } = ctx.request.body || {};
     if (username && password) {
-        const existedUser = await UserModel.findOne({ username }, "password").exec();
+        const existingUser = await UserModel.findOne({ username }, "password").exec();
 
-        if (!existedUser) {
-            throwUserNotFoundError();
+        if (!existingUser) {
+            throwUserNotFoundError(username);
         } else {
-            const valid = await existedUser.verifyPassword(password);
+            const valid = await existingUser.verifyPassword(password);
             if (!valid) {
                 if (ctx.session) {
                     let count = ctx.session.loginErrorCount || 0;
@@ -65,9 +67,9 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
                 }
                 throwBadRequestError("请输入正确的用户名或密码！");
             } else {
-                const userId = existedUser.id as string;
+                const userId = existingUser.id as string;
                 const payload: JwtPayload = { id: userId };
-                const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+                const token = jwt.sign(payload, ctx.config.jwtSecret, { expiresIn: "7d" });
                 ctx.status = StatusCodes.OK;
                 ctx.body = {
                     code: ctx.status,
@@ -89,37 +91,96 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
 //     id?: string;
 // };
 
-/**
- * token 中加密的数据
- */
-interface JwtPayload {
-    id: string;
+function filterPerms(perms: IPermission[], permIds: string[]): IPermission[] {
+    const filtered: IPermission[] = [];
+    for (const perm of perms) {
+        const id = (perm._id as unknown as mongoose.Types.ObjectId).toString();
+        if (perm.type === "menugroup") {
+            const children = filterPerms(perm.children || [], permIds);
+            if (children.length) {
+                filtered.push({
+                    ...perm,
+                    children,
+                });
+            }
+        } else if (permIds.includes(id)) {
+            filtered.push(perm);
+        }
+    }
+    return filtered;
 }
 
-/**
- * token 解码后，通过 ctx.state.user 获取其内容
- */
-interface JwtState {
-    user: JwtPayload;
-}
-
-export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult, JwtState>) {
+export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult, any, { perms: any }>) {
+    interface FindUserResult extends Omit<IUser, "depts" | "roles"> {
+        depts: { _id: string; name: string; status: EnableStatus }[];
+        roles: { _id: string; name: string; status: EnableStatus; perms: mongoose.Types.ObjectId[] }[];
+    }
     const userId = ctx.state.user.id;
-    const existedUser = await UserModel.findById<UserProfileResult>(userId, UserProfileProjection.join(" "))
+    const existingUser = await UserModel.findById<FindUserResult>(userId, UserProfileProjection.join(" "))
         .populate({
             path: "depts",
             select: "name",
+            match: {
+                status: "enabled",
+            },
         })
         .populate({
             path: "roles",
-            select: "name",
+            select: "name perms",
+            match: {
+                status: "enabled",
+            },
         })
         .exec();
-    if (!existedUser) {
-        throwUserNotFoundError();
+    if (!existingUser) {
+        throwUserNotFoundError(userId);
     } else {
+        let { _id, username, realname, email, mobileno, gender, depts, roles, createdAt, updatedAt } = existingUser;
+
+        // 去除无效的 dept 里的 roles
+        const allRoleIds = roles.map((role) => role._id);
+        const inactiveDepts = await DepartmentModel.find<{ roles: string[] }>(
+            {
+                roles: {
+                    $in: allRoleIds,
+                },
+                status: {
+                    $ne: "enabled",
+                },
+            },
+            "name roles",
+        );
+        for (const dept of inactiveDepts) {
+            roles = roles.filter((role) => dept.roles.includes(role._id));
+        }
+
+        let userPerms: Undefinable<IPermission[]>;
+        const { perms } = ctx.query;
+        if (perms) {
+            const query = PermissionModel.findById(PERMISSION_CONTAINER_ID, null, {
+                doPopulate: true,
+            }).where("status", "enabled");
+            const perm = await query.exec();
+            const isSuperadmin = roles.find((role) => {
+                const id = (role._id as unknown as mongoose.Types.ObjectId).toString();
+                return id === ROLE_SUPERADMIN_ID;
+            });
+            if (perm && isSuperadmin) {
+                // 超级管理员拥有所有权限
+                userPerms = perm.children || [];
+            } else if (perm) {
+                const permIds: string[] = [];
+                roles.forEach((item) => {
+                    permIds.push(...item.perms.map((p) => p.toString()));
+                });
+                userPerms = filterPerms(perm.toObject().children || [], permIds);
+            }
+        }
+        depts.forEach((dept) => {
+            // @ts-ignore
+            delete dept.roles;
+        });
         ctx.status = StatusCodes.OK;
-        const { _id, username, realname, email, mobileno, gender, depts, roles, createdAt, updatedAt } = existedUser;
         ctx.body = {
             code: ctx.status,
             data: {
@@ -133,34 +194,35 @@ export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult
                 roles,
                 createdAt,
                 updatedAt,
+                perms: userPerms,
             },
         };
     }
 }
 
-export async function putUserProfile(ctx: KoaAjaxContext<UpdateUserProfile, void, JwtState>) {
+export async function putUserProfile(ctx: KoaAjaxContext<UpdateUserProfile>) {
     const userId = ctx.state.user.id;
-    const existedUser = await UserModel.findById<mongoose.Document & UpdateUserProfile>(
+    const existingUser = await UserModel.findById<mongoose.Document & UpdateUserProfile>(
         userId,
         "realname gender mobileno email",
     ).exec();
-    if (!existedUser) {
-        throwUserNotFoundError();
+    if (!existingUser) {
+        throwUserNotFoundError(userId);
     } else {
         ctx.status = StatusCodes.OK;
         const { realname, email, mobileno, gender } = ctx.request.body || {};
-        realname && (existedUser.realname = realname);
-        existedUser.gender = gender || "UNKNOWN";
-        existedUser.mobileno = mobileno || "";
-        existedUser.email = email || "";
-        await existedUser.save();
+        realname && (existingUser.realname = realname);
+        existingUser.gender = gender || "UNKNOWN";
+        existingUser.mobileno = mobileno || "";
+        existingUser.email = email || "";
+        await existingUser.save();
         ctx.body = {
             code: ctx.status,
         };
     }
 }
 
-export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword, void, JwtState>) {
+export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword>) {
     const userId = ctx.state.user.id;
     const { oldPassword, newPassword } = ctx.request.body || {};
     if (!oldPassword || !newPassword) {
@@ -173,14 +235,14 @@ export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword, vo
             throwBadRequestError("密码强度错误！请提供 2 种以上的字符组合。");
         }
     }
-    const existedUser = await UserModel.findById<mongoose.Document & { password: string } & IUserMethods>(
+    const existingUser = await UserModel.findById<mongoose.Document & { password: string } & IUserMethods>(
         userId,
         "password",
     ).exec();
-    if (!existedUser) {
-        throwUserNotFoundError();
+    if (!existingUser) {
+        throwUserNotFoundError(userId);
     } else {
-        const valid = await existedUser.verifyPassword(oldPassword);
+        const valid = await existingUser.verifyPassword(oldPassword);
         if (!valid) {
             ctx.status = StatusCodes.BAD_REQUEST;
             ctx.body = {
@@ -189,8 +251,8 @@ export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword, vo
                 msg: "当前密码错误！",
             };
         } else {
-            existedUser.password = newPassword;
-            await existedUser.save();
+            existingUser.password = newPassword;
+            await existingUser.save();
             ctx.status = StatusCodes.OK;
             ctx.body = {
                 code: ctx.status,
@@ -199,13 +261,13 @@ export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword, vo
     }
 }
 
-export async function getUserAvatar(ctx: KoaContext<void, any, void, { userId: string }>) {
+export async function getUserAvatar(ctx: KoaContext<void, any, { userId: string }>) {
     const { userId } = ctx.params;
-    const existedUser = await UserModel.findById<Pick<IUser, "avatar">>(userId, "avatar").exec();
-    if (!existedUser) {
-        throwUserNotFoundError();
+    const existingUser = await UserModel.findById<Pick<IUser, "avatar">>(userId, "avatar").exec();
+    if (!existingUser) {
+        throwUserNotFoundError(userId);
     } else {
-        const { avatar } = existedUser;
+        const { avatar } = existingUser;
         const base64 = splitBase64(avatar);
         if (base64) {
             const img = Buffer.from(base64.data, "base64");
@@ -222,25 +284,25 @@ export async function getUserAvatar(ctx: KoaContext<void, any, void, { userId: s
     }
 }
 
-export async function putUserAvatar(ctx: KoaAjaxContext<UpdateUserAvatar, void, JwtState>) {
+export async function putUserAvatar(ctx: KoaAjaxContext<UpdateUserAvatar>) {
     const userId = ctx.state.user.id;
     const { avatar = "" } = ctx.request.body || {};
     const base64 = splitBase64(avatar || "");
     if (!base64) {
         return throwBadRequestError("请提供 base64 格式的头像！");
     }
-    const existedUser = await UserModel.findById<
+    const existingUser = await UserModel.findById<
         mongoose.Document & Pick<IUser, "avatar" | "thumbnail"> & IUserMethods
     >(userId, "_id").exec();
 
-    if (!existedUser) {
-        throwUserNotFoundError();
+    if (!existingUser) {
+        throwUserNotFoundError(userId);
     } else {
         const imgBuffer = Buffer.from(base64.data, "base64");
         const thumbnail = (await sharp(imgBuffer).resize(50, 50).toBuffer()).toString("base64");
-        existedUser.avatar = avatar;
-        existedUser.thumbnail = makeBase64(base64.type, thumbnail);
-        await existedUser.save();
+        existingUser.avatar = avatar;
+        existingUser.thumbnail = makeBase64(base64.type, thumbnail);
+        await existingUser.save();
         ctx.status = StatusCodes.OK;
         ctx.body = {
             code: ctx.status,
@@ -253,7 +315,7 @@ export async function postFindUsers(ctx: KoaAjaxContext<Undefinable<FindUsersPar
     if (!params || !params.pageNum || !params.pageSize) {
         return throwBadRequestError("分页参数错误！");
     }
-    const res = await handlePaginationRequest(UserModel, params, FindUserProjection.join(" "), {
+    const res = await handlePaginationRequest(UserModel, params, FindUserProjection.join(" "), undefined, {
         doPopulate: true,
     });
     ctx.status = StatusCodes.OK;
@@ -296,14 +358,14 @@ export async function putUser(ctx: KoaAjaxContext<Undefinable<UpdateUserBody>, v
     };
 }
 
-export async function deleteUser(ctx: KoaAjaxContext<void, void, void, { userId: string }>) {
+export async function deleteUser(ctx: KoaAjaxContext<void, void, { userId: string }>) {
     const { userId } = ctx.params;
-    const existedUser = await UserModel.findById<mongoose.Document & Pick<IUser, "status">>(userId, "status").exec();
-    if (!existedUser) {
-        return throwUserNotFoundError();
+    const existingUser = await UserModel.findById<mongoose.Document & Pick<IUser, "status">>(userId, "status").exec();
+    if (!existingUser) {
+        return throwUserNotFoundError(userId);
     }
-    existedUser.status = "deleted";
-    await existedUser.save();
+    existingUser.status = "deleted";
+    await existingUser.save();
     ctx.status = StatusCodes.OK;
     ctx.body = {
         code: ctx.status,
@@ -312,7 +374,7 @@ export async function deleteUser(ctx: KoaAjaxContext<void, void, void, { userId:
     };
 }
 
-export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, void, { status: EnableStatus }>) {
+export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, { status: EnableStatus }>) {
     const { ids } = ctx.request.body || {};
     const { status } = ctx.params;
     if (!ids || !Array.isArray(ids) || ids.length === 0 || !isValidStatus(status)) {

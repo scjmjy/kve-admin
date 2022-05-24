@@ -1,6 +1,8 @@
+import { IPermission } from "./permission";
 import { FormItemRule, IBase, ValidatorRules } from "./utils";
 export interface IRole extends IBase {
     name: string;
+    perms: IPermission[];
     description: string;
 }
 
@@ -75,6 +77,10 @@ export interface CreateRoleBody extends Pick<IRole, "name" | "description"> {
 }
 
 export interface UpdateRoleBody extends Omit<CreateRoleBody, "dept">, Pick<IRole, "_id"> {}
+
+export interface UpdateRolePermsBody extends Pick<IRole, "_id"> {
+    perms: string[];
+}
 
 export type CreateRoleRules = ValidatorRules<CreateRoleBody>;
 export type UpdateRoleRules = ValidatorRules<UpdateRoleBody>;

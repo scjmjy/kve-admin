@@ -1,5 +1,5 @@
-import { IBase, ValidatorRules } from "./utils";
 import { pick } from "lodash";
+import { IBase, ValidatorRules } from "./utils";
 // export enum PermissionCode {
 
 // }
@@ -84,6 +84,7 @@ export interface IPermission extends IBase, IRouteMeta {
     code: string;
     type: PermissionType;
     path?: string;
+    layout?: string;
     component?: string;
     redirect?: string;
     children?: IPermission[];
@@ -91,6 +92,10 @@ export interface IPermission extends IBase, IRouteMeta {
 }
 
 export const PERMISSION_CONTAINER_ID = "000000000000000000000004";
+
+export type GetPermNodeQuery = {
+    status: EnableStatus;
+}
 
 export type PermNodeResult = IPermission;
 
@@ -100,12 +105,15 @@ const commonActionFields = ["type", "title", "code", "description"] as const;
 export const createMenuActionFields = [...commonActionFields, "parent"] as const;
 export const updateMenuActionFields = [...commonActionFields, "_id"] as const;
 
-const commonMenuGroupFields = [...commonActionFields, "path", "icon", "visible"] as const;
+const commonMenuGroupFields = [...commonActionFields, "layout", "path", "icon", "visible"] as const;
 export const createMenuGroupFields = [...commonMenuGroupFields, "parent"] as const;
 export const updateMenuGroupFields = [...commonMenuGroupFields, "_id"] as const;
 
 export const commonItemFields = [
-    ...commonMenuGroupFields,
+    ...commonActionFields,
+    "path",
+    "icon",
+    "visible",
     "name",
     "component",
     "pinned",
@@ -138,11 +146,7 @@ export type UpdateMenuItemRules = ValidatorRules<UpdateMenuItemBody>;
 export type CreateMenuActionRules = ValidatorRules<CreateMenuActionBody>;
 export type UpdateMenuActionRules = ValidatorRules<UpdateMenuActionBody>;
 
-type AllPermRules = ValidatorRules<
-    CreateMenuItemBody & {
-        _id: string;
-    }
->;
+type AllPermRules = ValidatorRules<Omit<IPermission & { parent?: string }, "createdAt" | "updatedAt" | "status">>;
 
 function getAllPermRules(requireHttp = false, requireIframe = false): AllPermRules {
     return {
@@ -155,8 +159,8 @@ function getAllPermRules(requireHttp = false, requireIframe = false): AllPermRul
         code: [
             {
                 required: true,
-                pattern: "^[A-Za-z0-9]{2,32}$",
-                message: "长度为 2-32 个英文字母或数字",
+                pattern: "^[A-Za-z0-9/]{2,32}$",
+                message: "长度为 2-32 个英文字母、数字、/",
             },
         ],
         type: {
@@ -181,9 +185,8 @@ function getAllPermRules(requireHttp = false, requireIframe = false): AllPermRul
                   message: "以 http(s):// 开头的地址",
               }
             : {
-                  required: true,
-                  pattern: "^[A-Za-z0-9]+$",
-                  message: "路由路径不能为空，且为英文字母、数字的组合",
+                  pattern: "^[A-Za-z0-9-_/:]+$",
+                  message: "路由路径不能为空，且为英文字母、数字、-_/:的组合",
               },
         component: {
             required: true,
@@ -237,6 +240,15 @@ export function getCreateItemRules(requireHttp: boolean, requireIframe: boolean)
 export function getUpdateItemRules(requireHttp: boolean, requireIframe: boolean): UpdateMenuItemRules {
     const allRules = getAllPermRules(requireHttp, requireIframe);
     return pick(allRules, updateMenuItemFields);
+}
+
+//#endregion
+
+//#region reorder
+
+export interface ReorderPermsBody {
+    permId: string;
+    permIds: string[];
 }
 
 //#endregion

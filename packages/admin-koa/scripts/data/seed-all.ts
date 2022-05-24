@@ -1,7 +1,6 @@
 import { ObjectId } from "bson";
 import {
     DEPARTMENT_CONTAINER_ID,
-    Gender,
     IDepartment,
     IPermission,
     IRole,
@@ -11,471 +10,639 @@ import {
     USER_SUPERADMIN_ID,
 } from "admin-common";
 
-interface InternalRole extends Omit<IRole, "_id" | "createdAt" | "updatedAt"> {
-    _id: ObjectId;
+interface InternalRole extends Omit<IRole, "_id" | "status" | "createdAt" | "updatedAt"> {
+    _id?: ObjectId;
 }
-/** 超级管理员 */
-const _id_role_0 = new ObjectId(ROLE_SUPERADMIN_ID);
-/** 通用角色 */
-const _id_role_1 = new ObjectId(1);
-/** 开发通用角色 */
-const _id_role_2 = new ObjectId(2);
-/** 项目主管负责人 */
-const _id_role_3 = new ObjectId(3);
-/** 项目主管 */
-const _id_role_4 = new ObjectId(4);
-/** 项目开发主管 */
-const _id_role_5 = new ObjectId(5);
-/** 项目开发人员 */
-const _id_role_6 = new ObjectId(6);
-/** 项目测试主管 */
-const _id_role_7 = new ObjectId(7);
-/** 项目测试人员 */
-const _id_role_8 = new ObjectId(8);
-/** 管理员 */
-const _id_role_9 = new ObjectId(9);
-/** 员工角色 */
-const _id_role_10 = new ObjectId(10);
-/** 部门A领导 */
-const _id_role_11 = new ObjectId(11);
-/** 部门A通用角色 */
-const _id_role_12 = new ObjectId(12);
-/** 部门B领导 */
-const _id_role_13 = new ObjectId(13);
-/** 部门B通用角色 */
-const _id_role_14 = new ObjectId(14);
-/** 部门A-1领导 */
-const _id_role_15 = new ObjectId(15);
-/** 部门A-1通用角色 */
-const _id_role_16 = new ObjectId(16);
-/** 部门A-2领导 */
-const _id_role_17 = new ObjectId(17);
-/** 部门A-2通用角色 */
-const _id_role_18 = new ObjectId(18);
-/** 部门B-1领导 */
-const _id_role_19 = new ObjectId(19);
-/** 部门B-1通用角色 */
-const _id_role_20 = new ObjectId(20);
-
-export const internalRoles: InternalRole[] = [
-    {
-        _id: _id_role_0,
-        name: "超级管理员",
-        description: "拥有所有系统权限，由开发公司中的负责人持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_1,
-        name: "通用角色",
-        description: "每个用户都可以拥有的角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_2,
-        name: "开发通用角色",
-        description: "开发公司的通用角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_3,
-        name: "项目主管负责人",
-        description: "由项目主管部门的负责人持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_4,
-        name: "项目主管",
-        description: "项目主管部门的通用角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_5,
-        name: "项目开发主管",
-        description: "由项目开发部门的负责人持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_6,
-        name: "项目开发人员",
-        description: "项目开发部门的通用角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_7,
-        name: "项目测试主管",
-        description: "由项目测试部门的负责人持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_8,
-        name: "项目测试人员",
-        description: "项目测试部门的通用角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_9,
-        name: "管理员",
-        description: "由甲方公司的负责人持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_10,
-        name: "员工角色",
-        description: "甲方公司的通用员工角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_11,
-        name: "部门A领导",
-        description: "由部门A的领导持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_12,
-        name: "部门A通用角色",
-        description: "部门A的通用角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_13,
-        name: "部门B领导",
-        description: "由部门B的领导持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_14,
-        name: "部门B通用角色",
-        description: "部门B的通用角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_15,
-        name: "部门A-1领导",
-        description: "由部门A-1的领导持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_16,
-        name: "部门A-1通用角色",
-        description: "部门A-1的通用角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_17,
-        name: "部门A-2领导",
-        description: "由部门A-2的领导持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_18,
-        name: "部门A-2通用角色",
-        description: "部门A-2的通用角色。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_19,
-        name: "部门B-1领导",
-        description: "由部门B-1的领导持有。",
-        status: "enabled",
-    },
-    {
-        _id: _id_role_20,
-        name: "部门B-1通用角色",
-        description: "部门B-1的通用角色。",
-        status: "enabled",
-    },
-];
 
 interface InternalDepartment
-    extends Omit<IDepartment, "_id" | "roles" | "depts" | "managers" | "createdAt" | "updatedAt"> {
-    roles: { _id: ObjectId }[];
-    depts: { _id: ObjectId }[];
-    _id: ObjectId;
+    extends Omit<IDepartment, "_id" | "depts" | "roles" | "status" | "createdAt" | "updatedAt"> {
+    _id?: ObjectId;
+    depts: InternalDepartment[];
+    roles: InternalRole[];
 }
 
-/** 部门容器节点 */
-const _id_dept_0 = new ObjectId(DEPARTMENT_CONTAINER_ID);
-/** 开发公司 */
-const _id_dept_1 = new ObjectId(1);
-/** 项目主管部门 */
-const _id_dept_2 = new ObjectId(2);
-/** 项目开发部门 */
-const _id_dept_3 = new ObjectId(3);
-/** 项目测试部门 */
-const _id_dept_4 = new ObjectId(4);
-/** 甲方公司 */
-const _id_dept_5 = new ObjectId(5);
-/** 甲方公司 部门A */
-const _id_dept_6 = new ObjectId(6);
-/** 甲方公司 部门B */
-const _id_dept_7 = new ObjectId(7);
-/** 甲方公司 部门A-1 */
-const _id_dept_8 = new ObjectId(8);
-/** 甲方公司 部门A-2 */
-const _id_dept_9 = new ObjectId(9);
-/** 甲方公司 部门B-1 */
-const _id_dept_10 = new ObjectId(10);
+const _id_dept_container = new ObjectId(DEPARTMENT_CONTAINER_ID);
+const _id_role_superadmin = new ObjectId(ROLE_SUPERADMIN_ID);
 
 export const internalDepts: InternalDepartment[] = [
     {
-        _id: _id_dept_0,
-        name: "主节点",
-        description: "部门主节点。",
+        _id: _id_dept_container,
+        name: "总公司",
+        description: "总公司节点。",
         roles: [
             {
-                _id: _id_role_1,
+                _id: _id_role_superadmin,
+                name: "超级管理员",
+                perms: [],
+                description: "拥有系统所有权限。",
+            },
+            {
+                name: "管理员",
+                perms: [],
+                description: "拥有系统大部分权限。",
             },
         ],
         depts: [
             {
-                _id: _id_dept_1,
+                name: "上海部门",
+                description: "上海部门节点。",
+                roles: [
+                    {
+                        name: "上海部门总经理",
+                        perms: [],
+                        description: "由上海部门总经理持有。",
+                    },
+                ],
+                depts: [
+                    {
+                        name: "上海浦东地区",
+                        description: "上海浦东子部门节点。",
+                        roles: [
+                            {
+                                name: "上海浦东地区总经理",
+                                perms: [],
+                                description: "由上海浦东地区总经理持有。",
+                            },
+                        ],
+                        depts: [],
+                    },
+                    {
+                        name: "上海徐汇地区",
+                        description: "上海徐汇地区节点。",
+                        roles: [
+                            {
+                                name: "上海徐汇地区总经理",
+                                perms: [],
+                                description: "由上海徐汇地区总经理持有。",
+                            },
+                        ],
+                        depts: [],
+                    },
+                ],
             },
             {
-                _id: _id_dept_5,
+                name: "香港部门",
+                description: "香港部门节点。",
+                roles: [
+                    {
+                        name: "香港部门总经理",
+                        perms: [],
+                        description: "由香港部门总经理持有。",
+                    },
+                ],
+                depts: [
+                    {
+                        name: "香港湾仔区",
+                        description: "香港湾仔区部门节点。",
+                        roles: [
+                            {
+                                name: "香港湾仔区总经理",
+                                perms: [],
+                                description: "由香港湾仔区总经理持有。",
+                            },
+                        ],
+                        depts: [],
+                    },
+                    {
+                        name: "香港黄大仙区",
+                        description: "香港黄大仙区节点。",
+                        roles: [
+                            {
+                                name: "香港黄大仙区总经理",
+                                perms: [],
+                                description: "由香港黄大仙区总经理持有。",
+                            },
+                        ],
+                        depts: [],
+                    },
+                ],
             },
         ],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_1,
-        name: "开发公司",
-        description: "开发公司的部门主节点。",
-        roles: [
-            {
-                _id: _id_role_0,
-            },
-            {
-                _id: _id_role_2,
-            },
-        ],
-        depts: [
-            {
-                _id: _id_dept_2,
-            },
-            {
-                _id: _id_dept_3,
-            },
-            {
-                _id: _id_dept_4,
-            },
-        ],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_2,
-        name: "项目主管部门",
-        description: "开发公司中负责此项目的主管所在的部门。",
-        roles: [
-            {
-                _id: _id_role_3,
-            },
-            {
-                _id: _id_role_4,
-            },
-        ],
-        depts: [],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_3,
-        name: "项目开发部门",
-        description: "负责开发此项目的开发人员所在的部门。",
-        roles: [
-            {
-                _id: _id_role_5,
-            },
-            {
-                _id: _id_role_6,
-            },
-        ],
-        depts: [],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_4,
-        name: "项目测试部门",
-        description: "负责测试此项目的开发人员所在的部门。",
-        roles: [
-            {
-                _id: _id_role_7,
-            },
-            {
-                _id: _id_role_8,
-            },
-        ],
-        depts: [],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_5,
-        name: "甲方公司",
-        description: "甲方公司的部门主节点。",
-        roles: [
-            {
-                _id: _id_role_9,
-            },
-            {
-                _id: _id_role_10,
-            },
-        ],
-        depts: [
-            {
-                _id: _id_dept_6,
-            },
-            {
-                _id: _id_dept_7,
-            },
-        ],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_6,
-        name: "部门A",
-        description: "部门A",
-        roles: [
-            {
-                _id: _id_role_11,
-            },
-            {
-                _id: _id_role_12,
-            },
-        ],
-        depts: [
-            {
-                _id: _id_dept_8,
-            },
-            {
-                _id: _id_dept_9,
-            },
-        ],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_7,
-        name: "部门B",
-        description: "部门B",
-        roles: [
-            {
-                _id: _id_role_13,
-            },
-            {
-                _id: _id_role_14,
-            },
-        ],
-        depts: [
-            {
-                _id: _id_dept_10,
-            },
-        ],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_8,
-        name: "部门A-1",
-        description: "部门A-1",
-        roles: [
-            {
-                _id: _id_role_15,
-            },
-            {
-                _id: _id_role_16,
-            },
-        ],
-        depts: [],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_9,
-        name: "部门A-2",
-        description: "部门A-2",
-        roles: [
-            {
-                _id: _id_role_17,
-            },
-            {
-                _id: _id_role_18,
-            },
-        ],
-        depts: [],
-        status: "enabled",
-    },
-    {
-        _id: _id_dept_10,
-        name: "部门B-1",
-        description: "部门B-1",
-        roles: [
-            {
-                _id: _id_role_19,
-            },
-            {
-                _id: _id_role_20,
-            },
-        ],
-        depts: [],
-        status: "enabled",
     },
 ];
 
 interface InternalUser
-    extends Omit<IUser, "_id" | "avatar" | "thumbnail" | "roles" | "depts" | "createdAt" | "updatedAt"> {
-    _id?: string;
-    roles: { _id: ObjectId }[];
-    depts: { _id: ObjectId }[];
+    extends Omit<IUser, "_id" | "avatar" | "thumbnail" | "roles" | "depts" | "status" | "createdAt" | "updatedAt"> {
+    _id?: ObjectId;
+    roles: ObjectId[];
+    depts: ObjectId[];
 }
+
+const _id_user_superadmin = new ObjectId(USER_SUPERADMIN_ID);
 
 export const internalUsers: InternalUser[] = [
     {
-        _id: USER_SUPERADMIN_ID,
+        _id: _id_user_superadmin,
         username: "superadmin",
-        realname: "Super Admin",
+        realname: "超级管理员",
         password: "123456",
         email: "",
         mobileno: "",
         gender: "UNKNOWN",
-        status: "enabled",
-        depts: [
-            {
-                _id: _id_dept_1,
-            },
-        ],
-        roles: [
-            {
-                _id: _id_role_0,
-            },
-        ],
+        depts: [_id_dept_container],
+        roles: [_id_role_superadmin],
     },
     {
-        username: "admin",
-        realname: "Admin",
+        username: "admin01",
+        realname: "管理员01",
         password: "123456",
         email: "",
         mobileno: "",
         gender: "UNKNOWN",
-        status: "enabled",
-        depts: [
-            {
-                _id: _id_dept_5,
-            },
-        ],
-        roles: [
-            {
-                _id: _id_role_9,
-            },
-        ],
+        depts: [_id_dept_container],
+        roles: [],
+    },
+    {
+        username: "admin02",
+        realname: "管理员02",
+        password: "123456",
+        email: "",
+        mobileno: "",
+        gender: "UNKNOWN",
+        depts: [_id_dept_container],
+        roles: [],
+    },
+    {
+        username: "user01",
+        realname: "用户01",
+        password: "123456",
+        email: "",
+        mobileno: "",
+        gender: "UNKNOWN",
+        depts: [],
+        roles: [],
+    },
+    {
+        username: "user02",
+        realname: "用户02",
+        password: "123456",
+        email: "",
+        mobileno: "",
+        gender: "UNKNOWN",
+        depts: [],
+        roles: [],
     },
 ];
 
-interface InternalPerm extends Omit<IPermission, "createdAt" | "updatedAt"> {}
+interface InternalPerm extends Omit<IPermission, "createdAt" | "updatedAt" | "status" | "_id" | "children"> {
+    _id?: ObjectId;
+    children: InternalPerm[];
+}
+
+const _id_perm_contianer = new ObjectId(PERMISSION_CONTAINER_ID);
 
 export const internalPerms: InternalPerm[] = [
     {
-        _id: PERMISSION_CONTAINER_ID,
+        _id: _id_perm_contianer,
         title: "根节点",
-        name: "ContainerPerm",
         code: "root",
         type: "menugroup",
         description: "权限根节点",
-        status: "enabled",
-        children: [],
+        children: [
+            {
+                code: "root/dashboard",
+                title: "仪表盘",
+                type: "menugroup",
+                path: "/",
+                layout: "DefaultLayout",
+                pinned: false,
+                cacheable: true,
+                visible: true,
+                pathKey: "fullPath",
+                description: "Dashboard Group",
+                children: [
+                    {
+                        name: "DashboardIndex",
+                        code: "root/dashboard/index1",
+                        type: "menuitem",
+                        path: "",
+                        component: "DashboardIndex",
+                        children: [],
+                        title: "首页1",
+                        pinned: true,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        icon: "BrushFilled",
+                        description: "首页Demo1",
+                    },
+                    {
+                        name: "DashboardIndex2",
+                        code: "root/dashboard/index2",
+                        type: "menuitem",
+                        path: "",
+                        component: "DashboardIndex2",
+                        children: [],
+                        title: "首页2",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        icon: "CircleCheckFilled",
+                        description: "首页Demo2",
+                    },
+                ],
+            },
+            {
+                title: "嵌套页面",
+                code: "demo/nestedpage",
+                type: "menugroup",
+                path: "demo/nestedpage",
+                layout: "DefaultLayout",
+                pinned: false,
+                cacheable: true,
+                visible: true,
+                pathKey: "fullPath",
+                description: "嵌套页面 Demo",
+                children: [
+                    {
+                        name: "page1",
+                        code: "demo/nestedpage/page1",
+                        type: "menuitem",
+                        path: "page1",
+                        component: "page1",
+                        children: [],
+                        title: "第一层1",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        icon: "AlarmClock",
+                        description: "第一层页面 page1",
+                    },
+                    {
+                        name: "page2",
+                        code: "demo/nestedpage/page2",
+                        type: "menuitem",
+                        path: "page2",
+                        component: "page2",
+                        children: [],
+                        title: "第一层2",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        icon: "icon-role",
+                        description: "第一层页面 page2",
+                    },
+                    {
+                        name: "detail1",
+                        code: "demo/nestedpage/page1/detail",
+                        type: "menuitem",
+                        path: "/detail1",
+                        component: "detail1",
+                        children: [],
+                        title: "第一层1详情",
+                        pinned: false,
+                        cacheable: true,
+                        visible: false,
+                        forName: "page1",
+                        pathKey: "fullPath",
+                        description: "第一层页面 page1 的详情页",
+                    },
+                    {
+                        code: "demo/nestedpage2",
+                        type: "menugroup",
+                        path: "nestedpage",
+                        layout: "DefaultLayout",
+                        title: "页面组",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        icon: "Menu",
+                        description: "第二层页面组",
+                        children: [
+                            {
+                                name: "NestedPage1",
+                                code: "demo/nestedpage2/page1",
+                                type: "menuitem",
+                                path: "page1",
+                                component: "NestedPage1",
+                                children: [],
+                                title: "第二层1",
+                                pinned: false,
+                                cacheable: true,
+                                visible: true,
+                                pathKey: "fullPath",
+                                icon: "Bicycle",
+                                description: "第二层页面 page1",
+                            },
+                            {
+                                name: "NestedPage2",
+                                code: "demo/nestedpage2/page2",
+                                type: "menuitem",
+                                path: "page2",
+                                component: "NestedPage2",
+                                children: [],
+                                title: "第二层2",
+                                pinned: false,
+                                cacheable: true,
+                                visible: true,
+                                pathKey: "fullPath",
+                                icon: "icon-edge",
+                                description: "第二层页面 page2",
+                            },
+                            {
+                                code: "demo/nestedpage3",
+                                type: "menugroup",
+                                path: "nestedpage",
+                                layout: "DefaultLayout",
+                                title: "页面组",
+                                pinned: false,
+                                cacheable: true,
+                                visible: true,
+                                pathKey: "fullPath",
+                                icon: "Apple",
+                                description: "第三层页面组",
+                                children: [
+                                    {
+                                        name: "ThirdNestedPage1",
+                                        code: "demo/nestedpage3/page1",
+                                        type: "menuitem",
+                                        path: "page1",
+                                        component: "ThirdNestedPage1",
+                                        children: [],
+                                        title: "第三层1",
+                                        pinned: false,
+                                        cacheable: true,
+                                        visible: true,
+                                        pathKey: "fullPath",
+                                        icon: "BellFilled",
+                                        description: "第三层页面 page1",
+                                    },
+                                    {
+                                        name: "ThirdNestedPage2",
+                                        code: "demo/nestedpage3/page2",
+                                        type: "menuitem",
+                                        path: "page2",
+                                        layout: "DefaultLayout",
+                                        component: "ThirdNestedPage2",
+                                        children: [],
+                                        title: "第三层2",
+                                        pinned: false,
+                                        cacheable: true,
+                                        visible: true,
+                                        pathKey: "fullPath",
+                                        icon: "Box",
+                                        description: "第三层页面 page2",
+                                    },
+                                    {
+                                        name: "ThirdNestedPageDetail1",
+                                        code: "demo/nestedpage3/page1/detail",
+                                        type: "menuitem",
+                                        path: "detail1/:id",
+                                        component: "ThirdNestedPageDetail1",
+                                        children: [],
+                                        title: "第三层1详情",
+                                        pinned: false,
+                                        cacheable: true,
+                                        visible: false,
+                                        forName: "ThirdNestedPage1",
+                                        pathKey: "fullPath",
+                                        description: "第三层页面 page1 的详情页",
+                                    },
+                                    {
+                                        code: "demo/nestedpage4",
+                                        type: "menugroup",
+                                        path: "nestedpage",
+                                        layout: "DefaultLayout",
+                                        title: "页面组",
+                                        icon: "BellFilled",
+                                        pinned: false,
+                                        cacheable: true,
+                                        visible: true,
+                                        pathKey: "fullPath",
+                                        description: "第四层页面组",
+                                        children: [
+                                            {
+                                                name: "FourthNestedPage1",
+                                                code: "demo/nestedpage4/page1",
+                                                type: "menuitem",
+                                                path: "page1",
+                                                component: "FourthNestedPage1",
+                                                children: [],
+                                                title: "第四层1",
+                                                icon: "Aim",
+                                                pinned: false,
+                                                cacheable: true,
+                                                visible: true,
+                                                pathKey: "fullPath",
+                                                description: "第四层页面 page1",
+                                            },
+                                            {
+                                                name: "FourthNestedPage2",
+                                                code: "demo/nestedpage4/page2",
+                                                type: "menuitem",
+                                                path: "page2",
+                                                component: "FourthNestedPage2",
+                                                children: [],
+                                                title: "第四层2",
+                                                icon: "Baseball",
+                                                pinned: false,
+                                                cacheable: true,
+                                                visible: true,
+                                                pathKey: "fullPath",
+                                                description: "第四层页面 page2",
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                code: "demo/comfunc",
+                type: "menugroup",
+                path: "demo/com-func",
+                layout: "DefaultLayout",
+                title: "组件和功能",
+                pinned: false,
+                cacheable: true,
+                visible: true,
+                pathKey: "fullPath",
+                description: "组件和功能 Demo",
+                children: [
+                    {
+                        name: "CrudFormDemo",
+                        code: "demo/comfunc/crudform",
+                        type: "menuitem",
+                        path: "crudform",
+                        component: "CrudFormDemo",
+                        children: [],
+                        title: "CrudForm",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        icon: "ChatLineSquare",
+                        description: "CrudForm 使用示例",
+                    },
+                    {
+                        name: "CrudFormDlgDemo",
+                        code: "demo/comfunc/crudformdlg",
+                        type: "menuitem",
+                        path: "crudformdlg",
+                        component: "CrudFormDlgDemo",
+                        children: [],
+                        title: "CrudFormDlg",
+                        icon: "Briefcase",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        description: "CrudFormDlg 使用示例",
+                    },
+                    {
+                        name: "CrudTableDemo",
+                        code: "demo/comfunc/crudtable",
+                        type: "menuitem",
+                        path: "crudtable",
+                        component: "CrudTableDemo",
+                        children: [],
+                        title: "CrudTable",
+                        icon: "Document",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        description: "CrudTable 使用示例",
+                    },
+                    {
+                        name: "PermissionDemo",
+                        code: "demo/comfunc/permission",
+                        type: "menuitem",
+                        path: "permission",
+                        component: "PermissionDemo",
+                        children: [],
+                        title: "权限",
+                        icon: "Grid",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        description: "Permission 使用示例",
+                    },
+                ],
+            },
+            {
+                code: "system",
+                type: "menugroup",
+                path: "/system",
+                layout: "DefaultLayout",
+                title: "系统管理",
+                pinned: false,
+                cacheable: true,
+                visible: true,
+                pathKey: "fullPath",
+                description: "系统管理",
+                children: [
+                    {
+                        name: "UserManage",
+                        code: "usermanage",
+                        type: "menuitem",
+                        path: "user",
+                        component: "UserManage",
+                        children: [],
+                        title: "用户角色",
+                        icon: "icon-role",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        description: "部门、角色、权限、用户管理。",
+                    },
+                    {
+                        name: "MenuManage",
+                        code: "menumanage",
+                        type: "menuitem",
+                        path: "menu",
+                        component: "MenuManage",
+                        children: [],
+                        title: "权限菜单",
+                        icon: "Menu",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        description: "菜单和权限管理。",
+                    },
+                ],
+            },
+            {
+                code: "external",
+                type: "menugroup",
+                layout: "DefaultLayout",
+                title: "外链",
+                pinned: false,
+                cacheable: true,
+                visible: true,
+                pathKey: "fullPath",
+                path: "external",
+                description: "外链 Demo",
+                children: [
+                    {
+                        name: "ExternalLink",
+                        code: "baidu",
+                        type: "menuitem",
+                        path: "https://www.baidu.com",
+                        component: "ExternalLink",
+                        children: [],
+                        title: "百度",
+                        icon: "icon-baidu",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        description: "外链：百度",
+                    },
+                    {
+                        name: "ExternalLinkIframe",
+                        code: "edge",
+                        type: "menuitem",
+                        path: "edge",
+                        component: "ExternalLinkIframe",
+                        children: [],
+                        title: "Edge(内嵌)",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        iframe: "https://www.bing.com",
+                        icon: "icon-edge",
+                        description: "内嵌外链：Edge",
+                    },
+                ],
+            },
+            {
+                code: "hidemenu",
+                type: "menugroup",
+                layout: "DefaultLayout",
+                title: "隐藏菜单",
+                pinned: false,
+                cacheable: true,
+                visible: false,
+                pathKey: "fullPath",
+                description: "存放系统隐藏页面",
+                children: [
+                    {
+                        name: "UserProfile",
+                        code: "userprofile",
+                        type: "menuitem",
+                        path: "user/profile",
+                        component: "UserProfile",
+                        children: [],
+                        title: "个人资料",
+                        pinned: false,
+                        cacheable: true,
+                        visible: true,
+                        pathKey: "fullPath",
+                        description: "个人资料页面",
+                    },
+                ],
+            },
+        ],
     },
 ];

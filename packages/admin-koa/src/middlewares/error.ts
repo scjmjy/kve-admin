@@ -4,12 +4,17 @@ import type { IMiddleware } from "koa-router";
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import type { AsyncValidationError } from "async-validator/dist-types/util";
+import { MulterError } from "multer";
 import { KoaAjaxContext } from "@/types/koa";
 import { AjaxError } from "@/controllers/errors";
 
 function isAsyncValidationError(err: any): err is AsyncValidationError {
     return err.errors && err.fields;
 }
+
+const codeMessage: Record<string, string> = {
+    LIMIT_FIELD_VALUE: "文件大小超过限制",
+};
 
 export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void>, next) => {
     await next().catch((err: any) => {
@@ -84,6 +89,21 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                 code: ctx.status,
                 showType: "NOTIFICATION",
                 msg: "数据库类型转换错误，请联系管理员！",
+            };
+            console.log("[数据库类型转换错误]", err);
+        } else if (err instanceof MulterError) {
+            // | 'LIMIT_PART_COUNT'
+            // | 'LIMIT_FILE_SIZE'
+            // | 'LIMIT_FILE_COUNT'
+            // | 'LIMIT_FIELD_KEY'
+            // | 'LIMIT_FIELD_VALUE'
+            // | 'LIMIT_FIELD_COUNT'
+            // | 'LIMIT_UNEXPECTED_FILE';
+            ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
+            ctx.body = {
+                code: err.code,
+                showType: "NOTIFICATION",
+                msg: `文件上传错误，请联系管理员：${err.field}，` + codeMessage[err.code] || err.code,
             };
         } else {
             console.log("[服务器发生未知错误]", err);

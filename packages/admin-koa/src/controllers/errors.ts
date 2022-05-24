@@ -15,8 +15,8 @@ export class AjaxError extends Error {
 export function throwNotFoundError(msg: string, showType: MsgShowType = "MESSAGE") {
     throw new AjaxError(StatusCodes.NOT_FOUND, StatusCodes.NOT_FOUND, showType, msg);
 }
-export function throwUserNotFoundError() {
-    throw throwNotFoundError("用户不存在");
+export function throwUserNotFoundError(msg: string) {
+    throw throwNotFoundError("用户不存在：" + msg);
 }
 
 export function throwBadRequestError(msg: string, showType: MsgShowType = "MESSAGE") {

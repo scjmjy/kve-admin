@@ -1,12 +1,18 @@
+import { ObjectId } from "bson";
 import mongoose from "mongoose";
 import "mongoose-paginate-v2";
+import type { Request } from "koa";
+import { getGridFsBucket } from "@/middlewares/upload";
 import { throwBadRequestError } from "./errors";
+import { File } from "@koa/multer";
+import path from "path";
 
-export interface ExtraQuery {
-    doPopulate?: boolean;
-    includeDeleted?: boolean;
+declare module "mongoose" {
+    export interface ExtraQueryOptions {
+        doPopulate?: boolean;
+    }
+    export interface QueryOptions<DocType = unknown> extends ExtraQueryOptions {}
 }
-export type MiddlewareQuery<T> = mongoose.FilterQuery<T> & ExtraQuery;
 
 export function makePaginationResult<T>(result: mongoose.PaginateResult<T>) {
     return {
@@ -27,14 +33,15 @@ export function makePaginationResult<T>(result: mongoose.PaginateResult<T>) {
  *
  * @param Model Mongoose Mddel，例如 UserModel
  * @param params 前端传过来的过滤条件和页码参数
- * @param extraFilter ExtraQuery
+ * @param extraQuery ExtraQuery
  * @returns
  */
 export async function handlePaginationRequest<T, FilterT extends string>(
     Model: mongoose.PaginateModel<T>,
     params?: PaginationParams<FilterT>,
     projection?: string,
-    extraFilter?: ExtraQuery,
+    extraQuery?: Record<string, any>,
+    extraQueryOpts?: mongoose.ExtraQueryOptions,
 ) {
     const { filter, pageNum, pageSize } = params || {};
     if (!pageNum || !pageSize) {
@@ -46,43 +53,11 @@ export async function handlePaginationRequest<T, FilterT extends string>(
         limit: pageSize,
         offset: (pageNum - 1) * pageSize,
         projection,
+        options: extraQueryOpts,
     };
-    const queryBuilder = new QueryBuilder<PaginationParams<FilterT>["filter"]>(extraFilter);
-    for (const key in filter) {
-        const value = filter[key];
-        if (!value) {
-            continue;
-        }
-        // type: "regex" | "eq" | "ne" | "gte" | "gt" | "lte" | "lt" | "in" | "nin";
-        switch (value.comparison) {
-            case "regex":
-                // @ts-ignore
-                queryBuilder.regexp(key, value.value);
-                break;
-            case "eq":
-                // @ts-ignore
-                queryBuilder.equal(key, value.value);
-                break;
-            case "ne":
-                // @ts-ignore
-                queryBuilder.notEqual(key, value.value);
-                break;
-            case "range":
-                // @ts-ignore
-                queryBuilder.range(key, value.value);
-                break;
-            case "in":
-                // @ts-ignore
-                queryBuilder.in(key, value.value);
-                break;
-            case "nin":
-                // @ts-ignore
-                queryBuilder.notIn(key, value.value);
-                break;
-
-            default:
-                break;
-        }
+    const queryBuilder = new QueryBuilder<PaginationParams<FilterT>["filter"]>(extraQuery);
+    if (filter) {
+        queryBuilder.addQuery(filter);
     }
     const res = await Model.paginate(queryBuilder.query, options);
     return makePaginationResult(res);
@@ -90,6 +65,54 @@ export async function handlePaginationRequest<T, FilterT extends string>(
 
 export class QueryBuilder<T> {
     constructor(public query: mongoose.FilterQuery<T> = {}) {}
+    addQuery(query: mongoose.FilterQuery<T>) {
+        let key: any;
+        for (key in query) {
+            const value = query[key];
+            if (!value) {
+                continue;
+            }
+            // type: "regex" | "eq" | "ne" | "gte" | "gt" | "lte" | "lt" | "in" | "nin";
+            switch (value.comparison) {
+                case "regex":
+                    this.regexp(key, value.value);
+                    break;
+                case "eq":
+                    this.equal(key, value.value);
+                    break;
+                case "ne":
+                    this.notEqual(key, value.value);
+                    break;
+                case "gte":
+                    this.gte(key, value.value);
+                    break;
+                case "gt":
+                    this.gt(key, value.value);
+                    break;
+                case "lte":
+                    this.lte(key, value.value);
+                    break;
+                case "lt":
+                    this.lt(key, value.value);
+                    break;
+                case "range":
+                    this.range(key, value.value);
+                    break;
+                case "in":
+                    this.in(key, value.value);
+                    break;
+                case "nin":
+                    this.notIn(key, value.value);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+    clearQuery() {
+        this.query = {};
+    }
     equal(prop: keyof T, keyword?: string | number) {
         if (keyword !== undefined && keyword !== null) {
             // @ts-ignore
@@ -102,6 +125,42 @@ export class QueryBuilder<T> {
             // @ts-ignore
             this.query[prop] = {
                 $ne: keyword,
+            };
+        }
+        return this;
+    }
+    gte(prop: keyof T, keyword?: string | number) {
+        if (keyword !== undefined && keyword !== null) {
+            // @ts-ignore
+            this.query[prop] = {
+                $gte: keyword,
+            };
+        }
+        return this;
+    }
+    gt(prop: keyof T, keyword?: string | number) {
+        if (keyword !== undefined && keyword !== null) {
+            // @ts-ignore
+            this.query[prop] = {
+                $gt: keyword,
+            };
+        }
+        return this;
+    }
+    lte(prop: keyof T, keyword?: string | number) {
+        if (keyword !== undefined && keyword !== null) {
+            // @ts-ignore
+            this.query[prop] = {
+                $lte: keyword,
+            };
+        }
+        return this;
+    }
+    lt(prop: keyof T, keyword?: string | number) {
+        if (keyword !== undefined && keyword !== null) {
+            // @ts-ignore
+            this.query[prop] = {
+                $lt: keyword,
             };
         }
         return this;
@@ -141,4 +200,103 @@ export class QueryBuilder<T> {
         }
         return this;
     }
+}
+
+/**
+ * 用于处理 upload 中间件产生的 ctx.body
+ *
+ * 使用场景：
+ * 1. 添加 Object.prototype 至 ctx.body
+ * 2. 自动 parse 数组/对象字段
+ * @param body ctx.body
+ */
+export function normalizeUploadBody(body: Record<string, any>) {
+    if (!body) {
+        return;
+    }
+    Object.setPrototypeOf(body, Object.prototype);
+    for (const key in body) {
+        const value = body[key];
+        if (value === "undefined") {
+            body[key] = undefined;
+        } else if (value === "null") {
+            body[key] = null;
+        } else {
+            try {
+                body[key] = JSON.parse(value);
+            } catch (err) {
+                console.error("[normalizeUploadBody]", key);
+            }
+        }
+    }
+}
+
+/**
+ * 删除 upload 中间件产生的 GridFs 文件
+ *
+ * 使用场景：表单校验失败后，删除 MongoDb GridFs 文件
+ */
+export function deleteReqFiles(req: Request) {
+    const { file, files } = req;
+    const ids: ObjectId[] = [];
+    if (file) {
+        ids.push(file.id);
+    }
+    if (files) {
+        if (Array.isArray(files)) {
+            for (const file of files) {
+                ids.push(file.id);
+            }
+        } else {
+            const filesArr = Object.values(files);
+            for (const files of filesArr) {
+                for (const file of files) {
+                    ids.push(file.id);
+                }
+            }
+        }
+    }
+    const bucket = getGridFsBucket();
+    const promoises: Promise<void>[] = [];
+    for (const id of ids) {
+        promoises.push(bucket.delete(id));
+    }
+    return promoises;
+}
+
+function makeGridFsFile(file: File) {
+    const result: GridFsFile = {
+        name: file.filename,
+        url: file.id.toString(),
+        size: file.size,
+        mimetype: file.mimetype,
+    };
+    const ext = path.extname(file.filename);
+    if (ext === ".7z") {
+        result.mimetype = "application/x-7z-compressed";
+    }
+    return result;
+}
+
+export function mapReqFiles(req: Request, fieldname?: string) {
+    const gridFsFiles: GridFsFile[] = [];
+    const { file, files } = req;
+    if (file) {
+        gridFsFiles.push(makeGridFsFile(file));
+    }
+    if (Array.isArray(files)) {
+        for (const file of files) {
+            gridFsFiles.push(makeGridFsFile(file));
+        }
+    } else if (files) {
+        for (const key in files) {
+            if (fieldname && key !== fieldname) {
+                continue;
+            }
+            for (const file of files[key]) {
+                gridFsFiles.push(makeGridFsFile(file));
+            }
+        }
+    }
+    return gridFsFiles;
 }

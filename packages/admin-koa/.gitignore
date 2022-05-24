@@ -1,0 +1,4 @@
+# 前端项目的静态文件
+public/*
+# 后端静态资源
+!public/static
