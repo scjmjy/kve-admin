@@ -100,7 +100,7 @@ export async function putDemoCollection(ctx: KoaAjaxContext<UpdateDemoCollection
         }
     }
     if (existingDoc.gridFsFile && body.gridFsFile) {
-        // 因为 body.gridFsFile 中的 url 添加了 ctx.config.route_download 前缀，所以通过以下代码修复
+        // 因为 body.gridFsFile 中的 url 添加了 ctx.config.routeDownload 前缀，所以通过以下代码修复
         body.gridFsFile.url = existingDoc.gridFsFile.url;
     }
     const gridFsFile = mapReqFiles(ctx.request, "gridFsFile");
@@ -122,10 +122,10 @@ export async function putDemoCollection(ctx: KoaAjaxContext<UpdateDemoCollection
         } catch (error) {
             ctx.logger.error("[putDemoCollection] gridFsFileList delete", error);
         }
-        // 因为 body.gridFsFileList 中的 url 添加了 ctx.config.route_download 前缀，所以通过以下代码修复
+        // 因为 body.gridFsFileList 中的 url 添加了 ctx.config.routeDownload 前缀，所以通过以下代码修复
         body.gridFsFileList = existingDoc.gridFsFileList!.filter((file) => !toDeleteIds.includes(file.url));
     } else {
-        // 因为 body.gridFsFileList 中的 url 添加了 ctx.config.route_download 前缀，所以通过以下代码修复
+        // 因为 body.gridFsFileList 中的 url 添加了 ctx.config.routeDownload 前缀，所以通过以下代码修复
         body.gridFsFileList = existingDoc.gridFsFileList;
     }
 
@@ -148,7 +148,7 @@ export async function getDemoCollection(ctx: KoaAjaxContext<void, IDemoCollectio
     if (!existingDoc) {
         return throwNotFoundError("DemoCollection 不存在:" + demoCollId);
     }
-    const downloadPrefix = ctx.config.route_download;
+    const downloadPrefix = ctx.config.routeDownload;
     existingDoc.gridFsFileList!.forEach((file) => {
         file.url = downloadPrefix + file.url;
     });

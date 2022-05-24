@@ -8,7 +8,7 @@ export const appConfig: AppConfig = {
     jwtSecret: "123456",
     mongodbBiz: "mongodb://biz:33o93o6@localhost:27017/biz",
     mongodbGridFs: "mongodb://gridfs:33o93o6@localhost:27017/gridfs",
-    route_download: "/api/download/",
+    routeDownload: "/api/download/",
 };
 
 export function setupConfig(app: koa, __dirnameOfIndex: string) {

@@ -70,7 +70,7 @@ export interface AppConfig {
     jwtSecret: string;
     mongodbBiz: string;
     mongodbGridFs: string;
-    route_download: string;
+    routeDownload: string;
 }
 
 declare module "koa" {
