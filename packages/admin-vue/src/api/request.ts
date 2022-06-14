@@ -3,11 +3,11 @@ import axios, { AxiosResponse, AxiosError, Axios } from "axios";
 import { ElMessage, ElMessageBox, ElNotification, UploadUserFile, UploadFile, genFileId } from "element-plus";
 import { AjaxResult, getBase64Type, isBase64, MsgSilent, MsgSilentHeader } from "admin-common";
 import { useUserStore } from "@/store/modules/user";
-import { convertBlobToBase64, getExtFromType, getTypeFromName } from "@/utils/file";
+import { convertBlobToBase64, getTypeFromName } from "@/utils/file";
 
 export const request = axios.create({
     baseURL: import.meta.env.VITE_AXIOS_BASE_API,
-    timeout: 5000,
+    timeout: 60000, // 60秒 超时时间，如果服务器响应慢或上传文件很大，则提高此数值
 });
 
 export function setTokenHeader(token: string) {
@@ -75,6 +75,7 @@ request.interceptors.response.use(
             if (err.response.data instanceof Blob) {
                 const parsedBody = await new Promise<AjaxResult | undefined>((resolve) => {
                     const reader = new FileReader();
+                    // @ts-ignore
                     reader.readAsText(err.response!.data);
                     reader.onload = function (ev) {
                         resolve(JSON.parse(ev.target!.result as string));

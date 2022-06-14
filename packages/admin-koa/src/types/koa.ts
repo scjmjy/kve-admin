@@ -22,8 +22,7 @@ interface KoaRequest<RequestBodyT = any> extends Request {
     body?: RequestBodyT;
 }
 
-interface IRouterContext<ParamsT extends Record<string, string>, QueryT extends ParsedUrlQuery>
-    extends RouterContext<JwtState> {
+interface IRouterContext<ParamsT extends Record<string, string>, QueryT extends ParsedUrlQuery> extends RouterContext {
     params: ParamsT;
     query: QueryT;
 }
@@ -50,15 +49,15 @@ export interface KoaContext<
 }
 
 export interface AppConfig {
-    /** 
+    /**
      * 工作目录
      * workDir
      * ├── js/
      * │   ├── index.js
      * │   ├── ...
      * ├── public/
-     * │   ├── img/
-     * │   ├── asset/
+     * │   ├── static/
+     * │   ├── assets/
      * │   ├── favicon.ico
      * │   ├── index.html
      * │   ├── ...
@@ -71,6 +70,7 @@ export interface AppConfig {
     mongodbBiz: string;
     mongodbGridFs: string;
     routeDownload: string;
+    port: number;
 }
 
 declare module "koa" {
@@ -79,4 +79,5 @@ declare module "koa" {
         logger: log4js.Logger;
         loggerAccess: log4js.Logger;
     }
+    interface DefaultState extends JwtState {}
 }

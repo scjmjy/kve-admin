@@ -2,13 +2,22 @@ import { ObjectId } from "bson";
 import mongoose from "mongoose";
 
 export interface CreateRecursivelyOption<DocT> {
+    /** 子文档的字段名 */
     field: keyof DocT;
+    /** 子文档的 Model */
     model: mongoose.Model<any>;
-    /** 是否递归，默认为 true */
+    /** 子文档是否也包含子文档，默认为 true */
     recursive?: boolean;
+    /** 子文档的子文档的选项 */
     opts?: CreateRecursivelyOption<any>[];
 }
-
+/**
+ * 递归创建文档
+ * @param model 父文档的 Model
+ * @param docs 父文档
+ * @param opts 递归选项：父文档中哪些字段包含子文档以及对应的子文档 Model
+ * @returns 
+ */
 export async function createRecursively<DocT>(
     model: mongoose.Model<DocT>,
     docs: any[],

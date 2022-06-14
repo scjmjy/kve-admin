@@ -1,5 +1,5 @@
-import { IPermission } from "admin-common";
 import { FormItemRule, IBase, isValidPassword, ValidatorRules } from "./utils";
+import { IPermission } from "./permission";
 import { IDepartment, IRole } from "./department";
 
 export type Gender = "MALE" | "FEMALE" | "UNKNOWN";

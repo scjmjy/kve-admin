@@ -119,20 +119,27 @@ function onRealTime(data: any) {
     state.previews = data;
 }
 
-const refCropper = ref<InstanceType<typeof VueCropper>>();
+interface VueCropperType {
+    rotateLeft(): void;
+    rotateRight(): void;
+    changeScale(num: number): void;
+    getCropData(cb: (base64: string) => void): void;
+}
+
+const refCropper = ref<VueCropperType>();
 
 // 向左旋转
 function rotateLeft() {
-    refCropper.value.rotateLeft();
+    refCropper.value?.rotateLeft();
 }
 // 向右旋转
 function rotateRight() {
-    refCropper.value.rotateRight();
+    refCropper.value?.rotateRight();
 }
 // 图片缩放
 function changeScale(num: number) {
     num = num || 1;
-    refCropper.value.changeScale(num);
+    refCropper.value?.changeScale(num);
 }
 
 function onFileChange(files: FileList) {
@@ -146,7 +153,7 @@ function onFileChange(files: FileList) {
 
 function uploadAvatar() {
     state.loading = true;
-    refCropper.value.getCropData((base64: string) => {
+    refCropper.value?.getCropData((base64: string) => {
         userStore
             .uploadUserAvatar(base64)
             .then(() => {

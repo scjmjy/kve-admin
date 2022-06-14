@@ -19,7 +19,7 @@ import {
 } from "admin-common";
 import { KoaAjaxContext } from "@/types/koa";
 import { DepartmentModel, RoleModel } from "@/model/department";
-import Schema from "async-validator";
+import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
 
 export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesResult>) {
@@ -45,14 +45,13 @@ export async function postDept(ctx: KoaAjaxContext<CreateDeptBody, CreateResult>
     if (!parent) {
         return throwNotFoundError(`父部门不存在：${validBody.parent}`);
     }
-    // TODO mongodb 现在是单节点部署，不支持 Transaction
-    mongoose
+    return mongoose
         .startSession()
         .then((session) =>
             session.withTransaction(async () => {
-                const newDept = await DepartmentModel.create(validBody);
+                const newDept = (await DepartmentModel.create([validBody], { session: session }))[0];
                 parent.depts.push(newDept._id);
-                await parent.save();
+                await parent.save({ session: session });
 
                 ctx.status = StatusCodes.OK;
                 ctx.body = {
@@ -128,15 +127,14 @@ export async function postRole(ctx: KoaAjaxContext<CreateRoleBody, CreateResult>
     if (!dept) {
         return throwNotFoundError(`部门不存在：${validBody.dept}`);
     }
-    // TODO mongodb 现在是单节点部署，不支持 Transaction
-    await mongoose
+    return mongoose
         .startSession()
         .then((session) =>
             session.withTransaction(async () => {
-                const newRole = await RoleModel.create(validBody);
+                const newRole = (await RoleModel.create([validBody], { session: session }))[0];
 
                 dept.roles.push(newRole._id);
-                await dept.save();
+                await dept.save({ session: session });
 
                 ctx.status = StatusCodes.OK;
                 ctx.body = {

@@ -231,6 +231,12 @@ const formActions = ref<FormActions>({
                         filterFields = updateMenuActionFields as any;
                         break;
                 }
+                if (formData.value.visible == undefined) {
+                    formData.value.visible = true;
+                }
+                if (formData.value.footer == undefined) {
+                    formData.value.footer = true;
+                }
                 Object.assign(formData.value, pick(props.menu, filterFields));
             }
         },
@@ -491,6 +497,20 @@ const formItems = computed(() => {
             },
         },
         {
+            label: "显示页脚",
+            prop: "footer",
+            tooltip: {
+                content: "是否显示页面底部的页脚",
+            },
+            item: {
+                type: "ReadonlySwitch",
+                props: {
+                    activeText: "显示",
+                    inactiveText: "不显示",
+                },
+            },
+        },
+        {
             label: "描述",
             prop: "description",
             span: 24,
@@ -563,6 +583,7 @@ function onAddClick() {
         type: "menugroup",
         cacheable: true,
         visible: true,
+        footer: true,
         pinned: false,
         pathKey: "fullPath",
     };

@@ -8,7 +8,7 @@
                     :model="credential"
                     :rules="credentialRules"
                 >
-                    <h3 class="login-title text-3d">KVE 后台管理系统</h3>
+                    <h3 class="login-title text-3d">KVE 全栈后台管理系统</h3>
                     <el-form-item prop="username">
                         <el-input v-model="credential.username" placeholder="输入用户名"></el-input>
                     </el-form-item>
@@ -34,6 +34,24 @@
                     <div class="login-findPassword">
                         <el-link type="primary" @click.prevent="rotateCard">找回密码</el-link>
                     </div>
+                    <table style="font-size: 0.6em">
+                        <tr>
+                            <th>用户名</th>
+                            <th>密码</th>
+                        </tr>
+                        <tr>
+                            <td>superadmin</td>
+                            <td>123456</td>
+                        </tr>
+                        <tr>
+                            <td>admin01</td>
+                            <td>123456</td>
+                        </tr>
+                        <tr>
+                            <td>admin02</td>
+                            <td>123456</td>
+                        </tr>
+                    </table>
                 </el-form>
             </template>
             <template #back>
@@ -71,10 +89,10 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import DoubleFaceCard from "@/components/card/DoubleFaceCard.vue";
-import type { FormInstance, FormRules } from "element-plus";
+import { ElMessage, FormInstance, FormRules } from "element-plus";
+import { LoginCredential } from "admin-common";
 import { useUserStore } from "@/store/modules/user";
 import { useRoute, useRouter } from "vue-router";
-import { LoginCredential } from "admin-common";
 import { ROUTE_PATH } from "@/router/consts";
 
 const router = useRouter();
@@ -134,22 +152,22 @@ function handleLogin() {
                     });
                 })
                 .catch((err) => {
-                    // console.error("[login.vue]", err);
+                    // console.error("[handleLogin]", err);
                     state.loggingIn = false;
                 });
         })
         .catch((err) => {
-            console.error("[FORM]", err);
+            console.error("[handleLogin]", err);
         });
 }
 function handleFind() {
     formFind.value
         ?.validate()
         .then(() => {
-            console.log("[FORM] - OK");
+            ElMessage.warning("功能未实现！");
         })
         .catch((err) => {
-            console.error("[FORM]", err);
+            console.error("[handleFind]", err);
         });
 }
 function rotateCard() {

@@ -112,6 +112,7 @@ function makeRawRoutes(routes: RouteRecordRaw[], perms: IPermission[]) {
                         title: perm.title,
                         icon: perm.icon,
                         visible: perm.visible,
+                        footer: perm.footer,
                         pinned: perm.pinned,
                         cacheable: perm.cacheable,
                         forName: perm.forName,

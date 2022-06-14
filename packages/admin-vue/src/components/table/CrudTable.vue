@@ -156,6 +156,7 @@
             :actions="formActions"
             :items="formItems"
             :form-data="formData"
+            :form-props="formProps"
             :rules="formRules"
             @change="onFormChange"
             @formaction="onFormAction"
@@ -187,9 +188,9 @@ export interface CrudTableColumn<T> {
 
 export interface TableHeader<T> {
     title: string;
-    onAddClick(): void;
+    onAddClick?: () => void;
     addBtnProps?: Partial<Omit<ButtonInstance, "onClick">>;
-    onDeleteManyClick(selection: Array<T>): Promise<void>;
+    onDeleteManyClick?: (selection: Array<T>) => Promise<void>;
     deleteBtnProps?: Partial<Omit<ButtonInstance, "onClick">>;
     selection?: Partial<TableColumnProps>;
     selectionBtnProps?: Partial<Omit<ButtonInstance, "onClick">>;
@@ -270,6 +271,9 @@ const props = defineProps({
     formData: {
         type: Object as PropType<Record<string, any>>,
         default: undefined,
+    },
+    formProps: {
+        type: Object as PropType<CrudFormProps["formProps"]>,
     },
     formColumn: {
         type: [String, Number, Object] as PropType<CrudFormProps["column"]>,

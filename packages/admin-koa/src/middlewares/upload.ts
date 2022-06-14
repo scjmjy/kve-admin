@@ -7,7 +7,6 @@ import { appConfig } from "@/config";
 const storage = new GridFsStorage({
     url: appConfig.mongodbGridFs,
     file(req, file) {
-        // console.log("[avatar]", file);
         return file.originalname;
     },
 });

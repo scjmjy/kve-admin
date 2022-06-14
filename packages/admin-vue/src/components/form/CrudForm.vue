@@ -22,7 +22,7 @@
                             <el-tooltip placement="top" v-bind="(item.tooltip as any)">
                                 <SvgIcon
                                     icon="QuestionFilled"
-                                    style="vertical-align: -2px; margin-right: 2px"
+                                    style="margin-right: 2px"
                                 ></SvgIcon>
                             </el-tooltip>
                             <span>
@@ -90,7 +90,7 @@ import type {
     RadioGroupEmits,
     TooltipInstance,
 } from "element-plus";
-import { merge } from "lodash-es";
+import { merge } from "lodash-unified";
 import { ResponsiveScreenMap, ScreenMode, useSystemStore } from "@/store/modules/system";
 import { useInvalidProps } from "@/composables/useForm";
 import type ReadonlySwitch from "@/components/form/ReadonlySwitch.vue";

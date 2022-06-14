@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { ObjectId } from "bson";
 import { StatusCodes } from "http-status-codes";
-import Schema from "async-validator";
 import {
     CreateDemoCollectionBody,
     FindDemoCollectionParams,
@@ -17,6 +16,7 @@ import { KoaAjaxContext } from "@/types/koa";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
 import { deleteReqFiles, handlePaginationRequest, mapReqFiles, normalizeUploadBody } from "./utils";
 import { getGridFsBucket } from "@/middlewares/upload";
+import { Schema } from "@/utils/async-validator";
 
 export async function postFindDemoCollection(
     ctx: KoaAjaxContext<Undefinable<FindDemoCollectionParams>, FindDemoCollectionResult>,

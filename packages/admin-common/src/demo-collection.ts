@@ -1,4 +1,4 @@
-import { omit } from "lodash";
+import { omit } from "lodash-unified";
 import { IBase, ValidatorRules } from "./utils";
 
 export interface IDemoCollection extends IBase {

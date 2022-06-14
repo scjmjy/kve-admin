@@ -392,9 +392,9 @@ const formItemsPerm = computed<ItemSchema[]>(() => {
                     showCheckbox: true,
                     data,
                     nodeKey: "value",
-                    onChange(val: string[]) {
-                        sortPermIds(val, g_allPermIds);
-                    },
+                    // onChange(val: string[]) {
+                    //     sortPermIds(val, g_allPermIds);
+                    // },
                 },
             },
         },

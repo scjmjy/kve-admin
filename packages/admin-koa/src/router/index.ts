@@ -2,16 +2,16 @@ import type koa from "koa";
 import Router from "koa-router";
 import koajwt_ from "koa-jwt";
 import { GridFSBucketReadStream } from "mongodb";
-import { postLogin } from "@/controllers/user";
 import { ObjectId } from "bson";
+import { extname } from "path";
+import { AjaxResult } from "admin-common";
+import { postLogin } from "@/controllers/user";
 import { KoaContext } from "@/types/koa";
 import { getGridFsBucket } from "@/middlewares/upload";
 import { userRouter } from "./user";
 import { deptRouter, roleRouter } from "./department";
 import { permRouter } from "./permission";
 import { demoCollRouter } from "./demo-collection";
-import { AjaxResult } from "admin-common";
-import { extname } from "path";
 
 const router = new Router<any, any>({
     prefix: "/api",
@@ -78,5 +78,7 @@ export function setupRouter(app: koa) {
         // 以下路由不需要校验 token
         path: ["/api/login"],
     });
-    app.use(koajwt).use(router.routes()).use(router.allowedMethods());
+    app.use(koajwt);
+
+    app.use(router.routes()).use(router.allowedMethods());
 }

@@ -1,29 +1,43 @@
 <template>
     <Hamburger v-model="systemStore.menu.collapse" id="appHeader-hamburger" @change="onHamburgerChange"></Hamburger>
     <img class="appHeader-logo" src="@/assets/imgs/logo.png" />
-    <span class="appHeader-title">KVE 后台管理系统</span>
-    <el-popover
-        placement="bottom-end"
-        :width="240"
-        trigger="hover"
-        @before-enter="toggleProfileCardShow"
-        @before-leave="toggleProfileCardShow"
-    >
-        <template #reference>
-            <div class="appHeader-right" ref="refPopoverTrigger">
-                <UserAvatar class="appHeader-avatar"></UserAvatar>
-                <el-icon :class="{ 'is-up': state.isProfileCardShow, 'el-icon__ani': true }"><arrow-down /></el-icon>
-            </div>
-        </template>
-        <ProfileCard @hideme="onHideme"></ProfileCard>
-    </el-popover>
+    <span class="appHeader-title">KVE 全栈后台管理系统</span>
+    <div class="appHeader-right">
+        <el-switch
+            v-model="isDark"
+            style="margin-right: 24px"
+            inline-prompt
+            active-icon="Moon"
+            inactive-icon="Sunny"
+        />
+        <el-popover
+            placement="bottom-end"
+            :width="240"
+            trigger="hover"
+            @before-enter="toggleProfileCardShow"
+            @before-leave="toggleProfileCardShow"
+        >
+            <template #reference>
+                <div ref="refPopoverTrigger" class="is-flex is-vCenter">
+                    <UserAvatar class="appHeader-avatar"></UserAvatar>
+                    <el-icon :class="{ 'is-up': state.isProfileCardShow, 'el-icon__ani': true }"
+                        ><arrow-down
+                    /></el-icon>
+                </div>
+            </template>
+            <ProfileCard @hideme="onHideme"></ProfileCard>
+        </el-popover>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
+import { useDark, useToggle } from "@vueuse/core";
 import { useSystemStore } from "@/store/modules/system";
 import Hamburger from "@/components/Hamburger.vue";
 import ProfileCard from "./ProfileCard.vue";
+
+const isDark = useDark();
 
 const systemStore = useSystemStore();
 

@@ -15,7 +15,7 @@
                 <el-main class="defaultLayout-main" ref="refMain">
                     <el-scrollbar id="defaultLayoutScrollbar" class="is-vertical">
                         <AppMain pageStyle="flex: 1; padding: 15px;"></AppMain>
-                        <AppFooter></AppFooter>
+                        <AppFooter v-if="route.meta.footer !== false"></AppFooter>
                     </el-scrollbar>
                     <el-backtop target="#defaultLayoutScrollbar .el-scrollbar__wrap" :right="50" :bottom="50" />
                 </el-main>
@@ -33,8 +33,11 @@ import AppMenu from "./components/AppMenu.vue";
 import AppMain from "./components/AppMain.vue";
 import AppFooter from "./components/AppFooter.vue";
 import TabList from "./components/TabList.vue";
+import { useRoute } from "vue-router";
 
 const systemStore = useSystemStore();
+
+const route = useRoute();
 
 const layoutClass = computed(() => ({
     ["is-menu" + systemStore.menu.mode]: true,

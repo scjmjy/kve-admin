@@ -134,9 +134,14 @@ watch(
 const refTree = ref<InstanceType<typeof ElTree>>();
 
 function fetch() {
-    return getPermNodes().then((res) => {
-        state.permNodes = res.data;
-    });
+    state.loading = true;
+    return getPermNodes()
+        .then((res) => {
+            state.permNodes = res.data;
+        })
+        .finally(() => {
+            state.loading = false;
+        });
 }
 
 onActivated(() => {

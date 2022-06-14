@@ -2,7 +2,7 @@ import type koa from "koa";
 import session from "koa-session";
 
 export function setupSession(app: koa) {
-    app.keys = ["123456"];
+    app.keys = ["kve123456"];
     app.use(
         session(
             {

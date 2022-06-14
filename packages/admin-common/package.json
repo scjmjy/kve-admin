@@ -1,7 +1,7 @@
 {
     "name": "admin-common",
     "version": "1.0.0",
-    "description": "Common Interfaces for frontend and backend",
+    "description": "Common interfaces for frontend and backend",
     "type": "module",
     "module": "src/index.ts",
     "main": "src/index.ts",

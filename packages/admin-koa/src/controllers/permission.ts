@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import {
     CreateMenuActionBody,
@@ -25,7 +25,7 @@ import {
 } from "admin-common";
 import { KoaAjaxContext } from "@/types/koa";
 import { PermissionModel } from "@/model/permission";
-import Schema from "async-validator";
+import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
 
 export async function getPermNodes(ctx: KoaAjaxContext<void, PermNodeResult, any, GetPermNodeQuery>) {
@@ -78,17 +78,15 @@ export async function postPermission(ctx: KoaAjaxContext<CreatePermBody, CreateR
             return throwNotFoundError(`父菜单不存在：${validBody.parent}`);
         }
     }
-    // TODO mongodb 现在是单节点部署，不支持 Transaction
-    mongoose
+    return mongoose
         .startSession()
         .then((session) =>
             session.withTransaction(async () => {
-                const newDoc = await PermissionModel.create(validBody);
+                const newDoc = (await PermissionModel.create([validBody], { session: session }))[0];
                 if (parent) {
                     parent.children.push(newDoc._id);
-                    await parent.save();
+                    await parent.save({ session: session });
                 }
-
                 ctx.status = StatusCodes.OK;
                 ctx.body = {
                     code: ctx.status,

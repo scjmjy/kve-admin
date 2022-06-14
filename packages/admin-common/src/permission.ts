@@ -1,8 +1,6 @@
-import { pick } from "lodash";
+import { pick } from "lodash-unified";
 import { IBase, ValidatorRules } from "./utils";
-// export enum PermissionCode {
 
-// }
 export interface IRouteMeta {
     /**
      * 在 AppMenu 和 TabList 中显示的名称
@@ -68,6 +66,12 @@ export interface IRouteMeta {
      * @default undefined
      */
     iframe?: string;
+    /**
+     * 是否显示页脚
+     *
+     * @default true
+     */
+    footer?: boolean;
 }
 
 /** IPermission.component 的特殊值，表示外链或内嵌外链 */
@@ -95,7 +99,7 @@ export const PERMISSION_CONTAINER_ID = "000000000000000000000004";
 
 export type GetPermNodeQuery = {
     status: EnableStatus;
-}
+};
 
 export type PermNodeResult = IPermission;
 
@@ -121,6 +125,7 @@ export const commonItemFields = [
     "forName",
     "pathKey",
     "iframe",
+    "footer",
 ] as const;
 export const createMenuItemFields = [...commonItemFields, "parent"] as const;
 export const updateMenuItemFields = [...commonItemFields, "_id"] as const;
@@ -200,6 +205,9 @@ function getAllPermRules(requireHttp = false, requireIframe = false): AllPermRul
             required: requireIframe,
             type: "url",
             message: "以 http(s):// 开头的地址",
+        },
+        footer: {
+            type: "boolean",
         },
         _id: {
             required: true,

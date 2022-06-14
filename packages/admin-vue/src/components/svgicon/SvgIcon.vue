@@ -1,12 +1,10 @@
 <template>
     <template v-if="icon">
-        <el-icon v-if="icon.startsWith('icon-')" :color="color" :size="size">
-            <svg aria-hidden="true">
+        <el-icon :color="color" :size="size">
+            <svg v-if="icon.startsWith('icon-')" aria-hidden="true">
                 <use :xlink:href="'#' + icon" />
             </svg>
-        </el-icon>
-        <el-icon v-else :color="color" :size="size">
-            <component :is="icon"></component>
+            <component v-else :is="icon"></component>
         </el-icon>
     </template>
 </template>

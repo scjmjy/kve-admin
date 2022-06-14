@@ -8,16 +8,18 @@ import { PermissionModel } from "../src/model/permission";
 import { internalDepts, internalUsers, internalPerms } from "./data/seed-all";
 import { createRecursively } from "./utils/create-recursively";
 
-interface ArgsType {
-    bd: string;
-    force: boolean;
-}
+/** connection string */
+const mongoConnectionUrl = "mongodb+srv://admin:kve123456@kvers0.ydfnfii.mongodb.net/?retryWrites=true&w=majority";
+// const mongoConnectionUrl = "mongodb://admin:kve123456@localhost:27018,localhost:27019,localhost:27020/?replSet=kvers0";
 
 const argv = yargs(hideBin(process.argv))
     // .strict()
     .usage("yarn mongodb seed|drop -d biz|fs|all [-f]")
     .demandCommand(1, "请输入 seed 或 drop 命令")
-    .command<ArgsType>({
+    .command<{
+        db: string;
+        force: boolean;
+    }>({
         command: "seed",
         describe: "Seed database",
         handler(args) {
@@ -121,11 +123,15 @@ const argv = yargs(hideBin(process.argv))
             describe: "biz, fs 或 all",
             alias: "d",
         },
+        atlas: {
+            type: "boolean",
+            describe: "是否是 Atlas Cluster",
+        },
     }).argv;
 
 async function emptyBiz() {
     try {
-        const client = new MongoClient("mongodb://mongodbadmin:33o93o6@localhost:27017");
+        const client = new MongoClient(mongoConnectionUrl);
         await client.connect();
         await client.db("biz").dropDatabase();
         await client.close();
@@ -136,7 +142,7 @@ async function emptyBiz() {
 
 async function emptyGridFs() {
     try {
-        const client = new MongoClient("mongodb://mongodbadmin:33o93o6@localhost:27017");
+        const client = new MongoClient(mongoConnectionUrl);
         await client.connect();
         await client.db("gridfs").dropDatabase();
         await client.close();
@@ -158,7 +164,7 @@ async function emptyAll() {
 async function seedBiz(force = false) {
     console.log("[seedBiz] start");
 
-    let client = new MongoClient("mongodb://mongodbadmin:33o93o6@localhost:27017");
+    const client = new MongoClient(mongoConnectionUrl);
     await client.connect();
     const dbAdmin = client.db("admin").admin();
     const dbs = await dbAdmin.listDatabases({ nameOnly: true });
@@ -175,22 +181,12 @@ async function seedBiz(force = false) {
     } else {
         console.log("[seedBiz] biz database doesn't exist");
     }
-    const dbBiz = client.db("biz");
-    await dbBiz.command({
-        dropAllUsersFromDatabase: 1,
-    });
-    await dbBiz.addUser("biz", "33o93o6", {
-        roles: [
-            {
-                role: "dbOwner",
-                db: "biz",
-            },
-        ],
-    });
+
     await client.close();
 
-    const m = await mongoose.connect("mongodb://biz:33o93o6@localhost:27017/biz");
-
+    const m = await mongoose.connect(mongoConnectionUrl, {
+        dbName: "biz",
+    });
     await createRecursively(DepartmentModel, internalDepts, [
         {
             field: "depts",
@@ -225,7 +221,7 @@ async function seedBiz(force = false) {
  * @returns
  */
 async function seedGridFs(force = false) {
-    let client = new MongoClient("mongodb://mongodbadmin:33o93o6@localhost:27017");
+    const client = new MongoClient(mongoConnectionUrl);
     await client.connect();
     const dbAdmin = client.db("admin").admin();
     const dbs = await dbAdmin.listDatabases({ nameOnly: true });
@@ -243,19 +239,8 @@ async function seedGridFs(force = false) {
         console.log("[seedGridFs] gridfs database doesn't exist");
     }
 
-    const dbGridFs = client.db("gridfs");
-    await dbGridFs.command({
-        dropAllUsersFromDatabase: 1,
-    });
-    await dbGridFs.addUser("gridfs", "33o93o6", {
-        roles: [
-            {
-                role: "dbOwner",
-                db: "gridfs",
-            },
-        ],
-    });
     await client.close();
+
     console.log("[seedGridFs] completed!");
 }
 

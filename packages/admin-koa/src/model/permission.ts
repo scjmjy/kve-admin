@@ -26,6 +26,7 @@ export const PermissionSchema = new mongoose.Schema<IPermissionDoc, IPermissionM
         forName: String,
         pathKey: String,
         iframe: String,
+        footer: Boolean,
         description: { type: String },
     },
     {
@@ -36,12 +37,24 @@ PermissionSchema.pre("save", function (next) {
     if (!this.status) {
         this.status = "enabled";
     }
+    if (this.visible === undefined || this.visible === null) {
+        this.visible = true;
+    }
+    if (this.footer === undefined || this.footer === null) {
+        this.footer = true;
+    }
     next();
 });
 PermissionSchema.pre("insertMany", function (next: mongoose.CallbackWithoutResultAndOptionalError, docs: any[]) {
     for (const doc of docs) {
         if (!doc.status) {
             doc.status = "enabled";
+        }
+        if (doc.visible === undefined || doc.visible === null) {
+            doc.visible = true;
+        }
+        if (doc.footer === undefined || doc.footer === null) {
+            doc.footer = true;
         }
     }
     next();

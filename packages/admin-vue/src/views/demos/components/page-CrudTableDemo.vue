@@ -15,6 +15,7 @@
             :filter="tableFilter"
             :on-filter-change="onFilterChange"
             :form-data="formData"
+            :form-props="formProps"
             :form-items="formItems"
             :form-rules="formRules"
             :form-actions="crudForm.actions"
@@ -304,6 +305,10 @@ const crudForm = shallowReactive<Omit<CrudFormProps, "column" | "formData">>({
         },
     },
 });
+
+const formProps: CrudFormProps["formProps"] = {
+    labelWidth: "110px",
+};
 
 const formRules = computed(() => {
     if (crudForm.action === "create") {

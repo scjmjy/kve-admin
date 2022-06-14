@@ -30,9 +30,9 @@ import { IUserMethods, UserModel } from "@/model/user";
 import { JwtPayload, KoaAjaxContext, KoaContext } from "@/types/koa";
 import { throwBadRequestError, throwNotFoundError, throwUserNotFoundError } from "./errors";
 import { handlePaginationRequest } from "./utils";
-import Schema from "async-validator";
 import { PermissionModel } from "@/model/permission";
 import { DepartmentModel } from "@/model/department";
+import { Schema } from "@/utils/async-validator";
 
 export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
     if (ctx.session && ctx.session.loginErrorCount >= 5) {
@@ -91,7 +91,7 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
 //     id?: string;
 // };
 
-function filterPerms(perms: IPermission[], permIds: string[]): IPermission[] {
+function filterPerms(perms: IPermission[], permIds: Set<string>): IPermission[] {
     const filtered: IPermission[] = [];
     for (const perm of perms) {
         const id = (perm._id as unknown as mongoose.Types.ObjectId).toString();
@@ -103,7 +103,7 @@ function filterPerms(perms: IPermission[], permIds: string[]): IPermission[] {
                     children,
                 });
             }
-        } else if (permIds.includes(id)) {
+        } else if (permIds.has(id)) {
             filtered.push(perm);
         }
     }
@@ -169,9 +169,9 @@ export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult
                 // 超级管理员拥有所有权限
                 userPerms = perm.children || [];
             } else if (perm) {
-                const permIds: string[] = [];
+                const permIds = new Set<string>();
                 roles.forEach((item) => {
-                    permIds.push(...item.perms.map((p) => p.toString()));
+                    item.perms.forEach((perm) => permIds.add(perm.toString()));
                 });
                 userPerms = filterPerms(perm.toObject().children || [], permIds);
             }
@@ -344,6 +344,9 @@ export async function postUser(ctx: KoaAjaxContext<Undefinable<CreateUserBody>, 
 export async function putUser(ctx: KoaAjaxContext<Undefinable<UpdateUserBody>, void>) {
     const schema = new Schema(getUserRules("update"));
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateUserBody;
+    if ((validBody.password === "")) {
+        delete validBody.password;
+    }
     const res = await UserModel.findByIdAndUpdate(validBody._id, validBody, {
         projection: "_id",
     });

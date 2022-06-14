@@ -1,13 +1,21 @@
 @forward "element-plus/theme-chalk/src/common/var.scss" with (
-    // $colors: (
-    //     "primary": (
-    //         "base": #9da0a3,
-    //     ),
-    // )
-    $bg-color: ("": #ebeef5, "page": #ebeef5, "overlay": #ebeef5)
+    $bg-color: (
+        "": #ebeef5,
+        "page": #ebeef5,
+        "overlay": #ebeef5,
+    )
 );
 
+// @forward "element-plus/theme-chalk/src/dark/var.scss" with (
+//     $bg-color: (
+//         "": #626aef,
+//         "page": #0a0a0a,
+//         "overlay": #1d1e1f,
+//     )
+// );
+
 @use "element-plus/theme-chalk/src/index.scss" as *;
+@use "element-plus/theme-chalk/src/dark/css-vars.scss";
 @use "element-plus/theme-chalk/src/display.scss" as *;
 
 @use "./element-custom.scss";

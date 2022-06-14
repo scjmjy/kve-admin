@@ -68,19 +68,13 @@
     height: 1.2em;
 }
 
-// .el-form {
-//     &-item {
-//         &__label {
-//             text-align: justify;
-//             text-align-last: justify;
-//             position: relative;
-//             &::before {
-//                 position: absolute;
-//                 left: -10px;
-//             }
-//         }
-//     }
-// }
+.el-form {
+    &-item {
+        &__label {
+            align-items: center;
+        }
+    }
+}
 
 .el-tree-node {
     &.is-current {

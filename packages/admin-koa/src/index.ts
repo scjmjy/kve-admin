@@ -7,7 +7,6 @@ import { __dirname } from "./utils/dirname";
 import { setupPostMiddlewares, setupPreMiddlewares } from "./middlewares";
 
 const app = new koa();
-const port = 3000;
 
 setupConfig(app, __dirname(import.meta.url));
 
@@ -19,14 +18,11 @@ setupPostMiddlewares(app);
 
 setupMongo(app)
     .then(() => {
-        app.listen(port, () => {
-            console.log(`Server is running at port: ${port}`);
+        app.listen(app.context.config.port, () => {
+            console.log(`Server is running at port: ${app.context.config.port}`);
         });
     })
     .catch(() => {
+        console.error("Server failed to start!");
         process.exit(1);
     });
-
-// app.on("error", (err) => {
-//     console.error("server error", err);
-// });
