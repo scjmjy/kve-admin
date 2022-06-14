@@ -6,7 +6,7 @@
     "author": "Ronnie",
     "license": "MIT",
     "scripts": {
-        "clean": "rm -rf dist",
+        "clean": "rimraf dist",
         "build": "yarn clean && tsc && tsc-alias && cp -r public/ dist/ && cp -r ../admin-vue/dist/* dist/public",
         "dev": "cross-env NODE_ENV=development ts-node-dev -r esm -r tsconfig-paths/register --debug -- src/index.ts",
         "preview": "cross-env NODE_ENV=production node --experimental-specifier-resolution=node  dist/js/index.js",

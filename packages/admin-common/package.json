@@ -12,7 +12,7 @@
     },
     "scripts": {
         "dev": "nodemon -w src -e ts --exec tsc",
-        "build": "rm -rf es && tsc"
+        "build": "rimraf es && tsc"
     },
     "devDependencies": {
         "nodemon": "^2.0.15"

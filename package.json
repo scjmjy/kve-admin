@@ -11,9 +11,12 @@
         "dev:vue": "yarn workspace admin-vue dev",
         "build:common": "yarn workspace admin-common build",
         "build:vue": "yarn workspace admin-vue build",
-        "build:koa": "yarn workspace admin-koa build"
+        "build:koa": "yarn workspace admin-koa build",
+        "build": "yarn build:common && yarn build:vue && yarn build:koa",
+        "preview": "yarn workspace admin-koa preview"
     },
     "devDependencies": {
-        "cross-env": "^7.0.3"
+        "cross-env": "^7.0.3",
+        "rimraf": "^3.0.2"
     }
 }
