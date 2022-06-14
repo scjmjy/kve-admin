@@ -66,6 +66,16 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                     msg: `${keyValue}资源已存在，不要重复创建`,
                 };
                 console.log("[数据库资源已存在]", err);
+            } else if(err.code === 8000) {
+                // 8000: AtlasError
+                // MongoServerError: user is not allowed to do action [update] on [xxx]
+                ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
+                ctx.body = {
+                    code: ctx.status,
+                    showType: "NOTIFICATION",
+                    msg: "只读数据库，不可写入！",
+                };
+                console.log("[只读数据库]", err);
             } else {
                 ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
                 ctx.body = {
