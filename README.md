@@ -71,10 +71,14 @@
 
 预置条件：
 
+- 开发环境为 Windows WSL2(Ubuntu20.04) 或 Mac 或 Linux 
 - Node.js 版本为 v16
-- 开发环境为 VS Code + WSL2 或 Mac 或 Linux 
+- Yarn 1.22.19
+- VS Code
+  - 推荐使用插件包： Vue Volar extension Pack
+  - 其中 Vue Language Features (Volar) 是必要的插件
 
-> 如果你是 Windows，并且没有安装 WSL2，那请将所有 package.json 里的 "rm -rf" 修改为 "rm -r"，并使用 PowerShell 作为你的开发终端，而非 Windows CMD。
+> 如果你使用 Windows，请首先安装 WSL2(Ubuntu20.04)，或者使用 Git Bash 作为终端。
 
 ### 3.1. 第一步：部署 mongodb 并初始化数据
 
@@ -82,7 +86,7 @@
 - 方式二：在 Ubuntu 上部署 MongoDB Replica Set，教程：略
 - 方式三：在 Ubuntu 上使用 Docker 部署 MongoDB Replica Set，教程：略
 
-> 你也可以跳过此步骤，使用作者的 MongoDB Atlas Cluster，但这是只读的（任何写入 MongoDB 的操作都会失败）。
+> 你也可以跳过此步骤，使用源码中默认的 MongoDB Atlas Cluster，但这是只读的（任何写入 MongoDB 的操作都会失败）。
 
 ### 3.2. 第二步：安装项目依赖
 
@@ -90,6 +94,8 @@
 # 项目根目录下执行
 yarn
 ```
+
+> 安装 sharp 时可能会出错，这是网络原因，请自行百度解决。
 
 ### 3.3. 第三步：启动后端
 
@@ -119,6 +125,8 @@ yarn build:common # admin-common 代码变动后，执行此命令后才能生�
 yarn dev:vue
 ```
 
+浏览器访问：https://localhost:14400
+
 ## 4. 部署
 
 为了简化流程，后端直接托管前端打包后的静态文件。
@@ -140,3 +148,6 @@ cd packages/admin-koa
 yarn build
 yarn preview
 ```
+浏览器访问：http://localhost:3000
+
+> 注意前缀是 http，如果想要支持 https，请百度搜索关键词 `koa2 https`
