@@ -7,15 +7,13 @@
         "packages/*"
     ],
     "scripts": {
-        "dev:common": "yarn workspace admin-common dev",
         "dev:koa": "yarn workspace admin-koa dev",
         "dev:vue": "yarn workspace admin-vue dev",
-        "dev:all": "concurrently -k yarn:dev:common yarn:dev:koa yarn:dev:vue",
         "build:common": "yarn workspace admin-common build",
-        "build:koa": "yarn workspace admin-koa build",
-        "build:vue": "yarn workspace admin-vue build"
+        "build:vue": "yarn workspace admin-vue build",
+        "build:koa": "yarn workspace admin-koa build"
     },
     "devDependencies": {
-        "concurrently": "^7.0.0"
+        "cross-env": "^7.0.3"
     }
 }

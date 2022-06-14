@@ -78,7 +78,9 @@
   - 推荐使用插件包： Vue Volar extension Pack
   - 其中 Vue Language Features (Volar) 是必要的插件
 
-> 如果你使用 Windows，请首先安装 WSL2(Ubuntu20.04)，或者使用 Git Bash 作为终端。
+> 如果你使用 Windows，你需要
+> - 安装 WSL2(Ubuntu20.04)
+> - 或者使用 Git Bash 作为终端。
 
 ### 3.1. 第一步：部署 mongodb 并初始化数据
 

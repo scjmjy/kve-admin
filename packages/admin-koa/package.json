@@ -8,10 +8,8 @@
     "scripts": {
         "clean": "rm -rf dist",
         "build": "yarn clean && tsc && tsc-alias && cp -r public/ dist/ && cp -r ../admin-vue/dist/* dist/public",
-        "dev": "NODE_ENV=development ts-node-dev -r esm -r tsconfig-paths/register --debug -- src/index.ts",
-        "tsnode": "NODE_ENV=development ts-node --esm -r tsconfig-paths/register --experimental-specifier-resolution=node src/index.ts",
-        "tsnode1": "NODE_ENV=development ts-node --esm -r tsconfig-paths/register --experimental-specifier-resolution=node src/index1.ts",
-        "preview": "NODE_ENV=production node --experimental-specifier-resolution=node  dist/js/index.js",
+        "dev": "cross-env NODE_ENV=development ts-node-dev -r esm -r tsconfig-paths/register --debug -- src/index.ts",
+        "preview": "cross-env NODE_ENV=production node --experimental-specifier-resolution=node  dist/js/index.js",
         "mongodb": "ts-node-dev -r esm  scripts/mongodb.ts"
     },
     "devDependencies": {

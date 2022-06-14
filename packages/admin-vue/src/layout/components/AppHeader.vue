@@ -3,13 +3,8 @@
     <img class="appHeader-logo" src="@/assets/imgs/logo.png" />
     <span class="appHeader-title">KVE 全栈后台管理系统</span>
     <div class="appHeader-right">
-        <el-switch
-            v-model="isDark"
-            style="margin-right: 24px"
-            inline-prompt
-            active-icon="Moon"
-            inactive-icon="Sunny"
-        />
+        <el-link type="primary" @click="state.showPayDlg = true" style="margin-right: 10px">购买源码</el-link>
+        <el-switch v-model="isDark" style="margin-right: 24px" inline-prompt active-icon="Moon" inactive-icon="Sunny" />
         <el-popover
             placement="bottom-end"
             :width="240"
@@ -28,6 +23,23 @@
             <ProfileCard @hideme="onHideme"></ProfileCard>
         </el-popover>
     </div>
+    <el-dialog v-model="state.showPayDlg" title="购买源码流程">
+        <div>
+            <ol>
+                <li>添加作者微信好友</li>
+                <li>支付金额： <strong>129</strong>元</li>
+                <li>把你的 github 账号名称告知作者</li>
+                <li>作者把你的 github 账号设置为此项目的协作者</li>
+                <li>拉取代码： <code>git clone https://github.com/scjmjy/kve-admin.git</code></li>
+                <li>加入QQ交流群</li>
+            </ol>
+            <div style="display: flex; justify-content: space-between; height: 300px">
+                <img style="overflow: hidden" src="@/assets/imgs/kve/WX.jpg" />
+
+                <img style="overflow: hidden" src="@/assets/imgs/kve/QQ-KVE-1.png" />
+            </div>
+        </div>
+    </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -43,6 +55,7 @@ const systemStore = useSystemStore();
 
 const state = reactive({
     isProfileCardShow: false,
+    showPayDlg: false,
 });
 
 function onHamburgerChange(collapse: boolean) {
