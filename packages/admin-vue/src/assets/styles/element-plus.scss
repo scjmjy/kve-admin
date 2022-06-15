@@ -3,7 +3,11 @@
         "": #ebeef5,
         "page": #ebeef5,
         "overlay": #ebeef5,
-    )
+    ),
+    $sm: 576px,
+    $md: 768px,
+    $lg: 992px,
+    $xl: 1200x,
 );
 
 // @forward "element-plus/theme-chalk/src/dark/var.scss" with (

@@ -81,9 +81,9 @@ function onHideme() {
         font-weight: bold;
         font-size: 1.4em;
         color: var(--el-color-primary);
-        // .is-xs & {
-        //     display: none;
-        // }
+        .is-xs & {
+            display: none;
+        }
     }
     &-right {
         margin-left: auto;
