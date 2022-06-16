@@ -5,10 +5,10 @@ export function useResponsiveCollumn(responsiveMap?: ResponsiveScreenMap) {
     if (!responsiveMap) {
         responsiveMap = {
             xs: 1,
-            sm: 2,
+            sm: 1,
             md: 2,
-            lg: 3,
-            xl: 4,
+            lg: 2,
+            xl: 3,
         };
     }
     const systemStore = useSystemStore();
