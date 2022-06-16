@@ -33,6 +33,8 @@ import { handlePaginationRequest } from "./utils";
 import { PermissionModel } from "@/model/permission";
 import { DepartmentModel } from "@/model/department";
 import { Schema } from "@/utils/async-validator";
+import { PermService } from "@/services/permission";
+import { UserService } from "@/services/user";
 
 export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
     if (ctx.session && ctx.session.loginErrorCount >= 5) {
@@ -111,27 +113,8 @@ function filterPerms(perms: IPermission[], permIds: Set<string>): IPermission[] 
 }
 
 export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult, any, { perms: any }>) {
-    interface FindUserResult extends Omit<IUser, "depts" | "roles"> {
-        depts: { _id: string; name: string; status: EnableStatus }[];
-        roles: { _id: string; name: string; status: EnableStatus; perms: mongoose.Types.ObjectId[] }[];
-    }
     const userId = ctx.state.user.id;
-    const existingUser = await UserModel.findById<FindUserResult>(userId, UserProfileProjection.join(" "))
-        .populate({
-            path: "depts",
-            select: "name",
-            match: {
-                status: "enabled",
-            },
-        })
-        .populate({
-            path: "roles",
-            select: "name perms",
-            match: {
-                status: "enabled",
-            },
-        })
-        .exec();
+    const existingUser = await UserService.getUserForProfile(userId)
     if (!existingUser) {
         throwUserNotFoundError(userId);
     } else {
@@ -157,10 +140,7 @@ export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult
         let userPerms: Undefinable<IPermission[]>;
         const { perms } = ctx.query;
         if (perms) {
-            const query = PermissionModel.findById(PERMISSION_CONTAINER_ID, null, {
-                doPopulate: true,
-            }).where("status", "enabled");
-            const perm = await query.exec();
+            const perm = await PermService.getPermNodes("enabled");
             const isSuperadmin = roles.find((role) => {
                 const id = (role._id as unknown as mongoose.Types.ObjectId).toString();
                 return id === ROLE_SUPERADMIN_ID;
@@ -344,7 +324,7 @@ export async function postUser(ctx: KoaAjaxContext<Undefinable<CreateUserBody>, 
 export async function putUser(ctx: KoaAjaxContext<Undefinable<UpdateUserBody>, void>) {
     const schema = new Schema(getUserRules("update"));
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateUserBody;
-    if ((validBody.password === "")) {
+    if (validBody.password === "") {
         delete validBody.password;
     }
     const res = await UserModel.findByIdAndUpdate(validBody._id, validBody, {

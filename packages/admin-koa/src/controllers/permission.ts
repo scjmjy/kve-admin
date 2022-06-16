@@ -27,19 +27,12 @@ import { KoaAjaxContext } from "@/types/koa";
 import { PermissionModel } from "@/model/permission";
 import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
+import { PermService } from "@/services/permission";
 
 export async function getPermNodes(ctx: KoaAjaxContext<void, PermNodeResult, any, GetPermNodeQuery>) {
-    const query = PermissionModel.findById<IPermission>(PERMISSION_CONTAINER_ID, null, {
-        doPopulate: true,
-    });
-
     const { status } = ctx.query;
-    if (isValidStatus(status as string)) {
-        query.where("status", status);
-    } else {
-        query.where("status", /.*/);
-    }
-    const res = await query.exec();
+    const res = await PermService.getPermNodes(status)
+
     if (!res) {
         return throwNotFoundError("权限根节点不存在！");
     }

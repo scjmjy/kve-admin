@@ -17,6 +17,7 @@
     },
     "devDependencies": {
         "cross-env": "^7.0.3",
-        "rimraf": "^3.0.2"
+        "rimraf": "^3.0.2",
+        "cpy-cli": "^4.1.0"
     }
 }

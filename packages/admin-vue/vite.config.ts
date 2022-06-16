@@ -15,7 +15,7 @@ export default defineConfig(({ mode, command }) => {
             },
         },
         server: {
-            https: true,
+            https: false, // 无效的证书会导致 Chrome 无法发送 If-Modifyied-Since 等缓存相关的 headers，所以禁用 https
             host: true,
             port: +env.VITE_SERVER_PORT,
             proxy: {

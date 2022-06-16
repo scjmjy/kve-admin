@@ -7,13 +7,15 @@
     "license": "MIT",
     "scripts": {
         "clean": "rimraf dist",
-        "build": "yarn clean && tsc && tsc-alias && cp -r public/ dist/ && cp -r ../admin-vue/dist/* dist/public",
+        "cpy": "cpy 'public/' 'dist/' && cpy . '../../admin-koa/dist/public/' --cwd=../admin-vue/dist/",
+        "build": "yarn clean && tsc && tsc-alias && cpy 'public/' 'dist/' && cpy . '../../admin-koa/dist/public/' --cwd=../admin-vue/dist/",
         "dev": "cross-env NODE_ENV=development ts-node-dev -r esm -r tsconfig-paths/register --debug -- src/index.ts",
         "preview": "cross-env NODE_ENV=production node --experimental-specifier-resolution=node  dist/js/index.js",
         "mongodb": "ts-node-dev -r esm  scripts/mongodb.ts"
     },
     "devDependencies": {
         "@types/bcryptjs": "^2.4.2",
+        "@types/cache-manager": "^4.0.0",
         "@types/jsonwebtoken": "^8.5.8",
         "@types/koa": "^2.13.4",
         "@types/koa-bodyparser": "^4.3.6",
@@ -41,6 +43,7 @@
         "admin-common": "1.0.0",
         "async-validator": "^4.1.1",
         "bcryptjs": "^2.4.3",
+        "cache-manager": "^4.0.1",
         "http-status-codes": "^2.2.0",
         "jsonwebtoken": "^8.5.1",
         "koa": "^2.13.4",

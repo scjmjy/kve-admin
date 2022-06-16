@@ -1,8 +1,9 @@
-import type { Request } from "koa";
+import type { DefaultState, Request } from "koa";
 import type { RouterContext } from "koa-router";
 import type { AjaxResult } from "admin-common";
 import { ParsedUrlQuery } from "querystring";
 import log4js from "log4js";
+import type { Cache } from "cache-manager";
 
 /**
  * token 中加密的数据
@@ -22,7 +23,7 @@ interface KoaRequest<RequestBodyT = any> extends Request {
     body?: RequestBodyT;
 }
 
-interface IRouterContext<ParamsT extends Record<string, string>, QueryT extends ParsedUrlQuery> extends RouterContext {
+interface IRouterContext<ParamsT extends Record<string, string>, QueryT extends ParsedUrlQuery> extends RouterContext<DefaultState> {
     params: ParamsT;
     query: QueryT;
 }
@@ -78,6 +79,7 @@ declare module "koa" {
         config: AppConfig;
         logger: log4js.Logger;
         loggerAccess: log4js.Logger;
+        cache: Cache;
     }
     interface DefaultState extends JwtState {}
 }

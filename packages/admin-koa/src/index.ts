@@ -5,10 +5,13 @@ import { setupRouter } from "./router";
 import { setupConfig } from "./config";
 import { __dirname } from "./utils/dirname";
 import { setupPostMiddlewares, setupPreMiddlewares } from "./middlewares";
+import { setupCache } from "./cache";
 
 const app = new koa();
 
 setupConfig(app, __dirname(import.meta.url));
+
+setupCache(app);
 
 setupPreMiddlewares(app);
 

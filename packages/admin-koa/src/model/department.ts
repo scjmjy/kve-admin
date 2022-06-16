@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { IDepartment, IRole, StatusEnum } from "admin-common";
 import { MODEL_NAME_PERMISSION } from "./permission";
+import { DeptService } from "@/services/department";
 
 export const MODEL_NAME_ROLE = "Role";
 
@@ -40,6 +41,14 @@ RoleSchema.pre(["find", "findOne"], function (next) {
         this.populate("perms");
     }
     next();
+});
+
+RoleSchema.post("insertMany", function () {
+    DeptService.deleteCache();
+});
+
+RoleSchema.post(["save", "remove", "deleteOne", "updateOne"], function () {
+    DeptService.deleteCache();
 });
 
 export const RoleModel = mongoose.model<IRoleDoc, IRoleModel>(MODEL_NAME_ROLE, RoleSchema);
@@ -108,6 +117,14 @@ DepartmentSchema.pre(["find", "findOne"], function (next) {
         ]);
     }
     next();
+});
+
+DepartmentSchema.post("insertMany", function () {
+    DeptService.deleteCache();
+});
+
+DepartmentSchema.post(["save", "remove", "deleteOne", "updateOne"], function () {
+    DeptService.deleteCache();
 });
 
 export const DepartmentModel = mongoose.model<IDepartmentDoc, IDepartmentModel>(

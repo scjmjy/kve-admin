@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 import { IUser, StatusEnum } from "admin-common";
+import { UserService } from "@/services/user";
 import { BcryptPlugin } from "./plugin/bcrypt";
 import { MODEL_NAME_DEPARTMENT, MODEL_NAME_ROLE } from "./department";
 
@@ -74,6 +75,14 @@ UserSchema.pre(["find", "findOne"], function (next) {
         ]);
     }
     next();
+});
+
+UserSchema.post("insertMany", function () {
+    UserService.deleteCache();
+});
+
+UserSchema.post(["save", "remove", "deleteOne", "updateOne"], function () {
+    UserService.deleteCache();
 });
 
 UserSchema.static("getStatistics", function () {

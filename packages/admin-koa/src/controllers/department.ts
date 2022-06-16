@@ -21,13 +21,10 @@ import { KoaAjaxContext } from "@/types/koa";
 import { DepartmentModel, RoleModel } from "@/model/department";
 import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
+import { DeptService } from "@/services/department";
 
 export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesResult>) {
-    const query = DepartmentModel.findById<DeptTreeNodesResult>(DEPARTMENT_CONTAINER_ID, null, {
-        doPopulate: true,
-    }).where("status", /.*/);
-
-    const department = await query.exec();
+    const department = await DeptService.getDeptNodes();
     ctx.status = StatusCodes.OK;
     ctx.body = {
         code: ctx.status,
