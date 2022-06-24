@@ -6,12 +6,15 @@ import { setupConfig } from "./config";
 import { __dirname } from "./utils/dirname";
 import { setupPostMiddlewares, setupPreMiddlewares } from "./middlewares";
 import { setupCache } from "./cache";
+import { setupServices } from "./services";
 
 const app = new koa();
 
 setupConfig(app, __dirname(import.meta.url));
 
 setupCache(app);
+
+setupServices(app);
 
 setupPreMiddlewares(app);
 
@@ -29,3 +32,5 @@ setupMongo(app)
         console.error("Server failed to start!");
         process.exit(1);
     });
+
+export default app;

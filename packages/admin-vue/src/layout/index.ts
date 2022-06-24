@@ -1,4 +1,5 @@
 import DefaultLayout from "@/layout/DefaultLayout.vue";
+import FullscreenLayout from "@/layout/FullscreenLayout.vue";
 import { FakeLayout } from "@/router/utils";
 export enum LayoutEnum {
     default = "DefaultLayout",
@@ -16,7 +17,7 @@ export function useLayout() {
             {
                 label: "全屏布局",
                 value: LayoutEnum.fullscreen,
-                component: FakeLayout,
+                component: FullscreenLayout,
             },
             {
                 label: "无",

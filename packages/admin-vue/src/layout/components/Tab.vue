@@ -9,18 +9,17 @@
             ref="refSpan"
             class="tab"
             :class="{
-                'is-active': isExactActive && (props.route.meta.pathKey === 'path' || props.route.fullPath === fullPath),
+                'is-active':
+                    isExactActive && (props.route.meta.pathKey === 'path' || props.route.fullPath === fullPath),
             }"
             @click="navigate"
+            v-context-menu="contextMenuItems"
         >
             <!-- <el-icon v-if="props.route.meta?.icon">
                 <component :is="props.route.meta?.icon"></component>
             </el-icon> -->
             {{ props.route.meta?.title }}
-            <CircleCloseFilled
-                class="el-icon--svg tab-close"
-                @click.prevent="onCloseClick(props.route, isExactActive)"
-            ></CircleCloseFilled>
+            <CircleCloseFilled class="el-icon--svg tab-close" @click.prevent="onCloseClick"></CircleCloseFilled>
         </span>
     </router-link>
 </template>
@@ -29,6 +28,8 @@
 import { onMounted, PropType, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { RouteRecordVisited, useSystemStore } from "@/store/modules/system";
+import { ContextMenuItem } from "@/components/contextmenu/types";
+import { ElMessage } from "element-plus";
 
 const props = defineProps({
     route: {
@@ -42,8 +43,12 @@ const router = useRouter();
 const route = useRoute();
 const systemStore = useSystemStore();
 
-function onCloseClick(route: RouteRecordVisited, isExactActive: boolean) {
-    systemStore.closeTab(route, isExactActive, router);
+function isExactActive() {
+    return refSpan.value?.classList.contains("is-active") || false;
+}
+
+function onCloseClick() {
+    systemStore.closeTab(props.route, isExactActive(), router);
 }
 
 const refSpan = ref<HTMLSpanElement>();
@@ -64,6 +69,45 @@ watch(
         }
     },
 );
+
+const contextMenuItems = ref<ContextMenuItem[]>([
+    {
+        label: "刷新页面",
+        handler() {
+            systemStore.refreshTab(props.route, router);
+        },
+        icon: "Refresh",
+    },
+    {
+        label: "关闭页面",
+        handler() {
+            systemStore.closeTab(props.route, isExactActive(), router);
+        },
+        icon: "Close",
+        divider: "bottom",
+    },
+    {
+        label: "关闭其他",
+        handler() {
+            ElMessage.warning("太忙了，暂未实现！");
+        },
+        icon: "CircleClose",
+    },
+    {
+        label: "关闭右侧",
+        handler() {
+            ElMessage.warning("太忙了，暂未实现！");
+        },
+        icon: "Right",
+    },
+    {
+        label: "关闭所有",
+        handler() {
+            ElMessage.warning("太忙了，暂未实现！");
+        },
+        icon: "CircleCloseFilled",
+    },
+]);
 </script>
 
 <style scoped lang="scss">

@@ -1,5 +1,5 @@
 import Cookies from "js-cookie";
-import axios, { AxiosResponse, AxiosError, Axios } from "axios";
+import axios, { AxiosError } from "axios";
 import { ElMessage, ElMessageBox, ElNotification, UploadUserFile, UploadFile, genFileId } from "element-plus";
 import { AjaxResult, getBase64Type, isBase64, MsgSilent, MsgSilentHeader } from "admin-common";
 import { useUserStore } from "@/store/modules/user";

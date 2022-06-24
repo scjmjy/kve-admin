@@ -14,6 +14,7 @@ import {
     UserIdsBody,
 } from "admin-common";
 import { request } from "./request";
+import { OnlineUsersResult } from "admin-common/src/user";
 
 export function login(credential: LoginCredential): AxiosPromise<LoginResult> {
     return request({
@@ -100,5 +101,12 @@ export function deleteUser(userId: string): AxiosPromise<void> {
     return request({
         method: "DELETE",
         url: "/api/user/" + userId,
+    });
+}
+
+export function getOnlineUsers(): AxiosPromise<OnlineUsersResult> {
+    return request({
+        method: "GET",
+        url: "/api/user/list/online",
     });
 }

@@ -13,12 +13,14 @@
             :filter-form-data="filterFormData"
             :filter-items="filterItems"
             :filter="tableFilter"
+            :sort="tableSort"
             :on-filter-change="onFilterChange"
             :form-data="formData"
             :form-props="formProps"
             :form-items="formItems"
             :form-rules="formRules"
             :form-actions="crudForm.actions"
+            @sort-change="onSortChange"
         >
             <template #header-actions>
                 <el-button
@@ -41,8 +43,10 @@ import {
     getUpdateDemoCollRules,
     FindDemoCollectionResult,
     DemoCollectionFilter,
+    DemoCollectionSort,
 } from "admin-common";
 import { ElMessage, ElMessageBox } from "element-plus";
+import type { TableColumnCtx } from "element-plus/es/components/table/src/table-column/defaults";
 import { isEmpty } from "lodash";
 import {
     getDemoCollectionList,
@@ -141,6 +145,7 @@ const filterItems: ItemSchema[] = [
 ];
 
 const tableFilter = ref<Partial<PaginationFilter<DemoCollectionFilter>>>({});
+const tableSort = ref<Partial<PaginationSort<DemoCollectionSort>>>();
 
 function onFilterChange(filterData: FilterFormData) {
     tableFilter.value = {};
@@ -175,6 +180,7 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
             prop: "field1",
             label: "field1",
             align: "center",
+            sortable: "custom",
         },
     },
     {
@@ -189,9 +195,9 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
             prop: "field3",
             label: "field3",
             align: "center",
-        },
-        transform(row) {
-            return row.field3.join(", ");
+            formatter(row, col, value, index) {
+                return value?.join(", ");
+            },
         },
     },
     {
@@ -199,9 +205,10 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
             prop: "field4",
             label: "field4",
             align: "center",
-        },
-        transform(row) {
-            return row.field4.join(", ");
+            sortable: "custom",
+            formatter(row, col, value, index) {
+                return value?.join(", ");
+            },
         },
     },
     {
@@ -219,6 +226,22 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
         },
     },
 ]);
+
+interface SortChangeArg {
+    column: TableColumnCtx<DataType>;
+    prop: DemoCollectionSort;
+    order: "ascending" | "descending" | null;
+}
+
+function onSortChange(sort: SortChangeArg) {
+    if (sort.order) {
+        tableSort.value = {
+            [sort.prop]: sort.order,
+        };
+    } else {
+        tableSort.value = undefined;
+    }
+}
 
 const tableActions = shallowRef<TableActionColumn<DataType>>({
     props: {

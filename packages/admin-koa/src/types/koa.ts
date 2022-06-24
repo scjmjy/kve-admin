@@ -1,15 +1,18 @@
+import type { ObjectId } from "bson";
 import type { DefaultState, Request } from "koa";
 import type { RouterContext } from "koa-router";
+import type { Redis } from "ioredis";
 import type { AjaxResult } from "admin-common";
-import { ParsedUrlQuery } from "querystring";
-import log4js from "log4js";
+import type { ParsedUrlQuery } from "querystring";
+import type log4js from "log4js";
 import type { Cache } from "cache-manager";
 
 /**
  * token 中加密的数据
  */
 export interface JwtPayload {
-    id: string;
+    userId: string;
+    uuid: ObjectId;
 }
 
 /**
@@ -23,7 +26,8 @@ interface KoaRequest<RequestBodyT = any> extends Request {
     body?: RequestBodyT;
 }
 
-interface IRouterContext<ParamsT extends Record<string, string>, QueryT extends ParsedUrlQuery> extends RouterContext<DefaultState> {
+interface IRouterContext<ParamsT extends Record<string, string>, QueryT extends ParsedUrlQuery>
+    extends RouterContext<DefaultState> {
     params: ParamsT;
     query: QueryT;
 }
@@ -50,6 +54,7 @@ export interface KoaContext<
 }
 
 export interface AppConfig {
+    keys: string[];
     /**
      * 工作目录
      * workDir
@@ -72,6 +77,13 @@ export interface AppConfig {
     mongodbGridFs: string;
     routeDownload: string;
     port: number;
+    redis: {
+        host: string;
+        port: number;
+        username?: string;
+        password?: string;
+        db?: number;
+    };
 }
 
 declare module "koa" {
@@ -79,7 +91,9 @@ declare module "koa" {
         config: AppConfig;
         logger: log4js.Logger;
         loggerAccess: log4js.Logger;
-        cache: Cache;
+        redisCache: Cache;
+        redisClient: Redis;
+        perms?: string[];
     }
     interface DefaultState extends JwtState {}
 }

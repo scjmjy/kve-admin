@@ -64,6 +64,7 @@ $footerHeight: 60px;
         display: flex;
         align-items: center;
         // background: linear-gradient(45deg, rgb(104, 221, 196), rgb(72, 114, 206));
+        // background-image: linear-gradient(to right, #f78ca0 0%, #f9748f 19%, #fd868c 60%, #fe9a8b 100%);
     }
     &-left {
         transition: width 0.28s;

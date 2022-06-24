@@ -34,13 +34,6 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                     msg: "Token 校验出错！",
                 };
             }
-        } else if (err.status === StatusCodes.UNAUTHORIZED) {
-            ctx.status = err.status;
-            ctx.body = {
-                code: ctx.status,
-                showType: "NOTIFICATION",
-                msg: "未授权的操作",
-            };
         } else if (err instanceof AjaxError) {
             ctx.status = err.status;
             ctx.body = {
@@ -66,7 +59,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                     msg: `${keyValue}资源已存在，不要重复创建`,
                 };
                 console.log("[数据库资源已存在]", err);
-            } else if(err.code === 8000) {
+            } else if (err.code === 8000) {
                 // 8000: AtlasError
                 // MongoServerError: user is not allowed to do action [update] on [xxx]
                 ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
@@ -115,8 +108,15 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                 showType: "NOTIFICATION",
                 msg: `文件上传错误，请联系管理员：${err.field}，` + codeMessage[err.code] || err.code,
             };
+        } else if (err.status === StatusCodes.UNAUTHORIZED) {
+            ctx.status = err.status;
+            ctx.body = {
+                code: ctx.status,
+                showType: "NOTIFICATION",
+                msg: "未授权的操作",
+            };
         } else {
-            console.log("[服务器发生未知错误]", err);
+            ctx.logger.error("[服务器发生未知错误]", err);
 
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
             ctx.body = {

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import {
-    DEPARTMENT_CONTAINER_ID,
     DeptTreeNodesResult,
     CreateRoleBody,
     UpdateRoleBody,
@@ -21,10 +20,10 @@ import { KoaAjaxContext } from "@/types/koa";
 import { DepartmentModel, RoleModel } from "@/model/department";
 import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
-import { DeptService } from "@/services/department";
+import { deptService } from "@/services";
 
 export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesResult>) {
-    const department = await DeptService.getDeptNodes();
+    const department = await deptService.getDeptNodes();
     ctx.status = StatusCodes.OK;
     ctx.body = {
         code: ctx.status,

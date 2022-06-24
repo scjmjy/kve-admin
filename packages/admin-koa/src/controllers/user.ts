@@ -1,7 +1,10 @@
+import { ObjectId } from "bson";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import UAParser from "ua-parser-js";
 import { StatusCodes } from "http-status-codes";
 import sharp from "sharp";
+import { pick } from "lodash-unified";
 import {
     UserProfileResult,
     LoginCredential,
@@ -14,7 +17,6 @@ import {
     FindUsersResult,
     CreateUserBody,
     getUserRules,
-    UserProfileProjection,
     IUser,
     splitBase64,
     FindUserProjection,
@@ -22,23 +24,19 @@ import {
     UpdateUserBody,
     UserIdsBody,
     isValidStatus,
-    IPermission,
-    PERMISSION_CONTAINER_ID,
-    ROLE_SUPERADMIN_ID,
+    OnlineUsersResult,
 } from "admin-common";
 import { IUserMethods, UserModel } from "@/model/user";
 import { JwtPayload, KoaAjaxContext, KoaContext } from "@/types/koa";
 import { throwBadRequestError, throwNotFoundError, throwUserNotFoundError } from "./errors";
 import { handlePaginationRequest } from "./utils";
-import { PermissionModel } from "@/model/permission";
-import { DepartmentModel } from "@/model/department";
 import { Schema } from "@/utils/async-validator";
-import { PermService } from "@/services/permission";
-import { UserService } from "@/services/user";
+import { userService } from "@/services";
+import { SessionData, SessionMaxAge, SESSION_PREFIX } from "@/middlewares/session";
 
 export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
-    if (ctx.session && ctx.session.loginErrorCount >= 5) {
-        const elapsed = Date.now() - ctx.session.loginErrorTime;
+    if (ctx.session && ctx.session.loginErrorCount! >= 5) {
+        const elapsed = Date.now() - ctx.session.loginErrorTime!;
         const rest = 1000 * 30 - elapsed;
         if (rest > 0) {
             ctx.status = StatusCodes.FORBIDDEN;
@@ -70,8 +68,22 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
                 throwBadRequestError("请输入正确的用户名或密码！");
             } else {
                 const userId = existingUser.id as string;
-                const payload: JwtPayload = { id: userId };
-                const token = jwt.sign(payload, ctx.config.jwtSecret, { expiresIn: "7d" });
+                const payload: JwtPayload = { userId: userId, uuid: new ObjectId() };
+                const token = jwt.sign(payload, ctx.config.jwtSecret, { expiresIn: SessionMaxAge.seconds });
+
+                const uaParser = new UAParser(ctx.headers["user-agent"]);
+                const browser = uaParser.getBrowser();
+                const os = uaParser.getOS();
+                const session: SessionData = {
+                    username,
+                    userId: payload.userId,
+                    ip: ctx.ip,
+                    browser: `${browser.name}/${browser.version}`,
+                    os: `${os.name}/${os.version}`,
+                    loginTime: Date.now(),
+                };
+                Object.assign(ctx.session!, session);
+
                 ctx.status = StatusCodes.OK;
                 ctx.body = {
                     code: ctx.status,
@@ -89,99 +101,26 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
     }
 }
 
-// type GetUserProfileParams = {
-//     id?: string;
-// };
-
-function filterPerms(perms: IPermission[], permIds: Set<string>): IPermission[] {
-    const filtered: IPermission[] = [];
-    for (const perm of perms) {
-        const id = (perm._id as unknown as mongoose.Types.ObjectId).toString();
-        if (perm.type === "menugroup") {
-            const children = filterPerms(perm.children || [], permIds);
-            if (children.length) {
-                filtered.push({
-                    ...perm,
-                    children,
-                });
-            }
-        } else if (permIds.has(id)) {
-            filtered.push(perm);
-        }
-    }
-    return filtered;
-}
-
 export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult, any, { perms: any }>) {
-    const userId = ctx.state.user.id;
-    const existingUser = await UserService.getUserForProfile(userId)
-    if (!existingUser) {
+    const userId = ctx.state.user.userId;
+    const userProfile = await userService.getUserProfile(userId);
+    if (!userProfile) {
         throwUserNotFoundError(userId);
     } else {
-        let { _id, username, realname, email, mobileno, gender, depts, roles, createdAt, updatedAt } = existingUser;
-
-        // 去除无效的 dept 里的 roles
-        const allRoleIds = roles.map((role) => role._id);
-        const inactiveDepts = await DepartmentModel.find<{ roles: string[] }>(
-            {
-                roles: {
-                    $in: allRoleIds,
-                },
-                status: {
-                    $ne: "enabled",
-                },
-            },
-            "name roles",
-        );
-        for (const dept of inactiveDepts) {
-            roles = roles.filter((role) => dept.roles.includes(role._id));
-        }
-
-        let userPerms: Undefinable<IPermission[]>;
         const { perms } = ctx.query;
-        if (perms) {
-            const perm = await PermService.getPermNodes("enabled");
-            const isSuperadmin = roles.find((role) => {
-                const id = (role._id as unknown as mongoose.Types.ObjectId).toString();
-                return id === ROLE_SUPERADMIN_ID;
-            });
-            if (perm && isSuperadmin) {
-                // 超级管理员拥有所有权限
-                userPerms = perm.children || [];
-            } else if (perm) {
-                const permIds = new Set<string>();
-                roles.forEach((item) => {
-                    item.perms.forEach((perm) => permIds.add(perm.toString()));
-                });
-                userPerms = filterPerms(perm.toObject().children || [], permIds);
-            }
+        if (!perms) {
+            userProfile.perms = [];
         }
-        depts.forEach((dept) => {
-            // @ts-ignore
-            delete dept.roles;
-        });
         ctx.status = StatusCodes.OK;
         ctx.body = {
             code: ctx.status,
-            data: {
-                _id,
-                username,
-                realname,
-                email,
-                mobileno,
-                gender,
-                depts,
-                roles,
-                createdAt,
-                updatedAt,
-                perms: userPerms,
-            },
+            data: userProfile,
         };
     }
 }
 
 export async function putUserProfile(ctx: KoaAjaxContext<UpdateUserProfile>) {
-    const userId = ctx.state.user.id;
+    const userId = ctx.state.user.userId;
     const existingUser = await UserModel.findById<mongoose.Document & UpdateUserProfile>(
         userId,
         "realname gender mobileno email",
@@ -203,7 +142,7 @@ export async function putUserProfile(ctx: KoaAjaxContext<UpdateUserProfile>) {
 }
 
 export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword>) {
-    const userId = ctx.state.user.id;
+    const userId = ctx.state.user.userId;
     const { oldPassword, newPassword } = ctx.request.body || {};
     if (!oldPassword || !newPassword) {
         return throwBadRequestError("请提供必要的参数！");
@@ -265,7 +204,7 @@ export async function getUserAvatar(ctx: KoaContext<void, any, { userId: string 
 }
 
 export async function putUserAvatar(ctx: KoaAjaxContext<UpdateUserAvatar>) {
-    const userId = ctx.state.user.id;
+    const userId = ctx.state.user.userId;
     const { avatar = "" } = ctx.request.body || {};
     const base64 = splitBase64(avatar || "");
     if (!base64) {
@@ -380,5 +319,63 @@ export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, { st
         code: ctx.status,
         showType: "MESSAGE",
         msg: `${status === "enabled" ? "启用" : status === "disabled" ? "禁用" : "删除"}${res.modifiedCount}个用户！`,
+    };
+}
+
+interface SessionDataWithId extends SessionData {
+    sessionId: string;
+}
+
+const labelProps: { prop: keyof SessionDataWithId; label: string }[] = [
+    {
+        prop: "sessionId",
+        label: "会话编号",
+    },
+    {
+        prop: "username",
+        label: "用户名",
+    },
+    {
+        prop: "ip",
+        label: "登录 IP",
+    },
+    {
+        prop: "browser",
+        label: "浏览器",
+    },
+    {
+        prop: "os",
+        label: "操作系统",
+    },
+    {
+        prop: "loginTime",
+        label: "登录时间",
+    },
+];
+
+export async function getOnlineUsers(ctx: KoaAjaxContext<void, OnlineUsersResult>) {
+    const allUserKeys = await ctx.redisClient.keys(SESSION_PREFIX + "*");
+    const allUsers = await ctx.redisClient.mget(allUserKeys);
+    const allUsersJson: Partial<SessionDataWithId>[] = [];
+    allUsers.forEach((val, index) => {
+        if (val) {
+            const data = pick(
+                JSON.parse(val) as SessionData,
+                labelProps.map((val) => val.prop),
+            );
+            allUsersJson.push(
+                Object.assign(data, {
+                    sessionId: allUserKeys[index].replace(SESSION_PREFIX, ""),
+                }),
+            );
+        }
+    });
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        data: {
+            columns: labelProps,
+            rows: allUsersJson,
+        },
     };
 }

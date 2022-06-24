@@ -88,10 +88,13 @@ function makeRawRoutes(routes: RouteRecordRaw[], perms: IPermission[]) {
     for (const perm of perms) {
         if (perm.type === "menugroup") {
             const foundLayout = layoutOpts.find((item) => item.value === perm.layout);
+            if (!foundLayout) {
+                continue;
+            }
             const route: RouteRecordRaw = {
                 name: perm.name || "",
                 path: perm.path || "",
-                component: foundLayout ? foundLayout.component : FakeLayout,
+                component: foundLayout.component,
                 meta: {
                     title: perm.title,
                     icon: perm.icon,
@@ -100,7 +103,9 @@ function makeRawRoutes(routes: RouteRecordRaw[], perms: IPermission[]) {
                 children: [],
             };
             makeRawRoutes(route.children!, perm.children || []);
-            routes.push(route);
+            if (route.children?.length) {
+                routes.push(route);
+            }
         } else if (perm.type === "menuitem") {
             const com = pageModuleOpts.find((page) => page.value === perm.component);
             if (com && com.component) {

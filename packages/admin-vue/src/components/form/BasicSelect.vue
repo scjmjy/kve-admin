@@ -1,5 +1,5 @@
 <template>
-    <el-input v-if="readonly" :modelValue="inputModelValue" readonly></el-input>
+    <el-input v-if="readonly" :modelValue="inputModelValue" readonly v-bind="$attrs"></el-input>
     <el-select v-else :modelValue="modelValue" v-bind="$attrs">
         <el-option
             v-for="option of options"

@@ -41,6 +41,11 @@ export const internalDepts: InternalDepartment[] = [
                 perms: [],
                 description: "拥有系统大部分权限。",
             },
+            {
+                name: "用户",
+                perms: [],
+                description: "总公司直属普通用户角色。",
+            },
         ],
         depts: [
             {
@@ -169,7 +174,7 @@ export const internalUsers: InternalUser[] = [
         email: "",
         mobileno: "",
         gender: "UNKNOWN",
-        depts: [],
+        depts: [_id_dept_container],
         roles: [],
     },
     {
@@ -179,7 +184,7 @@ export const internalUsers: InternalUser[] = [
         email: "",
         mobileno: "",
         gender: "UNKNOWN",
-        depts: [],
+        depts: [_id_dept_container],
         roles: [],
     },
 ];
@@ -195,12 +200,12 @@ export const internalPerms: InternalPerm[] = [
     {
         _id: _id_perm_contianer,
         title: "根节点",
-        code: "root",
+        code: "/",
         type: "menugroup",
         description: "权限根节点",
         children: [
             {
-                code: "root/dashboard",
+                code: "/dashboard",
                 title: "仪表盘",
                 type: "menugroup",
                 path: "/",
@@ -212,7 +217,7 @@ export const internalPerms: InternalPerm[] = [
                 children: [
                     {
                         name: "DashboardIndex",
-                        code: "root/dashboard/index1",
+                        code: "/dashboard/index1",
                         type: "menuitem",
                         path: "",
                         component: "DashboardIndex",
@@ -227,7 +232,7 @@ export const internalPerms: InternalPerm[] = [
                     },
                     {
                         name: "DashboardIndex2",
-                        code: "root/dashboard/index2",
+                        code: "/dashboard/index2",
                         type: "menuitem",
                         path: "",
                         component: "DashboardIndex2",
@@ -244,9 +249,9 @@ export const internalPerms: InternalPerm[] = [
             },
             {
                 title: "嵌套页面",
-                code: "demo/nestedpage",
+                code: "/demo/nestedpage",
                 type: "menugroup",
-                path: "demo/nestedpage",
+                path: "/demo/nestedpage",
                 layout: "DefaultLayout",
                 pinned: false,
                 cacheable: true,
@@ -255,7 +260,7 @@ export const internalPerms: InternalPerm[] = [
                 children: [
                     {
                         name: "page1",
-                        code: "demo/nestedpage/page1",
+                        code: "/demo/nestedpage/page1",
                         type: "menuitem",
                         path: "page1",
                         component: "page1",
@@ -269,7 +274,7 @@ export const internalPerms: InternalPerm[] = [
                     },
                     {
                         name: "page2",
-                        code: "demo/nestedpage/page2",
+                        code: "/demo/nestedpage/page2",
                         type: "menuitem",
                         path: "page2",
                         component: "page2",
@@ -283,7 +288,7 @@ export const internalPerms: InternalPerm[] = [
                     },
                     {
                         name: "detail1",
-                        code: "demo/nestedpage/page1/detail",
+                        code: "/demo/nestedpage/page1/detail",
                         type: "menuitem",
                         path: "/detail1",
                         component: "detail1",
@@ -297,7 +302,7 @@ export const internalPerms: InternalPerm[] = [
                         description: "第一层页面 page1 的详情页",
                     },
                     {
-                        code: "demo/nestedpage2",
+                        code: "/demo/nestedpage2",
                         type: "menugroup",
                         path: "nestedpage",
                         layout: "DefaultLayout",
@@ -310,7 +315,7 @@ export const internalPerms: InternalPerm[] = [
                         children: [
                             {
                                 name: "NestedPage1",
-                                code: "demo/nestedpage2/page1",
+                                code: "/demo/nestedpage2/page1",
                                 type: "menuitem",
                                 path: "page1",
                                 component: "NestedPage1",
@@ -324,7 +329,7 @@ export const internalPerms: InternalPerm[] = [
                             },
                             {
                                 name: "NestedPage2",
-                                code: "demo/nestedpage2/page2",
+                                code: "/demo/nestedpage2/page2",
                                 type: "menuitem",
                                 path: "page2",
                                 component: "NestedPage2",
@@ -337,7 +342,7 @@ export const internalPerms: InternalPerm[] = [
                                 description: "第二层页面 page2",
                             },
                             {
-                                code: "demo/nestedpage3",
+                                code: "/demo/nestedpage3",
                                 type: "menugroup",
                                 path: "nestedpage",
                                 layout: "DefaultLayout",
@@ -350,7 +355,7 @@ export const internalPerms: InternalPerm[] = [
                                 children: [
                                     {
                                         name: "ThirdNestedPage1",
-                                        code: "demo/nestedpage3/page1",
+                                        code: "/demo/nestedpage3/page1",
                                         type: "menuitem",
                                         path: "page1",
                                         component: "ThirdNestedPage1",
@@ -364,7 +369,7 @@ export const internalPerms: InternalPerm[] = [
                                     },
                                     {
                                         name: "ThirdNestedPage2",
-                                        code: "demo/nestedpage3/page2",
+                                        code: "/demo/nestedpage3/page2",
                                         type: "menuitem",
                                         path: "page2",
                                         layout: "DefaultLayout",
@@ -379,7 +384,7 @@ export const internalPerms: InternalPerm[] = [
                                     },
                                     {
                                         name: "ThirdNestedPageDetail1",
-                                        code: "demo/nestedpage3/page1/detail",
+                                        code: "/demo/nestedpage3/page1/detail",
                                         type: "menuitem",
                                         path: "detail1/:id",
                                         component: "ThirdNestedPageDetail1",
@@ -393,7 +398,7 @@ export const internalPerms: InternalPerm[] = [
                                         description: "第三层页面 page1 的详情页",
                                     },
                                     {
-                                        code: "demo/nestedpage4",
+                                        code: "/demo/nestedpage4",
                                         type: "menugroup",
                                         path: "nestedpage",
                                         layout: "DefaultLayout",
@@ -406,7 +411,7 @@ export const internalPerms: InternalPerm[] = [
                                         children: [
                                             {
                                                 name: "FourthNestedPage1",
-                                                code: "demo/nestedpage4/page1",
+                                                code: "/demo/nestedpage4/page1",
                                                 type: "menuitem",
                                                 path: "page1",
                                                 component: "FourthNestedPage1",
@@ -420,7 +425,7 @@ export const internalPerms: InternalPerm[] = [
                                             },
                                             {
                                                 name: "FourthNestedPage2",
-                                                code: "demo/nestedpage4/page2",
+                                                code: "/demo/nestedpage4/page2",
                                                 type: "menuitem",
                                                 path: "page2",
                                                 component: "FourthNestedPage2",
@@ -441,9 +446,9 @@ export const internalPerms: InternalPerm[] = [
                 ],
             },
             {
-                code: "demo/comfunc",
+                code: "/demo/comfunc",
                 type: "menugroup",
-                path: "demo/com-func",
+                path: "/demo/com-func",
                 layout: "DefaultLayout",
                 title: "组件和功能",
                 pinned: false,
@@ -453,7 +458,7 @@ export const internalPerms: InternalPerm[] = [
                 children: [
                     {
                         name: "CrudFormDemo",
-                        code: "demo/comfunc/crudform",
+                        code: "/demo/comfunc/crudform",
                         type: "menuitem",
                         path: "crudform",
                         component: "CrudFormDemo",
@@ -467,7 +472,7 @@ export const internalPerms: InternalPerm[] = [
                     },
                     {
                         name: "CrudFormDlgDemo",
-                        code: "demo/comfunc/crudformdlg",
+                        code: "/demo/comfunc/crudformdlg",
                         type: "menuitem",
                         path: "crudformdlg",
                         component: "CrudFormDlgDemo",
@@ -481,7 +486,7 @@ export const internalPerms: InternalPerm[] = [
                     },
                     {
                         name: "CrudTableDemo",
-                        code: "demo/comfunc/crudtable",
+                        code: "/demo/comfunc/crudtable",
                         type: "menuitem",
                         path: "crudtable",
                         component: "CrudTableDemo",
@@ -495,7 +500,7 @@ export const internalPerms: InternalPerm[] = [
                     },
                     {
                         name: "PermissionDemo",
-                        code: "demo/comfunc/permission",
+                        code: "/demo/comfunc/permission",
                         type: "menuitem",
                         path: "permission",
                         component: "PermissionDemo",
@@ -510,7 +515,7 @@ export const internalPerms: InternalPerm[] = [
                 ],
             },
             {
-                code: "system",
+                code: "/system",
                 type: "menugroup",
                 path: "/system",
                 layout: "DefaultLayout",
@@ -522,12 +527,12 @@ export const internalPerms: InternalPerm[] = [
                 children: [
                     {
                         name: "UserManage",
-                        code: "usermanage",
+                        code: "/system/usermanage",
                         type: "menuitem",
                         path: "user",
                         component: "UserManage",
                         children: [],
-                        title: "用户角色",
+                        title: "部门/角色/用户",
                         icon: "icon-role",
                         pinned: false,
                         cacheable: true,
@@ -536,7 +541,7 @@ export const internalPerms: InternalPerm[] = [
                     },
                     {
                         name: "MenuManage",
-                        code: "menumanage",
+                        code: "/system/menumanage",
                         type: "menuitem",
                         path: "menu",
                         component: "MenuManage",
@@ -548,22 +553,50 @@ export const internalPerms: InternalPerm[] = [
                         pathKey: "fullPath",
                         description: "菜单和权限管理。",
                     },
+                    {
+                        name: "CacheManage",
+                        code: "/system/cachemanage",
+                        type: "menuitem",
+                        path: "cache",
+                        component: "CacheManage",
+                        children: [],
+                        title: "缓存管理",
+                        icon: "Coin",
+                        pinned: false,
+                        cacheable: true,
+                        pathKey: "fullPath",
+                        description: "Redis 缓存管理",
+                    },
+                    {
+                        name: "OnlineUsers",
+                        code: "/system/onlineusers",
+                        type: "menuitem",
+                        path: "online",
+                        component: "OnlineUsers",
+                        children: [],
+                        title: "在线用户",
+                        icon: "UserFilled",
+                        pinned: false,
+                        cacheable: true,
+                        pathKey: "fullPath",
+                        description: "在线用户管理",
+                    },
                 ],
             },
             {
-                code: "external",
+                code: "/external",
                 type: "menugroup",
                 layout: "DefaultLayout",
                 title: "外链",
                 pinned: false,
                 cacheable: true,
                 pathKey: "fullPath",
-                path: "external",
+                path: "/external",
                 description: "外链 Demo",
                 children: [
                     {
                         name: "ExternalLink",
-                        code: "baidu",
+                        code: "/external/baidu",
                         type: "menuitem",
                         path: "https://www.baidu.com",
                         component: "ExternalLink",
@@ -577,7 +610,7 @@ export const internalPerms: InternalPerm[] = [
                     },
                     {
                         name: "ExternalLinkIframe",
-                        code: "edge",
+                        code: "/external/edge",
                         type: "menuitem",
                         path: "edge",
                         component: "ExternalLinkIframe",
@@ -593,7 +626,7 @@ export const internalPerms: InternalPerm[] = [
                 ],
             },
             {
-                code: "hidemenu",
+                code: "/hidemenu",
                 type: "menugroup",
                 layout: "DefaultLayout",
                 title: "隐藏菜单",
@@ -605,7 +638,7 @@ export const internalPerms: InternalPerm[] = [
                 children: [
                     {
                         name: "UserProfile",
-                        code: "userprofile",
+                        code: "/hidemenu/userprofile",
                         type: "menuitem",
                         path: "user/profile",
                         component: "UserProfile",

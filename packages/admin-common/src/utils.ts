@@ -11,10 +11,10 @@ declare global {
     export interface GridFsFile {
         /** 文件名称 */
         name: string;
-        /** 
+        /**
          * 可以直接访问的地址，有以下 2 种类型：
-         * 
-         * 1. /api/download/:objId 
+         *
+         * 1. /api/download/:objId
          * 2. 当内联时，url 为 base64 格式的数据：data:xxx/xxx;base64,....
          */
         url: string;
@@ -42,13 +42,17 @@ declare global {
     }
 
     export type PaginationFilter<T extends string> = {
-        [key in T]: PaginationCondition;
+        [field in T]: PaginationCondition;
     };
 
+    export type PaginationSort<T extends string> = {
+        [field in T]: "ascending" | "descending";
+    };
     export interface PaginationParams<T extends string> {
-        filter?: Partial<PaginationFilter<T>>;
         pageNum: number;
         pageSize: number;
+        filter?: Partial<PaginationFilter<T>>;
+        sort?: PaginationSort<T>;
     }
 
     export interface PaginationResult<T> {

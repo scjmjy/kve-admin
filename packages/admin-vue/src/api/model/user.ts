@@ -15,7 +15,7 @@ export class UserProfile implements Omit<UserProfileResult, "perms"> {
         public roles: UserProfileResult["roles"] = [],
         public createdAt = "",
         public updatedAt = "",
-        public perms: string[] = [],
+        public permCodes: string[] = [],
     ) {
         this.token = localStorage.getItem(STORAGE_KEY_USER_TOKEN) || "";
         this.timestamp = localStorage.getItem(STORAGE_KEY_USER_AVATAR_TIMESTAMP) || "";

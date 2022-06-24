@@ -1,6 +1,6 @@
 <template>
     <el-row class="menuManage" :gutter="20">
-        <el-col :xs="24" :sm="5" style="margin-bottom: 20px">
+        <el-col :md="24" :lg="5">
             <!-- <el-input v-model="state.deptKeyword" placeholder="输入部门名称进行筛选" :prefix-icon="Search" /> -->
             <div class="menuManage-filter">
                 <el-switch v-model="state.includeDeleted" active-text="包含已删除" />
@@ -34,7 +34,7 @@
                 </template>
             </el-tree>
         </el-col>
-        <el-col :xs="24" :sm="19">
+        <el-col :md="24" :lg="19">
             <el-tabs v-model="state.currentTab" class="menuManage-tabs" type="border-card">
                 <el-tab-pane label="菜单信息" name="profile">
                     <transition name="transition-3d">

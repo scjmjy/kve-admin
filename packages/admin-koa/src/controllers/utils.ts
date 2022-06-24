@@ -43,7 +43,7 @@ export async function handlePaginationRequest<T, FilterT extends string>(
     extraQuery?: Record<string, any>,
     extraQueryOpts?: mongoose.ExtraQueryOptions,
 ) {
-    const { filter, pageNum, pageSize } = params || {};
+    const { pageNum, pageSize, filter, sort } = params || {};
     if (!pageNum || !pageSize) {
         throwBadRequestError("请提供正确的参数！");
         return Promise.reject();
@@ -53,6 +53,7 @@ export async function handlePaginationRequest<T, FilterT extends string>(
         limit: pageSize,
         offset: (pageNum - 1) * pageSize,
         projection,
+        sort,
         options: extraQueryOpts,
     };
     const queryBuilder = new QueryBuilder<PaginationParams<FilterT>["filter"]>(extraQuery);

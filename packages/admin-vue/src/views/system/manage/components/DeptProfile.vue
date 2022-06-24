@@ -1,6 +1,6 @@
 <template>
     <div class="deptProfile">
-        <el-descriptions class="el-descriptions--custom" :column="1" border>
+        <el-descriptions class="el-descriptions--hideTitle" :column="1" border>
             <template #extra>
                 <el-button-group size="small">
                     <el-button icon="Plus" type="primary" :loading="state.loading" @click="onAddClick"

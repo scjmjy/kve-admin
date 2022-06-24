@@ -25,6 +25,7 @@ export const FindDemoCollectionProjection = [
 type FindDemoCollectionKeys = typeof FindDemoCollectionProjection[number];
 
 export type DemoCollectionFilter = Extract<keyof IDemoCollection, "field1" | "field2" | "createdAt">;
+export type DemoCollectionSort = Extract<keyof IDemoCollection, "field1" | "field4" | "createdAt">;
 export type FindDemoCollectionParams = PaginationParams<DemoCollectionFilter>;
 export type FindDemoCollectionResult = PaginationResult<Pick<IDemoCollection, FindDemoCollectionKeys>>;
 

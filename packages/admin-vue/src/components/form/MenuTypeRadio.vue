@@ -1,18 +1,49 @@
 <template>
-    <el-radio-group :class="{ 'is-readonly': readonly }"  v-bind="$attrs" @click.capture="onClick">
-        <el-radio-button label="menugroup">菜单组</el-radio-button>
-        <el-radio-button label="menuitem">菜单项</el-radio-button>
-        <el-radio-button label="action">动作</el-radio-button>
+    <el-radio-group :class="{ 'is-readonly': readonly }" v-bind="$attrs" @click.capture="onClick">
+        <el-radio-button v-for="radio of radios" :label="radio.value" :disabled="radio.disabled">{{
+            radio.label
+        }}</el-radio-button>
     </el-radio-group>
 </template>
 
 <script setup lang="ts" name="MenuTypeRadio">
-const props = defineProps({
-    readonly: {
-        type: Boolean,
-        default: true,
-    },
+import { computed, PropType } from "vue";
+import { PermissionType } from "admin-common";
+
+export interface MenuTypeRadioProps {
+    readonly?: boolean;
+    excluded?: PermissionType[];
+}
+
+const props = defineProps<MenuTypeRadioProps>();
+
+interface ButtonType {
+    disabled?: boolean;
+    label: string;
+    value: PermissionType;
+}
+
+const radios = computed<ButtonType[]>(() => {
+    const buttons: ButtonType[] = [
+        {
+            label: "菜单组",
+            value: "menugroup",
+            disabled: props.excluded && props.excluded.includes("menugroup"),
+        },
+        {
+            label: "菜单项",
+            value: "menuitem",
+            disabled: props.excluded && props.excluded.includes("menuitem"),
+        },
+        {
+            label: "动作",
+            value: "action",
+            disabled: props.excluded && props.excluded.includes("action"),
+        },
+    ];
+    return buttons;
 });
+
 function onClick(evt: Event) {
     if (props.readonly) {
         evt.preventDefault();

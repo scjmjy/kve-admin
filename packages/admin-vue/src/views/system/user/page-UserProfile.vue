@@ -24,7 +24,7 @@
             </template>
             <template #back>
                 <el-link type="primary" @click="onBackClick">返回</el-link>
-                <el-tabs class="userProfile-tabs">
+                <el-tabs class="userProfile-tabs" type="card">
                     <el-tab-pane label="基本信息">
                         <UserProfileForm action="update" @update="onUserProfileUpdate"></UserProfileForm>
                     </el-tab-pane>
@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts" name="UserProfile">
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, reactive } from "vue";
 import DoubleFaceCard from "@/components/card/DoubleFaceCard.vue";
 import { useUserStore } from "@/store/modules/user";
 import { useSystemStore } from "@/store/modules/system";
@@ -168,6 +168,11 @@ function onUserPasswordUpdate() {
     }
     :deep(.el-descriptions__header) {
         margin-bottom: 35px;
+    }
+    :deep(.el-tabs__header) {
+        .el-tabs__item.is-active {
+            border-bottom-color: var(--el-color-primary);
+        }
     }
     :deep(.el-tabs__content) {
         overflow: visible;

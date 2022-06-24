@@ -1,7 +1,8 @@
 <template>
     <div class="page404">
         <div class="page404-action">
-            <el-link type="primary" @click="onBackClick">回到首页</el-link>
+            <el-link class="page404-action-link" type="primary" @click="onBackClick">回到首页</el-link>
+            <el-link class="page404-action-link" type="danger" @click="onLogoutClick">退出登录</el-link>
         </div>
         <svg
             xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -446,12 +447,18 @@
 
 <script setup lang="ts">
 import { ROUTE_PATH } from "@/router/consts";
+import { useUserStore } from "@/store/modules/user";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const userStore = useUserStore();
 
 function onBackClick() {
     router.replace(ROUTE_PATH.DASHBOARD);
+}
+
+function onLogoutClick() {
+    userStore.logout();
 }
 </script>
 
@@ -467,6 +474,9 @@ function onBackClick() {
         left: 0;
         right: 0;
         text-align: center;
+        &-link {
+            margin: 0 20px;
+        }
     }
     svg {
         width: 100% !important;

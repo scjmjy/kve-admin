@@ -78,6 +78,7 @@
             <li>packages/admin-koa: 后端项目</li>
             <li>packages/admin-vue: 前端项目</li>
         </ol>
+        <!-- <img src="/static/img/板球.png" alt=""> -->
     </div>
 </template>
 

@@ -1,20 +1,20 @@
 import { Cache } from "cache-manager";
-import { cache } from "@/cache";
-import { DepartmentModel } from "@/model/department";
+import Redis from "ioredis";
 import { DEPARTMENT_CONTAINER_ID, DeptTreeNodesResult } from "admin-common";
-
-const DeptCacheKey = {
-    dept_nodes_all: Symbol("dept_nodes_all"),
-};
+import { DepartmentModel } from "@/model/department";
 
 export class DeptService {
-    private constructor() {}
+    private static DEPT_NODE_PREFIX = "dept_nodes:";
+    private redisClient: Redis.Redis | Redis.Cluster;
+    constructor(private cache: Cache) {
+        this.redisClient = this.cache.store.getClient();
+    }
 
     /**
      * 获取填充后的部门根节点
      */
-    static getDeptNodes() {
-        return cache.wrap(DeptCacheKey.dept_nodes_all.toString(), async function () {
+    getDeptNodes() {
+        return this.cache.wrap(DeptService.DEPT_NODE_PREFIX + "all", async function () {
             const query = DepartmentModel.findById<DeptTreeNodesResult>(DEPARTMENT_CONTAINER_ID, null, {
                 doPopulate: true,
             }).where("status", /.*/);
@@ -22,8 +22,8 @@ export class DeptService {
         });
     }
 
-    static deleteCache() {
-        const keys = Object.keys(DeptCacheKey);
-        return Promise.all(keys.map((key) => cache.del(key)));
+    async deleteCache() {
+        const keys = await this.redisClient.keys(DeptService.DEPT_NODE_PREFIX + "*");
+        return this.redisClient.del(keys);
     }
 }

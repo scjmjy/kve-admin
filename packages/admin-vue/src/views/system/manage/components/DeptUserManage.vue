@@ -330,9 +330,9 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
             prop: "depts",
             label: "所属部门",
             showOverflowTooltip: true,
-        },
-        transform(row) {
-            return row.depts.map((dept) => dept.name).join("，");
+            formatter(row, col, value: DataType["depts"], index) {
+                return value?.map((dept) => dept.name).join(", ");
+            },
         },
     },
     {
@@ -340,9 +340,9 @@ const tableColumns = shallowRef<CrudTableColumn<DataType>[]>([
             prop: "roles",
             label: "拥有角色",
             showOverflowTooltip: true,
-        },
-        transform(row) {
-            return row.roles.map((role) => role.name).join("，");
+            formatter(row, col, value: DataType["roles"], index) {
+                return value?.map((role) => role.name).join(", ");
+            },
         },
     },
     {

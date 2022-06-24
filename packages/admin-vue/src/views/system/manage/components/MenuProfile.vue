@@ -1,15 +1,15 @@
 <template>
     <div class="menuProfile">
-        <el-descriptions class="el-descriptions--custom" :column="column" border>
+        <el-descriptions class="el-descriptions--hideTitle" :column="column" border>
             <template #extra>
                 <el-button-group size="small">
                     <el-button
-                        v-if="menu.type === 'menugroup'"
+                        v-if="menu.type !== 'action'"
                         icon="Plus"
                         type="primary"
                         :loading="state.loading"
                         @click="onAddClick"
-                        >添加子菜单</el-button
+                        >{{ menu.type === "menugroup" ? "添加子菜单" : "添加动作" }}</el-button
                     >
                     <template v-if="parent">
                         <el-button
@@ -277,7 +277,7 @@ const formItems = computed(() => {
         {
             label: "父菜单",
             prop: "parent",
-            span: 6,
+            span: 24,
             item: {
                 type: "BasicSelect",
                 props: {
@@ -288,6 +288,7 @@ const formItems = computed(() => {
                             value: props.menu._id,
                         },
                     ],
+                    // style: "width: 100%",
                 },
             },
         },
@@ -297,6 +298,9 @@ const formItems = computed(() => {
             span: 24,
             item: {
                 type: "MenuTypeRadio",
+                props: {
+                    excluded: props.menu.type === "menuitem" ? ["menugroup", "menuitem"] : undefined,
+                },
             },
         },
         {
@@ -580,7 +584,7 @@ function onAddClick() {
     formAction.value = "create";
     formData.value = {
         parent: props.menu._id,
-        type: "menugroup",
+        type: props.menu.type === "menugroup" ? "menuitem" : "action",
         cacheable: true,
         visible: true,
         footer: true,

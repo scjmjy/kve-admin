@@ -5,7 +5,7 @@ import log4js from "log4js";
 export let logDir = "";
 
 export function setupLog(app: koa) {
-    const { isDev: dev } = app.context.config;
+    const { isDev } = app.context.config;
 
     logDir = resolve(app.context.config.workDir, "logs");
 
@@ -25,11 +25,11 @@ export function setupLog(app: koa) {
         },
         categories: {
             default: {
-                appenders: [dev ? "dev" : "prd"],
+                appenders: [isDev ? "dev" : "prd"],
                 level: "trace",
             },
             AccessLog: {
-                appenders: [dev ? "dev" : "prd"],
+                appenders: [isDev ? "dev" : "prd"],
                 level: "trace",
             },
         },

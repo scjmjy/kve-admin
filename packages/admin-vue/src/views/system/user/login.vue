@@ -147,12 +147,11 @@ function handleLogin() {
                 .login(credential)
                 .then(() => {
                     const redirect = route.query.redirect as string;
-                    router.push({
+                    return router.push({
                         path: redirect || ROUTE_PATH.DASHBOARD,
                     });
                 })
-                .catch((err) => {
-                    // console.error("[handleLogin]", err);
+                .finally(() => {
                     state.loggingIn = false;
                 });
         })

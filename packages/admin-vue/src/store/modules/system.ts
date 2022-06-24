@@ -161,6 +161,13 @@ const storeDefinition = defineStore({
                 }
             }
         },
+        closeOtherTab() {},
+        refreshTab(route: RouteRecordVisited, router: Router) {
+            router.replace({
+                path: ROUTE_PATH.REDIRECT + "/" + route.path,
+                query: route.query,
+            });
+        },
     },
 });
 

@@ -20,6 +20,7 @@ export class PageController<FilterT extends string, DataT> implements Pagination
         public requestApi: RequestApi<FilterT, DataT>,
         public postHandler?: PostHandler<DataT>,
         public filter?: PaginationParams<FilterT>["filter"],
+        public sort?: PaginationParams<FilterT>["sort"],
         public pageSize = 10,
     ) {}
 
@@ -27,7 +28,8 @@ export class PageController<FilterT extends string, DataT> implements Pagination
         const res = await this.requestApi({
             pageNum: pageNum || this.pageNum,
             pageSize: this.pageSize,
-            filter: this.filter || {},
+            filter: this.filter,
+            sort: this.sort,
         });
         Object.assign(this, res.data);
         this.postHandler && this.postHandler(this.list);

@@ -123,10 +123,6 @@ const argv = yargs(hideBin(process.argv))
             describe: "biz, fs 或 all",
             alias: "d",
         },
-        atlas: {
-            type: "boolean",
-            describe: "是否是 Atlas Cluster",
-        },
     }).argv;
 
 async function emptyBiz() {

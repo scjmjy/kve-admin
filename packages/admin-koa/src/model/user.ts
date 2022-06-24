@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 import { IUser, StatusEnum } from "admin-common";
-import { UserService } from "@/services/user";
+import { userService } from "@/services";
 import { BcryptPlugin } from "./plugin/bcrypt";
 import { MODEL_NAME_DEPARTMENT, MODEL_NAME_ROLE } from "./department";
 
@@ -77,16 +77,36 @@ UserSchema.pre(["find", "findOne"], function (next) {
     next();
 });
 
-UserSchema.post("insertMany", function () {
-    UserService.deleteCache();
+UserSchema.post("insertMany", function (res, next) {
+    userService && userService.deleteCache();
+    next();
 });
 
-UserSchema.post(["save", "remove", "deleteOne", "updateOne"], function () {
-    UserService.deleteCache();
+UserSchema.post(["save", "remove", "deleteOne", "updateOne"], function (res, next) {
+    userService && userService.deleteCache(this._id);
+    next();
 });
 
-UserSchema.static("getStatistics", function () {
-    return "100人";
-});
+UserSchema.post(
+    [
+        "deleteMany",
+        "deleteOne",
+        "findOneAndDelete",
+        "findOneAndRemove",
+        "findOneAndUpdate",
+        "remove",
+        "update",
+        "updateOne",
+        "updateMany",
+    ],
+    function (res, next) {
+        userService && userService.deleteCache();
+        next();
+    },
+);
+
+// UserSchema.static("getStatistics", function () {
+//     return "100人";
+// });
 
 export const UserModel = mongoose.model<IUserDoc, IUserModel>(MODEL_NAME_USER, UserSchema);

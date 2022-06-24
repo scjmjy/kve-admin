@@ -1,12 +1,19 @@
 <template>
-    <el-scrollbar class="is-vertical appMenu" v-click-outside:[elHamburger]="onClickOutside">
+    <el-scrollbar
+        class="is-vertical appMenu"
+        v-click-outside:[elHamburger]="onClickOutside"
+        @mouseenter="onMouseEnter"
+        @mouseleave="onMouseLeave"
+    >
         <el-menu
+            ref="refMenu"
             :default-active="defaultActive"
             :collapse="systemStore.menu.collapse"
             :collapse-transition="false"
-            @mouseenter="onMouseEnter"
-            @mouseleave="onMouseLeave"
+            :unique-opened="true"
             @select="onMenuItemSelected"
+            @open="onSubMenuOpen"
+            @close="onSubMenuClose"
         >
             <template v-for="route in systemStore.router.fullpathRoutes" :key="route.path">
                 <el-menu-item-group v-if="!(route.meta && route.meta.visible === false)" :title="route.meta?.title">
@@ -28,17 +35,20 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
-import { useSystemStore } from "@/store/modules/system";
+import { onMounted, nextTick, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import MenuItem from "./MenuItem.vue";
-import { isExternalLink } from "@/utils/is";
+import { ElMenu } from "element-plus";
+import { useSystemStore } from "@/store/modules/system";
 import { findRouteFullpath } from "@/router/routes";
+import { isExternalLink } from "@/utils/is";
+import MenuItem from "./MenuItem.vue";
 
 const route = useRoute();
 const systemStore = useSystemStore();
 const defaultActive = ref("");
 const forRoute = ref("");
+const openedIds_set = ref<Set<string>>(new Set());
+const refMenu = ref<InstanceType<typeof ElMenu>>();
 
 watch(
     () => route.path,
@@ -53,6 +63,20 @@ watch(
     },
     {
         immediate: true,
+    },
+);
+
+watch(
+    () => systemStore.menu.collapse,
+    (collapse) => {
+        if (!collapse) {
+            nextTick(() => {
+                openedIds_set.value.forEach((val) => {
+                    // @ts-ignore
+                    // refMenu.value?.open(val);
+                });
+            });
+        }
     },
 );
 
@@ -86,6 +110,17 @@ function onMenuItemSelected(index: string) {
         }, 100);
     }
 }
+function onSubMenuOpen(index: string, indexPath: string[]) {
+    openedIds_set.value.add(index);
+    // console.log('[onSubMenuOpen]', index, indexPath);
+}
+function onSubMenuClose(index: string, indexPath: string[]) {
+    openedIds_set.value.delete(index);
+    for (const idx of indexPath) {
+        openedIds_set.value.delete(idx);
+    }
+    console.log('[onSubMenuClose]', index, indexPath);
+}
 
 const elHamburger = ref<HTMLElement | null>();
 onMounted(() => {
@@ -109,7 +144,6 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
     .el-menu {
         --el-menu-active-color: white;
         --el-menu-item-height: 48px;
-        margin: 0 auto;
         border-right: none !important;
         background-color: transparent;
         &--inline {
@@ -154,6 +188,7 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
             font-weight: bold;
         }
         &.el-menu--collapse {
+            margin-left: 8px; // TODO ($collapseWidth - $menuCollaseWidth) / 2
             width: $menuCollaseWidth !important;
             .el-menu-item-group {
                 border-top: 2px solid rgba(255, 255, 255, 0.3);

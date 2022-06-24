@@ -12,9 +12,17 @@ import dayjs from "dayjs";
 export type CommonDateFormat = "YYYY-MM-DD HH:mm:ss" | "YYYY-MM-DD HH:mm" | "YYYY-MM-DD";
 
 export function formatDate(
-    date: dayjs.Dayjs | Date | string,
+    date: dayjs.Dayjs | Date | string | number,
     format: CommonDateFormat = "YYYY-MM-DD HH:mm:ss",
 ): string {
-    const d = date instanceof Date ? dayjs(date) : typeof date === "string" ? dayjs(new Date(date)) : date;
-    return d.format(format);
+    let d: dayjs.Dayjs | undefined = undefined;
+    if (date instanceof Date) {
+        d = dayjs(date);
+    } else if (typeof date === "string" || typeof date === "number") {
+        d = dayjs(new Date(date));
+    } else if (date instanceof dayjs.Dayjs) {
+        d = date;
+    }
+
+    return d?.format(format) || "";
 }

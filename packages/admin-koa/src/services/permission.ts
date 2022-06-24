@@ -1,30 +1,29 @@
 import { Cache } from "cache-manager";
+import Redis from "ioredis";
 import { IPermission, isValidStatus, PERMISSION_CONTAINER_ID } from "admin-common";
-import { cache } from "@/cache";
 import { PermissionModel } from "@/model/permission";
 
-const PermCacheKey = {
-    perm_nodes_enabled: Symbol("perm_nodes_enabled"),
-    perm_nodes_disabled: Symbol("perm_nodes_disabled"),
-    perm_nodes_deleted: Symbol("perm_nodes_deleted"),
-    perm_nodes_all: Symbol("perm_nodes_all"),
-};
-
 export class PermService {
-    private constructor() {}
+    private static PERM_NODE_PREFIX = "perm_nodes:";
+    private redisClient: Redis.Redis | Redis.Cluster;
+    constructor(private cache: Cache) {
+        this.redisClient = this.cache.store.getClient();
+    }
 
     /**
      * 获取填充后的权限根节点
      * @param status
      */
-    static getPermNodes(status: EnableStatus) {
-        let key = PermCacheKey.perm_nodes_all;
+    getPermNodes(status: EnableStatus): Promise<IPermission | undefined> {
+        let key = "";
 
         if (isValidStatus(status as string)) {
-            key = PermCacheKey[("perm_nodes_" + status) as keyof typeof PermCacheKey];
+            key = PermService.PERM_NODE_PREFIX + status;
+        } else {
+            key = PermService.PERM_NODE_PREFIX + "all";
         }
 
-        return cache.wrap(key.toString(), async function () {
+        return this.cache.wrap(key, async function () {
             const query = PermissionModel.findById(PERMISSION_CONTAINER_ID, null, {
                 doPopulate: true,
             });
@@ -33,12 +32,20 @@ export class PermService {
             } else {
                 query.where("status", /.*/);
             }
-            return query.exec();
+            const result = await query.exec();
+            return result ? result.toObject() : undefined;
         });
     }
 
-    static deleteCache() {
-        const keys = Object.keys(PermCacheKey);
-        return Promise.all(keys.map(key => cache.del(key)))
+    async deleteCache(status?: EnableStatus) {
+        let keys: string[] = [];
+        if (isValidStatus(status as string)) {
+            keys.push(PermService.PERM_NODE_PREFIX + status);
+        } else {
+            keys = await this.redisClient.keys(PermService.PERM_NODE_PREFIX + "*");
+        }
+        console.log("[PermService deleteCache]", keys);
+
+        return this.redisClient.del(keys);
     }
 }

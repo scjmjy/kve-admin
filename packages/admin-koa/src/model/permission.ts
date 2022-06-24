@@ -1,6 +1,7 @@
+import { userService } from "./../services/index";
 import mongoose from "mongoose";
 import { IPermission, StatusEnum, PermissionTypeEnum } from "admin-common";
-import { PermService } from "@/services/permission";
+import { permService } from "@/services";
 
 export const MODEL_NAME_PERMISSION = "Permission";
 
@@ -81,13 +82,35 @@ PermissionSchema.pre(["find", "findOne"], function (next) {
     next();
 });
 
-PermissionSchema.post("insertMany", function () {
-    PermService.deleteCache();
+PermissionSchema.post("insertMany", function (res, next) {
+    permService && permService.deleteCache();
+    next();
 });
 
-PermissionSchema.post(["save", "remove", "deleteOne", "updateOne"], function () {
-    PermService.deleteCache();
+PermissionSchema.post(["save", "remove", "deleteOne", "updateOne"], function (res, next) {
+    permService && permService.deleteCache();
+    userService && userService.deleteCache();
+    next();
 });
+
+PermissionSchema.post(
+    [
+        "deleteMany",
+        "deleteOne",
+        "findOneAndDelete",
+        "findOneAndRemove",
+        "findOneAndUpdate",
+        "remove",
+        "update",
+        "updateOne",
+        "updateMany",
+    ],
+    function (res, next) {
+        permService && permService.deleteCache();
+        userService && userService.deleteCache();
+        next();
+    },
+);
 
 export const PermissionModel = mongoose.model<IPermissionDoc, IPermissionModel>(
     MODEL_NAME_PERMISSION,

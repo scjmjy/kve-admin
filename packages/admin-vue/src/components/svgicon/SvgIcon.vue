@@ -10,6 +10,7 @@
 </template>
 
 <script setup lang="ts">
+import { ElIcon } from "element-plus";
 defineProps({
     icon: {
         type: String,

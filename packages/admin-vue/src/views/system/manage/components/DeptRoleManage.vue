@@ -24,7 +24,7 @@
         <el-col :xs="24" :sm="15">
             <el-descriptions
                 v-if="state2.deptInfo || state2.roleInfo"
-                class="deptProfile el-descriptions--custom"
+                class="deptProfile el-descriptions--hideTitle"
                 :column="1"
                 border
             >
@@ -348,6 +348,9 @@ const formRules = computed(() => {
 });
 
 async function fetchPermNode() {
+    if (state.permNode) {
+        return;
+    }
     const res = await getPermNodes({
         status: "enabled",
     });
@@ -372,7 +375,12 @@ const formActionsPerm = ref<FormActions>({
                 state.loading = false;
             });
             state.showPermDlg = false;
-            updateOriginalRolePerms(deptOriginal.value, state.permNode!, formDataPerm.value._id, formDataPerm.value.perms);
+            updateOriginalRolePerms(
+                deptOriginal.value,
+                state.permNode!,
+                formDataPerm.value._id,
+                formDataPerm.value.perms,
+            );
             resetDeptCurrentKey();
         },
     },
@@ -392,6 +400,7 @@ const formItemsPerm = computed<ItemSchema[]>(() => {
                     showCheckbox: true,
                     data,
                     nodeKey: "value",
+                    checkStrictly: true,
                     // onChange(val: string[]) {
                     //     sortPermIds(val, g_allPermIds);
                     // },

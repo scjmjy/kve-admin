@@ -3,6 +3,7 @@ import { resolve } from "path";
 import { AppConfig } from "@/types/koa";
 
 export const appConfig: AppConfig = {
+    keys: ['kve123456'],
     workDir: "",
     isDev: process.env.NODE_ENV === "development",
     jwtSecret: "kve123456",
@@ -13,6 +14,10 @@ export const appConfig: AppConfig = {
     // mongodbGridFs: "mongodb://admin:kve123456@localhost:27018,localhost:27019,localhost:27020/gridfs?replSet=kvers0",
     routeDownload: "/api/download/",
     port: 3000,
+    redis: {
+        host: "127.0.0.1",
+        port: 6379,
+    },
 };
 
 export function setupConfig(app: koa, __dirnameOfIndex: string) {

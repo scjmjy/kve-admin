@@ -22,3 +22,11 @@ export function throwUserNotFoundError(msg: string) {
 export function throwBadRequestError(msg: string, showType: MsgShowType = "MESSAGE") {
     throw new AjaxError(StatusCodes.BAD_REQUEST, StatusCodes.BAD_REQUEST, showType, msg);
 }
+
+export function throwSessionError(msg: string, showType: MsgShowType = "FATAL") {
+    throw new AjaxError(StatusCodes.UNAUTHORIZED, StatusCodes.UNAUTHORIZED, showType, msg);
+}
+
+export function throwPermissionError(msg: string, showType: MsgShowType = "FATAL") {
+    throw new AjaxError(StatusCodes.FORBIDDEN, StatusCodes.FORBIDDEN, showType, msg);
+}

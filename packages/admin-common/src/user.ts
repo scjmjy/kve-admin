@@ -46,9 +46,10 @@ export const UserProfileProjection = [
 type UserProfileKeys = typeof UserProfileProjection[number];
 
 export interface UserProfileResult extends Pick<IUser, Exclude<UserProfileKeys, "depts" | "roles">> {
-    depts: Pick<IDepartment, "_id" | "name" | "status">[];
-    roles: Pick<IRole, "_id" | "name" | "status">[];
-    perms?: IPermission[];
+    depts: Pick<IDepartment, "_id" | "name">[];
+    roles: Pick<IRole, "_id" | "name">[];
+    perms: IPermission[];
+    permCodes: string[];
 }
 
 export type UpdateUserProfile = Pick<UserProfileResult, "realname" | "email" | "mobileno" | "gender">;
@@ -204,3 +205,10 @@ export interface UserIdsBody {
 }
 
 //#endregion
+
+//#region online users
+export interface OnlineUsersResult {
+    columns: { label: string; prop: string }[];
+    rows: Record<string, any>[];
+}
+//#region

@@ -1,13 +1,17 @@
 @forward "element-plus/theme-chalk/src/common/var.scss" with (
     $bg-color: (
-        "": #ebeef5,
-        "page": #ebeef5,
+        "": #f1f4f6,
+        "page": #f1f4f6,
         "overlay": #ebeef5,
+    ),
+    $table: (
+        "header-bg-color": var(--el-color-primary-light-7),
+        "header-text-color": var(--el-text-color-primary),
     ),
     $sm: 576px,
     $md: 768px,
     $lg: 992px,
-    $xl: 1200x,
+    $xl: 1200px
 );
 
 // @forward "element-plus/theme-chalk/src/dark/var.scss" with (

@@ -20,10 +20,7 @@
                     >
                         <template v-if="item.tooltip" #label>
                             <el-tooltip placement="top" v-bind="(item.tooltip as any)">
-                                <SvgIcon
-                                    icon="QuestionFilled"
-                                    style="margin-right: 2px"
-                                ></SvgIcon>
+                                <SvgIcon icon="QuestionFilled" style="margin-right: 2px"></SvgIcon>
                             </el-tooltip>
                             <span>
                                 {{ item.label }}
@@ -88,13 +85,14 @@ import type {
     ElSwitch,
     RadioGroupProps,
     RadioGroupEmits,
+    RadioGroupInstance,
     TooltipInstance,
 } from "element-plus";
 import { merge } from "lodash-unified";
 import { ResponsiveScreenMap, ScreenMode, useSystemStore } from "@/store/modules/system";
 import { useInvalidProps } from "@/composables/useForm";
 import type ReadonlySwitch from "@/components/form/ReadonlySwitch.vue";
-import type MenuTypeRadio from "@/components/form/MenuTypeRadio.vue";
+import type { MenuTypeRadioProps } from "@/components/form/MenuTypeRadio.vue";
 import type { BasicSelectProps } from "./BasicSelect.vue";
 import type PathInput from "./PathInput.vue";
 import type IconSelectInput from "./IconSelectInput.vue";
@@ -150,7 +148,7 @@ export type CrudFormItem =
       }
     | {
           type: "MenuTypeRadio";
-          props?: InstanceType<typeof MenuTypeRadio>["$props"] & RadioGroupProps & RadioGroupEmits;
+          props?: MenuTypeRadioProps & RadioGroupInstance["$props"];
       };
 
 // export interface CrudFormItem {
@@ -302,11 +300,11 @@ const state = reactive({
         if (props.column === "responsive") {
             switch (systemStore.screen.mode) {
                 case "xl":
-                case "lg":
                     return 8;
+                case "lg":
+                    return 12;
                 case "md":
                 case "sm":
-                    return 12;
                 default:
                     return 24;
             }

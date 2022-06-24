@@ -97,9 +97,6 @@
                         v-bind="typeof col.slot!.props === 'function' ? col.slot!.props(scope.row) : col.slot!.props"
                     ></component>
                 </template>
-                <template v-else-if="col.transform" #default="scope">
-                    {{ col.transform(scope.row) }}
-                </template>
             </el-table-column>
             <el-table-column v-if="actions" v-bind="actions.props" class-name="el-table__column--action">
                 <template #default="scope">
@@ -183,7 +180,6 @@ export interface CrudTableColumn<T> {
         /** TODO: 像 CrudFormItem.props 一样 */
         props?: Record<string, any> | ((row: T) => Record<string, any>);
     };
-    transform?: (row: T) => string;
 }
 
 export interface TableHeader<T> {
@@ -264,6 +260,10 @@ const props = defineProps({
         type: Object as PropType<PageController<any, any>["filter"]>,
         default: undefined,
     },
+    sort: {
+        type: Object as PropType<PageController<any, any>["sort"]>,
+        default: undefined,
+    },
     onFilterChange: {
         type: Function as PropType<(filterData: Record<string, any>) => any>,
         default: undefined,
@@ -322,7 +322,7 @@ const onFilterChangeDebounce = debounce(
     },
 );
 
-const pageController = ref(new PageController(props.requestApi, props.postHandler, props.filter));
+const pageController = ref(new PageController(props.requestApi, props.postHandler, props.filter, props.sort));
 
 function navigateToPage(pageNum?: number) {
     state.loading = true;
@@ -342,11 +342,12 @@ watch(
 );
 
 watch(
-    () => [props.requestApi, props.postHandler, props.filter],
-    ([requestApi, postHandler, filter]) => {
+    () => [props.requestApi, props.postHandler, props.filter, props.sort],
+    ([requestApi, postHandler, filter, sort]) => {
         pageController.value.requestApi = requestApi as PageController<any, any>["requestApi"];
         pageController.value.postHandler = postHandler as PageController<any, any>["postHandler"];
         pageController.value.filter = filter as PageController<any, any>["filter"];
+        pageController.value.sort = sort as PageController<any, any>["sort"];
         if (pageController.value.pageNum === 1) {
             navigateToPage(1);
         } else {

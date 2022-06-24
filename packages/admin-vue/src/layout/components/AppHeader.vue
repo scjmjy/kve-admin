@@ -3,7 +3,7 @@
     <img class="appHeader-logo" src="@/assets/imgs/logo.png" />
     <span class="appHeader-title">KVE 全栈后台管理系统</span>
     <div class="appHeader-right">
-        <el-link type="primary" @click="state.showPayDlg = true" style="margin-right: 10px">购买源码</el-link>
+        <el-link type="primary" @click="state.showPayDlg = true" style="margin-right: 10px">获取源码</el-link>
         <el-switch v-model="isDark" style="margin-right: 24px" inline-prompt active-icon="Moon" inactive-icon="Sunny" />
         <el-popover
             placement="bottom-end"
@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import { useDark, useToggle } from "@vueuse/core";
+import { useDark } from "@vueuse/core";
 import { useSystemStore } from "@/store/modules/system";
 import Hamburger from "@/components/Hamburger.vue";
 import ProfileCard from "./ProfileCard.vue";

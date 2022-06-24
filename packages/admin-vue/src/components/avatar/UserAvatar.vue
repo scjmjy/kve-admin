@@ -12,12 +12,15 @@ import { computed } from "vue";
 const props = defineProps({
     modelValue: String,
     /**
-     * 如果没有 modelValue 为空，使用默认头像而不是当前用户的头像
+     * 如果 modelValue 为空，使用默认头像而不是当前用户的头像
      */
     useDefault: Boolean,
 });
 const userStore = useUserStore();
 const avatar = computed(() => {
+    if (!userStore.isLoggedIn()) {
+        return undefined;
+    }
     if (props.modelValue) {
         return props.modelValue;
     }
