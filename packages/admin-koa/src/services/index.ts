@@ -8,8 +8,8 @@ export let permService: PermService;
 export let deptService: DeptService;
 
 export function setupServices(app: koa) {
-    const cache = app.context.redisCache;
-    userService = new UserService(cache);
-    permService = new PermService(cache);
-    deptService = new DeptService(cache);
+    const client = app.context.redisClient;
+    userService = new UserService(client);
+    permService = new PermService(client);
+    deptService = new DeptService(client);
 }

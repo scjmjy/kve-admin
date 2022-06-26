@@ -51,7 +51,7 @@ declare global {
     export interface PaginationParams<T extends string> {
         pageNum: number;
         pageSize: number;
-        filter?: Partial<PaginationFilter<T>>;
+        filter?: PaginationFilter<T>;
         sort?: PaginationSort<T>;
     }
 

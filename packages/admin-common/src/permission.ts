@@ -164,8 +164,8 @@ function getAllPermRules(requireHttp = false, requireIframe = false): AllPermRul
         code: [
             {
                 required: true,
-                pattern: "^[A-Za-z0-9/]{2,32}$",
-                message: "长度为 2-32 个英文字母、数字、/",
+                pattern: "^[A-Za-z0-9/-]{2,32}$",
+                message: "长度为 2-32 个英文字母、数字、/、-",
             },
         ],
         type: {
@@ -257,6 +257,15 @@ export function getUpdateItemRules(requireHttp: boolean, requireIframe: boolean)
 export interface ReorderPermsBody {
     permId: string;
     permIds: string[];
+}
+
+export interface DragDropPermsBody {
+    draggingId: string;
+    draggingParentId: string;
+    dropId: string;
+    dropParentId: string;
+    type: "before" | "after" | "inner";
+    returnNew?: boolean;
 }
 
 //#endregion

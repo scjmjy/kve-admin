@@ -3,8 +3,22 @@
     <img class="appHeader-logo" src="@/assets/imgs/logo.png" />
     <span class="appHeader-title">KVE 全栈后台管理系统</span>
     <div class="appHeader-right">
-        <el-link type="primary" @click="state.showPayDlg = true" style="margin-right: 10px">获取源码</el-link>
-        <el-switch v-model="isDark" style="margin-right: 24px" inline-prompt active-icon="Moon" inactive-icon="Sunny" />
+        <el-link
+            type="primary"
+            target="_blank"
+            href="https://github.com/scjmjy/kve-admin.git"
+            style="margin-right: 12px"
+        >
+            <SvgIcon icon="icon-github" :size="24" color="var(--el-text-color-primary)"></SvgIcon>
+        </el-link>
+        <el-switch
+            v-model="isDark"
+            style="margin-right: 12px"
+            inline-prompt
+            active-icon="Moon"
+            inactive-icon="Sunny"
+            @change="onThemeChange"
+        />
         <el-popover
             placement="bottom-end"
             :width="240"
@@ -23,33 +37,21 @@
             <ProfileCard @hideme="onHideme"></ProfileCard>
         </el-popover>
     </div>
-    <el-dialog v-model="state.showPayDlg" title="购买源码流程">
-        <div>
-            <ol>
-                <li>添加作者微信好友</li>
-                <li>支付金额： <strong>129</strong>元</li>
-                <li>把你的 github 账号名称告知作者</li>
-                <li>作者把你的 github 账号设置为此项目的协作者</li>
-                <li>拉取代码： <code>git clone https://github.com/scjmjy/kve-admin.git</code></li>
-                <li>加入QQ交流群</li>
-            </ol>
-            <div style="display: flex; justify-content: space-between; height: 300px">
-                <img style="overflow: hidden" src="@/assets/imgs/kve/WX.jpg" />
-
-                <img style="overflow: hidden" src="@/assets/imgs/kve/QQ-KVE-1.png" />
-            </div>
-        </div>
-    </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import { useDark } from "@vueuse/core";
+import { reactive, ref, watch } from "vue";
 import { useSystemStore } from "@/store/modules/system";
 import Hamburger from "@/components/Hamburger.vue";
 import ProfileCard from "./ProfileCard.vue";
+import { emitter } from "@/utils/event";
+import { useDarkMode } from "@/composables/useDarkMode";
 
-const isDark = useDark();
+const { isDark } = useDarkMode();
+
+function onThemeChange(dark: string | number | boolean) {
+    emitter.emit("theme-dark", dark as boolean);
+}
 
 const systemStore = useSystemStore();
 

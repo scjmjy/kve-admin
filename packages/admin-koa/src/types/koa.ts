@@ -5,14 +5,12 @@ import type { Redis } from "ioredis";
 import type { AjaxResult } from "admin-common";
 import type { ParsedUrlQuery } from "querystring";
 import type log4js from "log4js";
-import type { Cache } from "cache-manager";
 
 /**
  * token 中加密的数据
  */
 export interface JwtPayload {
     userId: string;
-    uuid: ObjectId;
 }
 
 /**
@@ -54,9 +52,14 @@ export interface KoaContext<
 }
 
 export interface AppConfig {
+    /** 是否是开发环境，即 NODE_ENV=development */
+    isDev: boolean;
+    /** koa 服务器监听端口 */
+    port: number;
+    /** 用于 session cookie 签名； 参考 @/middlewares/session.ts */
     keys: string[];
     /**
-     * 工作目录
+     * 工作目录，**不用手动设置**
      * workDir
      * ├── js/
      * │   ├── index.js
@@ -71,12 +74,15 @@ export interface AppConfig {
      * ├── ...
      */
     workDir: string;
-    isDev: boolean;
+    /** 用于 JWT 签名 */
     jwtSecret: string;
+    /** 业务数据库 Connection String */
     mongodbBiz: string;
-    mongodbGridFs: string;
+    /** GridFS 文件数据库 Connection String */
+    mongodbGridFS: string;
+    /** GridFS 文件下载接口前缀 */
     routeDownload: string;
-    port: number;
+    /** redis 连接配置 */
     redis: {
         host: string;
         port: number;
@@ -91,7 +97,6 @@ declare module "koa" {
         config: AppConfig;
         logger: log4js.Logger;
         loggerAccess: log4js.Logger;
-        redisCache: Cache;
         redisClient: Redis;
         perms?: string[];
     }

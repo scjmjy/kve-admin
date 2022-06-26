@@ -18,7 +18,7 @@
 <script setup lang="ts" name="ThirdNestedPage1">
 import { onActivated, ref } from "vue";
 import { useRouter } from "vue-router";
-import { findRouteFullpath } from "@/router/routes";
+import { findRouteFullpath } from "@/router";
 
 const router = useRouter();
 

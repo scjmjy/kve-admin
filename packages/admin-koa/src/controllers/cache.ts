@@ -247,7 +247,7 @@ export async function getCacheInfo(ctx: KoaAjaxContext<void, CacheInfoResult>) {
 }
 
 export async function clearCache(ctx: KoaAjaxContext<void, void>) {
-    await ctx.redisClient.flushdb("async");
+    await ctx.redisClient.flushdb("ASYNC");
     ctx.status = StatusCodes.OK;
     ctx.body = {
         code: ctx.status,

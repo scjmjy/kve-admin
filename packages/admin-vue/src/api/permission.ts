@@ -9,6 +9,7 @@ import {
     UpdateMenuItemBody,
     ReorderPermsBody,
     GetPermNodeQuery,
+    DragDropPermsBody,
 } from "admin-common";
 import { request } from "./request";
 
@@ -49,6 +50,14 @@ export function reorderPerms(body: ReorderPermsBody): AxiosPromise<void> {
     return request({
         method: "POST",
         url: "/api/perm/reorder",
+        data: body,
+    });
+}
+
+export function dragDropPerms(body: DragDropPermsBody): AxiosPromise<PermNodeResult | undefined> {
+    return request({
+        method: "POST",
+        url: "/api/perm/drag-drop",
         data: body,
     });
 }

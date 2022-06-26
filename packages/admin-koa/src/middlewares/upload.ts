@@ -5,7 +5,7 @@ import { ObjectId } from "bson";
 import { appConfig } from "@/config";
 
 const storage = new GridFsStorage({
-    url: appConfig.mongodbGridFs,
+    url: appConfig.mongodbGridFS,
     file(req, file) {
         return file.originalname;
     },

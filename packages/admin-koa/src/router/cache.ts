@@ -7,7 +7,7 @@ export const cacheRouter = new Router<any, any>({
     prefix: "/cache",
 });
 
-const hasPerm_cachemanage = hasPerm(PERM_CODES.system_cachemanage);
-const hasPerm_cachemanage_clear = hasPerm(PERM_CODES.system_cachemanage_clear);
+const hasPerm_cachemanage = hasPerm(PERM_CODES.monitor_cachemanage);
+const hasPerm_cachemanage_clear = hasPerm(PERM_CODES.monitor_cachemanage_clear);
 
-cacheRouter.use(hasPerm_cachemanage).get("/info", getCacheInfo).put("/clear", hasPerm_cachemanage_clear, clearCache);
+cacheRouter.use(hasPerm_cachemanage).get("/info", getCacheInfo).delete("/clear", hasPerm_cachemanage_clear, clearCache);

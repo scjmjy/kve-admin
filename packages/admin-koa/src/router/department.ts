@@ -33,6 +33,7 @@ export const roleRouter = new Router<any, any>({
 });
 
 roleRouter
+    .use(hasPerm_usermanage)
     .post("/", postRole)
     .put("/", putRole)
     .put("/perm", putRolePerms)

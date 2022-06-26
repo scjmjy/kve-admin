@@ -12,8 +12,6 @@
             :collapse-transition="false"
             :unique-opened="true"
             @select="onMenuItemSelected"
-            @open="onSubMenuOpen"
-            @close="onSubMenuClose"
         >
             <template v-for="route in systemStore.router.fullpathRoutes" :key="route.path">
                 <el-menu-item-group v-if="!(route.meta && route.meta.visible === false)" :title="route.meta?.title">
@@ -35,11 +33,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, nextTick, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ElMenu } from "element-plus";
 import { useSystemStore } from "@/store/modules/system";
-import { findRouteFullpath } from "@/router/routes";
+import { findRouteFullpath } from "@/router";
 import { isExternalLink } from "@/utils/is";
 import MenuItem from "./MenuItem.vue";
 
@@ -47,8 +45,8 @@ const route = useRoute();
 const systemStore = useSystemStore();
 const defaultActive = ref("");
 const forRoute = ref("");
-const openedIds_set = ref<Set<string>>(new Set());
-const refMenu = ref<InstanceType<typeof ElMenu>>();
+// const openedIds_set = ref<Set<string>>(new Set());
+// const refMenu = ref<InstanceType<typeof ElMenu>>();
 
 watch(
     () => route.path,
@@ -66,19 +64,19 @@ watch(
     },
 );
 
-watch(
-    () => systemStore.menu.collapse,
-    (collapse) => {
-        if (!collapse) {
-            nextTick(() => {
-                openedIds_set.value.forEach((val) => {
-                    // @ts-ignore
-                    // refMenu.value?.open(val);
-                });
-            });
-        }
-    },
-);
+// watch(
+//     () => systemStore.menu.collapse,
+//     (collapse) => {
+//         if (!collapse) {
+//             nextTick(() => {
+//                 openedIds_set.value.forEach((val) => {
+//                     // @ts-ignore
+//                     refMenu.value?.open(val);
+//                 });
+//             });
+//         }
+//     },
+// );
 
 let restoreMenuCollapse = false;
 
@@ -110,17 +108,17 @@ function onMenuItemSelected(index: string) {
         }, 100);
     }
 }
-function onSubMenuOpen(index: string, indexPath: string[]) {
-    openedIds_set.value.add(index);
-    // console.log('[onSubMenuOpen]', index, indexPath);
-}
-function onSubMenuClose(index: string, indexPath: string[]) {
-    openedIds_set.value.delete(index);
-    for (const idx of indexPath) {
-        openedIds_set.value.delete(idx);
-    }
-    console.log('[onSubMenuClose]', index, indexPath);
-}
+// function onSubMenuOpen(index: string, indexPath: string[]) {
+//     openedIds_set.value.add(index);
+//     // console.log('[onSubMenuOpen]', index, indexPath);
+// }
+// function onSubMenuClose(index: string, indexPath: string[]) {
+//     openedIds_set.value.delete(index);
+//     for (const idx of indexPath) {
+//         openedIds_set.value.delete(idx);
+//     }
+//     console.log('[onSubMenuClose]', index, indexPath);
+// }
 
 const elHamburger = ref<HTMLElement | null>();
 onMounted(() => {
@@ -139,13 +137,14 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
     box-sizing: border-box;
     z-index: 100;
     background: left/cover linear-gradient(to right, #141e30d4, #243b55c7),
-        no-repeat left/cover url(@/assets/imgs/bg-menu-1.jpeg);
+        no-repeat left/cover url(@/assets/imgs/bg-menu.jpeg);
 
     .el-menu {
         --el-menu-active-color: white;
         --el-menu-item-height: 48px;
         border-right: none !important;
         background-color: transparent;
+        margin-left: auto;
         &--inline {
             margin-left: 30px;
             &::before {
@@ -188,7 +187,8 @@ $menuItemBgLight: rgba(255, 255, 255, 0.12);
             font-weight: bold;
         }
         &.el-menu--collapse {
-            margin-left: 8px; // TODO ($collapseWidth - $menuCollaseWidth) / 2
+            margin-right: 8px; // TODO ($collapseWidth - $menuCollaseWidth) / 2
+            // margin-left: 8px; // TODO ($collapseWidth - $menuCollaseWidth) / 2
             width: $menuCollaseWidth !important;
             .el-menu-item-group {
                 border-top: 2px solid rgba(255, 255, 255, 0.3);

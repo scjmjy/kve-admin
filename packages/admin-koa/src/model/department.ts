@@ -43,16 +43,14 @@ RoleSchema.pre(["find", "findOne"], function (next) {
     next();
 });
 
-RoleSchema.post("insertMany", function (res, next) {
-    deptService && deptService.deleteCache();
-    next();
+RoleSchema.post("insertMany", async function () {
+    deptService && (await deptService.deleteCache());
 });
 
-RoleSchema.post(["save", "remove", "deleteOne", "updateOne"], function (res, next) {
-    deptService && deptService.deleteCache();
-    permService && permService.deleteCache();
-    userService && userService.deleteCache();
-    next();
+RoleSchema.post(["save", "remove", "deleteOne", "updateOne"], async function () {
+    deptService && (await deptService.deleteCache());
+    permService && (await permService.deleteCache());
+    userService && (await userService.deleteCache());
 });
 
 RoleSchema.post(
@@ -67,11 +65,10 @@ RoleSchema.post(
         "updateOne",
         "updateMany",
     ],
-    function (res, next) {
-        deptService && deptService.deleteCache();
-        permService && permService.deleteCache();
-        userService && userService.deleteCache();
-        next();
+    async function () {
+        deptService && (await deptService.deleteCache());
+        permService && (await permService.deleteCache());
+        userService && (await userService.deleteCache());
     },
 );
 export const RoleModel = mongoose.model<IRoleDoc, IRoleModel>(MODEL_NAME_ROLE, RoleSchema);
@@ -142,16 +139,14 @@ DepartmentSchema.pre(["find", "findOne"], function (next) {
     next();
 });
 
-DepartmentSchema.post("insertMany", function (res, next) {
-    deptService && deptService.deleteCache();
-    next();
+DepartmentSchema.post("insertMany", async function () {
+    deptService && (await deptService.deleteCache());
 });
 
-DepartmentSchema.post(["save", "remove", "deleteOne", "updateOne"], function (res, next) {
-    deptService && deptService.deleteCache();
-    permService && permService.deleteCache();
-    userService && userService.deleteCache();
-    next();
+DepartmentSchema.post(["save", "remove", "deleteOne", "updateOne"], async function () {
+    deptService && (await deptService.deleteCache());
+    permService && (await permService.deleteCache());
+    userService && (await userService.deleteCache());
 });
 
 DepartmentSchema.post(
@@ -166,11 +161,10 @@ DepartmentSchema.post(
         "updateOne",
         "updateMany",
     ],
-    function (res, next) {
-        deptService && deptService.deleteCache();
-        permService && permService.deleteCache();
-        userService && userService.deleteCache();
-        next();
+    async function () {
+        deptService && (await deptService.deleteCache());
+        permService && (await permService.deleteCache());
+        userService && (await userService.deleteCache());
     },
 );
 

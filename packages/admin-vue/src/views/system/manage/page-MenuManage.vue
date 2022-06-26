@@ -57,7 +57,7 @@
 import { computed, nextTick, onActivated, provide, reactive, ref, toRef, watch } from "vue";
 import { ElTree } from "element-plus";
 import { cloneDeep } from "lodash";
-import { PermNodeResult } from "admin-common";
+import { DragDropPermsBody, PermNodeResult } from "admin-common";
 import {
     symbolFetchPerm,
     symbolPermOriginal,
@@ -65,7 +65,7 @@ import {
     deepFindMenu,
     filterDeletedMenuNodes,
 } from "./composables/useMenuNodes";
-import { getPermNodes, reorderPerms } from "@/api/permission";
+import { getPermNodes, reorderPerms, dragDropPerms } from "@/api/permission";
 import MenuProfile from "./components/MenuProfile.vue";
 import { normalizePath } from "@/utils/url";
 
@@ -151,27 +151,41 @@ onActivated(() => {
 function allowDrag(node: TreeNode) {
     return !!node.parent;
 }
+
+let draggingNodeParentId: string | undefined = undefined;
+
 function allowDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "prev" | "inner" | "next") {
-    // 只允许在同一层移动
-    if (type === "inner" || draggingNode.parent !== dropNode.parent) {
+    // console.log("[allowDrop]", arguments);
+    // 动作菜单不能有子菜单
+    if (type === "inner" && dropNode.data.type === "action") {
         return false;
     }
+    // 菜单项里只能包含动作
+    if (type === "inner" && dropNode.data.type === "menuitem" && draggingNode.data.type !== "action") {
+        return false;
+    }
+    draggingNodeParentId = draggingNode.parent.data._id;
     return true;
 }
 
 async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "before" | "after" | "inner") {
-    const permId = dropNode.parent.data._id;
-    const newChildNodes = dropNode.parent.childNodes;
-    const newOrder = newChildNodes.map((item) => item.data._id);
-    await reorderPerms({
-        permId,
-        permIds: newOrder,
+    // console.log("[onNodeDrop]", arguments);
+    const body: DragDropPermsBody = {
+        draggingId: draggingNode.data._id,
+        draggingParentId: draggingNodeParentId || "",
+        dropId: dropNode.data._id,
+        dropParentId: dropNode.parent.data._id,
+        type,
+        returnNew: true,
+    };
+
+    state.loading = true;
+    const res = await dragDropPerms(body).finally(() => {
+        state.loading = false;
     });
-    // 按照最新的顺序重新排序
-    const menu = deepFindMenu([state.permNodes!], permId)!;
-    menu.children!.sort((a, b) => {
-        return newOrder.findIndex((id) => a._id === id) - newOrder.findIndex((id) => b._id === id);
-    });
+    if (res.data) {
+        state.permNodes = res.data;
+    }
 }
 
 function onCurrentNodeChange(data: NodeType, node: TreeNode) {
@@ -211,6 +225,11 @@ function resetCurrentKey(permId?: string) {
     &-node {
         display: inline-flex;
         align-items: center;
+        .el-tree-node.is-drop-inner > .el-tree-node__content & {
+            > span {
+                background-color: var(--el-color-primary);
+            }
+        }
     }
     &-tabs {
         box-shadow: 0 2px 5px #808080a6;

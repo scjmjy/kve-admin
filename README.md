@@ -1,69 +1,33 @@
 # KVE 全栈后台管理系统
 
 - [1. 介绍](#1-介绍)
-- [2. 警告](#2-警告)
+- [2. TODOs](#2-todos)
 - [3. 本地开发](#3-本地开发)
   - [3.1. 第一步：部署 mongodb 并初始化数据](#31-第一步部署-mongodb-并初始化数据)
-  - [3.2. 第二步：安装项目依赖](#32-第二步安装项目依赖)
-  - [3.3. 第三步：启动后端](#33-第三步启动后端)
+  - [第二步：部署 redis](#第二步部署-redis)
+  - [3.2. 第三步：安装项目依赖](#32-第三步安装项目依赖)
+  - [3.3. 第四步：启动后端](#33-第四步启动后端)
   - [3.4. 第四步：启动前端](#34-第四步启动前端)
 - [4. 部署](#4-部署)
 
 ## 1. 介绍
 
-后端使用 Koa，前端使用 Vue3 + ElementPlus，因此取名为 KVE 全栈后台管理系统。
+后端使用 Koa2，前端使用 Vue3 + ElementPlus2，因此取名为 KVE 全栈后台管理系统。
 
 数据库使用 MongoDB。
 
 前后端均使用 Typescript，代码逻辑清晰、精炼。
 
-目前包含功能：
+更多介绍请前往在线预览地址：http://kve.iflyit.top:3000
 
-1. 登录
-2. 个人资料
-3. 优雅的路由功能
-   - 路由缓存
-   - 动态参数路由
-   - 多级嵌套路由
-   - 基于后端“角色系统+权限菜单”的路由过滤
-4. 文件上传、下载、预览
-   - 基于 MongoDB + GridFs
-   - 识别多种图片/视频/Office文件格式
-5. 优雅的增删改查
-   - CrudForm, CrudFormDlg, CrudTable 组件：快速搭建增删改查业务
-   - 配合 MongoDB + GridFs，调用一次接口同时 POST/PUT 表单数据和文件数据
-   - 优雅的分页和过滤功能
-6. 优雅的图标组件 SvgIcon，自动识别以下类型图标：
-   - 自定义 svg 文件图标
-   - ElementPlus Icons
-7. ElementPlus 自带的暗黑模式
-8. 优雅的响应式设计
-   - 可编程的响应式设计
-9. 优雅的部门、角色、用户管理系统
-   - 部门、角色、用户的关系清晰明朗
-   - 易于管理维护
-10. 优雅的权限菜单管理系统
-    - `page-***.vue` 自动识别为页面组件
-    - 易于管理维护
-11. 优雅的前后端错误机制
-    - 后端可控制错误信息在前端的显示方式、显示内容以及显示与否 
-12. ......
+## 2. TODOs
 
-此项目包含三个子项目，使用 yarn workspace 管理：
-
-1. packages/admin-common: 前后端通用代码库
-2. packages/admin-koa: 后端项目
-3. packages/admin-vue: 前端项目
-
-## 2. 警告
-
-此项目可作为学习的材料，然而后端功能目前比较单一，谨慎商用：
-
-- 后端会话管理功能不全
-- 缓存功能比较简陋：in-memory cache
-- 没有日志分析模块
-- 没有单元测试用例
-- ......
+- [ ] 前端：更多 Echarts 图表示例
+- [ ] 前端：其他...
+- [ ] 后端：单元测试
+- [ ] 后端：操作日志可视化
+- [ ] 后端：访问日志可视化
+- [ ] 后端：其他...
 
 ## 3. 本地开发
 
@@ -84,16 +48,21 @@
 
 > 你也可以跳过此步骤，使用源码中默认的 MongoDB Atlas Cluster，但这是只读的（任何写入 MongoDB 的操作都会失败）。
 
-### 3.2. 第二步：安装项目依赖
+### 第二步：部署 redis
+
+- 方式一：Docker, 教程：略
+- 方式二：Ubuntu, 教程：略
+
+### 3.2. 第三步：安装项目依赖
 
 ```bash
 # 项目根目录下执行
 yarn
 ```
 
-> 安装 sharp 时可能会出错，这是网络原因，请自行百度解决。
+> 安装 sharp 时可能会出错，这是网络原因，可以多试几次，或自行百度解决。
 
-### 3.3. 第三步：启动后端
+### 3.3. 第四步：启动后端
 
 修改配置：
 
@@ -103,7 +72,12 @@ export const appConfig: AppConfig = {
     ......
     jwtSecret: "<你的 jwt secret>",
     mongodbBiz: "mongodb+srv://<管理员名称>:<管理员密码>@<集群名字>.ydfnfii.mongodb.net/biz?retryWrites=true&w=majority",
-    mongodbGridFs: "mongodb+srv://<管理员名称>:<管理员密码>@<集群名字>.ydfnfii.mongodb.net/gridfs?retryWrites=true&w=majority",
+    mongodbGridFS: "mongodb+srv://<管理员名称>:<管理员密码>@<集群名字>.ydfnfii.mongodb.net/gridfs?retryWrites=true&w=majority",
+    redis: {
+        host: "127.0.0.1",
+        port: 6379,
+        ......
+    }
     ......
 };
 ```
@@ -131,6 +105,10 @@ yarn dev:vue
 # 项目根目录下执行
 yarn build
 yarn preview # 预览
+# 或者
+yarn build
+cd packages/admin-koa/scripts
+./start.sh
 ```
 浏览器访问：http://localhost:3000
 

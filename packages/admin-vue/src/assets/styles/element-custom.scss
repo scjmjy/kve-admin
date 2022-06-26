@@ -37,6 +37,12 @@
 }
 .el-message-box {
     vertical-align: unset;
+    &__message {
+        white-space: pre-wrap;
+    }
+}
+.el-notification__content p {
+    white-space: pre-wrap;
 }
 
 .el-scrollbar {

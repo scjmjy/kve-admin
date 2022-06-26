@@ -56,7 +56,7 @@ export async function handlePaginationRequest<T, FilterT extends string>(
         sort,
         options: extraQueryOpts,
     };
-    const queryBuilder = new QueryBuilder<PaginationParams<FilterT>["filter"]>(extraQuery);
+    const queryBuilder = new QueryBuilder(extraQuery);
     if (filter) {
         queryBuilder.addQuery(filter);
     }
@@ -64,9 +64,9 @@ export async function handlePaginationRequest<T, FilterT extends string>(
     return makePaginationResult(res);
 }
 
-export class QueryBuilder<T> {
-    constructor(public query: mongoose.FilterQuery<T> = {}) {}
-    addQuery(query: mongoose.FilterQuery<T>) {
+export class QueryBuilder {
+    constructor(public query: mongoose.FilterQuery<any> = {}) {}
+    addQuery(query: Record<string, PaginationCondition>) {
         let key: any;
         for (key in query) {
             const value = query[key];
@@ -114,14 +114,14 @@ export class QueryBuilder<T> {
     clearQuery() {
         this.query = {};
     }
-    equal(prop: keyof T, keyword?: string | number) {
+    equal(prop: string, keyword?: string | number) {
         if (keyword !== undefined && keyword !== null) {
             // @ts-ignore
             this.query[prop] = keyword;
         }
         return this;
     }
-    notEqual(prop: keyof T, keyword?: string | number) {
+    notEqual(prop: string, keyword?: string | number) {
         if (keyword !== undefined && keyword !== null) {
             // @ts-ignore
             this.query[prop] = {
@@ -130,7 +130,7 @@ export class QueryBuilder<T> {
         }
         return this;
     }
-    gte(prop: keyof T, keyword?: string | number) {
+    gte(prop: string, keyword?: string | number) {
         if (keyword !== undefined && keyword !== null) {
             // @ts-ignore
             this.query[prop] = {
@@ -139,7 +139,7 @@ export class QueryBuilder<T> {
         }
         return this;
     }
-    gt(prop: keyof T, keyword?: string | number) {
+    gt(prop: string, keyword?: string | number) {
         if (keyword !== undefined && keyword !== null) {
             // @ts-ignore
             this.query[prop] = {
@@ -148,7 +148,7 @@ export class QueryBuilder<T> {
         }
         return this;
     }
-    lte(prop: keyof T, keyword?: string | number) {
+    lte(prop: string, keyword?: string | number) {
         if (keyword !== undefined && keyword !== null) {
             // @ts-ignore
             this.query[prop] = {
@@ -157,7 +157,7 @@ export class QueryBuilder<T> {
         }
         return this;
     }
-    lt(prop: keyof T, keyword?: string | number) {
+    lt(prop: string, keyword?: string | number) {
         if (keyword !== undefined && keyword !== null) {
             // @ts-ignore
             this.query[prop] = {
@@ -166,14 +166,14 @@ export class QueryBuilder<T> {
         }
         return this;
     }
-    regexp(prop: keyof T, keyword?: string) {
+    regexp(prop: string, keyword?: string) {
         if (keyword) {
             // @ts-ignore
             this.query[prop] = new RegExp(keyword, "i");
         }
         return this;
     }
-    range(prop: keyof T, range?: (string | number)[]) {
+    range(prop: string, range?: (string | number)[]) {
         if (range && range.length >= 2) {
             // @ts-ignore
             this.query[prop] = {
@@ -183,7 +183,7 @@ export class QueryBuilder<T> {
         }
         return this;
     }
-    in(prop: keyof T, range?: (string | number)[]) {
+    in(prop: string, range?: (string | number)[]) {
         if (range) {
             // @ts-ignore
             this.query[prop] = {
@@ -192,7 +192,7 @@ export class QueryBuilder<T> {
         }
         return this;
     }
-    notIn(prop: keyof T, range?: (string | number)[]) {
+    notIn(prop: string, range?: (string | number)[]) {
         if (range) {
             // @ts-ignore
             this.query[prop] = {

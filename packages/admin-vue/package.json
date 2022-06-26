@@ -8,29 +8,33 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@vueuse/core": "^8.6.0",
+        "@amap/amap-jsapi-loader": "^1.0.1",
+        "@vueuse/core": "^8.7.5",
         "admin-common": "1.0.0",
         "axios": "^0.27.2",
         "echarts": "^5.3.3",
+        "echarts-extension-amap": "^1.10.1",
         "element-plus": "^2.2.6",
         "js-cookie": "^3.0.1",
+        "mitt": "^3.0.0",
         "nprogress": "^0.2.0",
         "pinia": "^2.0.14",
         "platform": "^1.3.6",
-        "sass": "^1.52.3",
+        "sass": "^1.53.0",
         "vue": "^3.2.37",
         "vue-cropper": "^1.0.3",
-        "vue-router": "^4.0.15"
+        "vue-router": "^4.0.16"
     },
     "devDependencies": {
+        "@types/amap-js-api": "^1.4.10",
         "@types/js-cookie": "^3.0.2",
         "@types/nprogress": "^0.2.0",
         "@types/platform": "^1.3.4",
         "@vitejs/plugin-vue": "^2.3.3",
-        "typescript": "^4.7.3",
-        "vite": "^2.9.10",
+        "typescript": "^4.7.4",
+        "vite": "^2.9.12",
         "vite-plugin-svg-icons": "^2.0.1",
         "vite-plugin-vue-setup-extend": "^0.4.0",
-        "vue-tsc": "^0.37.3"
+        "vue-tsc": "^0.38.1"
     }
 }

@@ -10,10 +10,15 @@
                 >
                     <h3 class="login-title text-3d">KVE 全栈后台管理系统</h3>
                     <el-form-item prop="username">
-                        <el-input v-model="credential.username" placeholder="输入用户名"></el-input>
+                        <el-input
+                            v-model="credential.username"
+                            placeholder="输入用户名"
+                            @keyup.enter="onUsernameInputEnter"
+                        ></el-input>
                     </el-form-item>
                     <el-form-item prop="password">
                         <el-input
+                            ref="refInputPasswd"
                             v-model="credential.password"
                             type="password"
                             show-password
@@ -34,21 +39,13 @@
                     <div class="login-findPassword">
                         <el-link type="primary" @click.prevent="rotateCard">找回密码</el-link>
                     </div>
-                    <table style="font-size: 0.6em">
+                    <table style="width: 100%; margin-top: 5px; font-size: 0.6em" border="1">
                         <tr>
                             <th>用户名</th>
                             <th>密码</th>
                         </tr>
                         <tr>
-                            <td>superadmin</td>
-                            <td>123456</td>
-                        </tr>
-                        <tr>
-                            <td>admin01</td>
-                            <td>123456</td>
-                        </tr>
-                        <tr>
-                            <td>admin02</td>
+                            <td>superadmin, admin01, admin02, user01, user02</td>
                             <td>123456</td>
                         </tr>
                     </table>
@@ -89,7 +86,7 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
 import DoubleFaceCard from "@/components/card/DoubleFaceCard.vue";
-import { ElMessage, FormInstance, FormRules } from "element-plus";
+import { ElMessage, FormInstance, FormRules, ElInput } from "element-plus";
 import { LoginCredential } from "admin-common";
 import { useUserStore } from "@/store/modules/user";
 import { useRoute, useRouter } from "vue-router";
@@ -97,6 +94,8 @@ import { ROUTE_PATH } from "@/router/consts";
 
 const router = useRouter();
 const route = useRoute();
+
+const refInputPasswd = ref<InstanceType<typeof ElInput>>();
 
 const credential = reactive<LoginCredential>({
     username: "",
@@ -136,6 +135,16 @@ const findRules: FormRules = {
 
 const formCrt = ref<FormInstance>();
 const formFind = ref<FormInstance>();
+
+function onUsernameInputEnter() {
+    if (credential.username.length) {
+        if (credential.password.length) {
+            handleLogin();
+        } else {
+            refInputPasswd.value?.focus();
+        }
+    }
+}
 
 function handleLogin() {
     formCrt.value

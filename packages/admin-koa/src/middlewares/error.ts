@@ -66,7 +66,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                 ctx.body = {
                     code: ctx.status,
                     showType: "NOTIFICATION",
-                    msg: "只读数据库，不可写入！",
+                    msg: "只读数据库，不可写入！\n请搭建自己的MongoDB Cluster。",
                 };
                 console.log("[只读数据库]", err);
             } else {
@@ -133,6 +133,6 @@ export function error404(ctx: KoaAjaxContext<any, void>) {
     ctx.body = {
         code: ctx.status,
         showType: "NOTIFICATION",
-        msg: "请求的资源不存在: " + ctx.url,
+        msg: "请求的资源不存在:\n" + ctx.url,
     };
 }

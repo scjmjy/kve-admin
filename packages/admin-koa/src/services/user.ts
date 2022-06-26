@@ -7,12 +7,12 @@ import {
     UserProfileProjection,
     UserProfileResult,
 } from "admin-common";
-import type { Cache } from "cache-manager";
 import type Redis from "ioredis";
 import { UserModel } from "@/model/user";
 import { DepartmentModel } from "@/model/department";
 import { permService } from "./index";
 import "@/cache"; // TODO for ts-node-dev
+import { SessionMaxAge } from "@/middlewares/session";
 
 // export const UserCacheKey = {
 //     perm_nodes_enabled: Symbol("perm_nodes_enabled"),
@@ -68,119 +68,116 @@ function filterPerms(perms: IPermission[], permIds: string[], permCodes: string[
 export class UserService {
     static USER_PROFILE_KEY = "user_profile:";
     static USER_PERMS_KEY = "user_perms:";
-    private redisClient: Redis.Redis | Redis.Cluster;
+    constructor(private redisClient: Redis) {}
 
-    constructor(private cache: Cache) {
-        this.redisClient = this.cache.store.getClient();
-    }
     private async setUserPerms(userId: string, perms: string[]) {
-        return this.cache.set(UserService.USER_PERMS_KEY + userId, perms);
+        return this.redisClient.set(UserService.USER_PERMS_KEY + userId, JSON.stringify(perms), "PX", SessionMaxAge.ms);
     }
-    async getUserPerms(userId: string) {
-        let perms = await this.cache.get<string[]>(UserService.USER_PERMS_KEY + userId);
+
+    async getUserPerms(userId: string): Promise<string[]> {
+        let perms = await this.redisClient.get(UserService.USER_PERMS_KEY + userId);
         if (!perms) {
-            perms = [];
-            await this.getUserProfile(userId, perms);
+            const profile = await this.getUserProfile(userId);
+            return profile ? profile.permCodes : [];
         }
-        return perms;
+        return JSON.parse(perms);
     }
-    async getUserProfile(
-        userId: string,
-        returnPerms: string[] | undefined = undefined,
-    ): Promise<UserProfileResult | undefined> {
-        const userProfile = await this.cache.wrap(UserService.USER_PROFILE_KEY + userId, async () => {
-            let existingUser = await UserModel.findById<FindUserProfileResult>(userId, UserProfileProjection.join(" "))
-                .populate({
-                    path: "depts",
-                    select: "name",
-                    match: {
-                        status: "enabled",
-                    },
-                })
-                .populate({
-                    path: "roles",
-                    select: "name perms",
-                    match: {
-                        status: "enabled",
-                    },
-                })
-                .exec();
-            if (!existingUser) {
-                return undefined;
-            }
-            let { _id, username, realname, email, mobileno, gender, depts, roles, createdAt, updatedAt } = existingUser;
 
-            // 去除无效的 dept 里的 roles
-            const allRoleIds = roles.map((role) => role._id);
-            const inactiveDepts = await DepartmentModel.find<{ roles: mongoose.Types.ObjectId[] }>(
-                {
-                    roles: {
-                        $in: allRoleIds,
-                    },
-                    status: {
-                        $ne: "enabled",
-                    },
+    async getUserProfile(userId: string): Promise<UserProfileResult | undefined> {
+        const key = UserService.USER_PROFILE_KEY + userId;
+        let cached = await this.redisClient.get(key);
+        if (cached) {
+            return JSON.parse(cached);
+        }
+        let existingUser = await UserModel.findById<FindUserProfileResult>(userId, UserProfileProjection.join(" "))
+            .populate({
+                path: "depts",
+                select: "name",
+                match: {
+                    status: "enabled",
                 },
-                "name roles",
-            );
-            for (const dept of inactiveDepts) {
-                roles = roles.filter((role) => dept.roles.includes(role._id));
-            }
+            })
+            .populate({
+                path: "roles",
+                select: "name perms",
+                match: {
+                    status: "enabled",
+                },
+            })
+            .exec();
+        if (!existingUser) {
+            return undefined;
+        }
+        let { _id, username, realname, email, mobileno, gender, depts, roles, createdAt, updatedAt } = existingUser;
 
-            let userPerms: IPermission[] = [];
-            let permCodes: string[] = [];
+        // 去除无效的 dept 里的 roles
+        const allRoleIds = roles.map((role) => role._id);
+        const inactiveDepts = await DepartmentModel.find<{ roles: mongoose.Types.ObjectId[] }>(
+            {
+                roles: {
+                    $in: allRoleIds as any,
+                },
+                status: {
+                    $ne: "enabled",
+                },
+            },
+            "name roles",
+        );
+        for (const dept of inactiveDepts) {
+            roles = roles.filter((role) => dept.roles.includes(role._id));
+        }
 
-            const perm = await permService.getPermNodes("enabled");
-            const isSuperadmin = roles.find((role) => {
-                const id = role._id.toString();
-                return id === ROLE_SUPERADMIN_ID;
+        let userPerms: IPermission[] = [];
+        let permCodes: string[] = [];
+
+        const perm = await permService.getPermNodes("enabled");
+        const isSuperadmin = roles.find((role) => {
+            const id = role._id.toString();
+            return id === ROLE_SUPERADMIN_ID;
+        });
+
+        if (perm && isSuperadmin) {
+            // 超级管理员拥有所有权限
+            userPerms = perm.children || [];
+            permCodes = [PERM_CODES.root];
+        } else if (perm) {
+            const permIds: string[] = [];
+            roles.forEach((item) => {
+                item.perms.forEach((perm) => permIds.push(perm.toString()));
             });
-            if (perm && isSuperadmin) {
-                // 超级管理员拥有所有权限
-                userPerms = perm.children || [];
-                permCodes = [PERM_CODES.root];
+            userPerms = filterPerms(perm.children || [], permIds, permCodes);
+        }
 
-                this.setUserPerms(userId, permCodes);
-            } else if (perm) {
-                const permIds: string[] = [];
-                roles.forEach((item) => {
-                    item.perms.forEach((perm) => permIds.push(perm.toString()));
-                });
-                userPerms = filterPerms(perm.children || [], permIds, permCodes);
-                this.setUserPerms(userId, permCodes);
-            }
-            if (returnPerms) {
-                returnPerms.push(...permCodes);
-            }
+        this.setUserPerms(userId, permCodes);
 
-            const deptsJSON = depts.map((dept) => {
-                return {
-                    _id: dept._id.toString(),
-                    name: dept.name,
-                };
-            });
-            const rolesJSON = roles.map((role) => {
-                return {
-                    _id: role._id.toString(),
-                    name: role.name,
-                };
-            });
-
+        const deptsJSON = depts.map((dept) => {
             return {
-                _id,
-                username,
-                realname,
-                email,
-                mobileno,
-                gender,
-                depts: deptsJSON,
-                roles: rolesJSON,
-                createdAt,
-                updatedAt,
-                perms: userPerms,
-                permCodes,
+                _id: dept._id.toString(),
+                name: dept.name,
             };
         });
+        const rolesJSON = roles.map((role) => {
+            return {
+                _id: role._id.toString(),
+                name: role.name,
+            };
+        });
+
+        const userProfile = {
+            _id,
+            username,
+            realname,
+            email,
+            mobileno,
+            gender,
+            depts: deptsJSON,
+            roles: rolesJSON,
+            createdAt,
+            updatedAt,
+            perms: userPerms,
+            permCodes,
+        };
+        this.redisClient.set(key, JSON.stringify(userProfile), "PX", SessionMaxAge.ms);
         return userProfile;
     }
 
@@ -194,6 +191,9 @@ export class UserService {
             const keys2 = await this.redisClient.keys(UserService.USER_PERMS_KEY + "*");
             keys = keys1.concat(keys2);
         }
-        await this.redisClient.del(keys);
+        if (keys.length) {
+            return this.redisClient.del(keys);
+        }
+        return Promise.resolve(0);
     }
 }

@@ -200,8 +200,6 @@ const state = reactive({
     permNode: undefined as Undefinable<PermNodeResult>,
 });
 
-let g_allPermIds: string[] = [];
-
 const state2 = reactive({
     deptInfo: computed(() => {
         const { currentNode } = state;
@@ -355,7 +353,6 @@ async function fetchPermNode() {
         status: "enabled",
     });
     state.permNode = res.data;
-    g_allPermIds = extractAllPermIds(state.permNode);
 }
 
 const formDataPerm = ref({} as UpdateRolePermsBody);

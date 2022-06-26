@@ -112,12 +112,12 @@
                     </template>
                     <el-dropdown
                         v-if="actions.dropdowns && actions.dropdowns.items.length"
-                        @visible-change="!$event && (scope.row.__dropdown = false)"
+                        @visible-change="!$event && (scope.row.$__dropdown = false)"
                         @command="actions!.dropdowns!.onCommand($event, scope.row)"
                     >
-                        <span @mouseenter="scope.row.__dropdown = true">
+                        <span @mouseenter="scope.row.$__dropdown = true">
                             {{ actions.dropdowns.more }}
-                            <el-icon :class="{ 'is-up': scope.row.__dropdown, 'el-icon__ani': true }"
+                            <el-icon :class="{ 'is-up': scope.row.$__dropdown, 'el-icon__ani': true }"
                                 ><arrow-down
                             /></el-icon>
                         </span>

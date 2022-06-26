@@ -73,11 +73,11 @@ function convertPermNode2SelectOpts(nodes: PermNodeResult[]) {
 }
 
 export function filterPerms(node: PermNodeResult, perms: string[]) {
+    const result: PermNodeResult[] = [];
     if (perms.includes(node._id)) {
-        return [node];
+        result.push(node);
     }
 
-    const result: PermNodeResult[] = [];
     for (const n of node.children || []) {
         const found = filterPerms(n, perms);
         if (found) {

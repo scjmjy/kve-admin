@@ -77,14 +77,12 @@ UserSchema.pre(["find", "findOne"], function (next) {
     next();
 });
 
-UserSchema.post("insertMany", function (res, next) {
-    userService && userService.deleteCache();
-    next();
+UserSchema.post("insertMany", async function () {
+    userService && (await userService.deleteCache());
 });
 
-UserSchema.post(["save", "remove", "deleteOne", "updateOne"], function (res, next) {
-    userService && userService.deleteCache(this._id);
-    next();
+UserSchema.post(["save", "remove", "deleteOne", "updateOne"], async function () {
+    userService && (await userService.deleteCache(this._id));
 });
 
 UserSchema.post(
@@ -99,9 +97,8 @@ UserSchema.post(
         "updateOne",
         "updateMany",
     ],
-    function (res, next) {
-        userService && userService.deleteCache();
-        next();
+    async function () {
+        userService && (await userService.deleteCache());
     },
 );
 

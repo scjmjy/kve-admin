@@ -5,9 +5,10 @@
         class="contextMenu-item"
         :class="{ 'is-disabled': item.disabled }"
         :data-divider="item.divider"
+        @click="onBtnClick(item)"
     >
         <SvgIcon v-if="item.icon" :icon="item.icon"></SvgIcon>
-        <button class="contextMenu-button" :style="`animation-delay: ${index * 0.08}s`" @click="onBtnClick(item)">
+        <button class="contextMenu-button" :style="`animation-delay: ${index * 0.08}s`">
             {{ item.label }}
         </button>
     </li>

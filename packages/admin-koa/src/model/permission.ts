@@ -82,15 +82,13 @@ PermissionSchema.pre(["find", "findOne"], function (next) {
     next();
 });
 
-PermissionSchema.post("insertMany", function (res, next) {
-    permService && permService.deleteCache();
-    next();
+PermissionSchema.post("insertMany", async function () {
+    permService && (await permService.deleteCache());
 });
 
-PermissionSchema.post(["save", "remove", "deleteOne", "updateOne"], function (res, next) {
-    permService && permService.deleteCache();
-    userService && userService.deleteCache();
-    next();
+PermissionSchema.post(["save", "remove", "deleteOne", "updateOne"], async function () {
+    permService && (await permService.deleteCache());
+    userService && (await userService.deleteCache());
 });
 
 PermissionSchema.post(
@@ -105,10 +103,9 @@ PermissionSchema.post(
         "updateOne",
         "updateMany",
     ],
-    function (res, next) {
-        permService && permService.deleteCache();
-        userService && userService.deleteCache();
-        next();
+    async function () {
+        permService && (await permService.deleteCache());
+        userService && (await userService.deleteCache());
     },
 );
 

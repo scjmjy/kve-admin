@@ -41,6 +41,10 @@ request.interceptors.response.use(
         if (res.config.headers) {
             msgSilent = res.config.headers[MsgSilentHeader] as MsgSilent;
         }
+        if (!res.data.data) {
+            // 后端没有用 AjaxResult，例如静态文件，此时直接返回 res
+            return res;
+        }
         const body = res.data as AjaxResult;
         if (msgSilent !== "SUCCESS" && msgSilent !== "BOTH") {
             switch (body.showType) {

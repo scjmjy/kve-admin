@@ -23,7 +23,6 @@
             stripe
             show-summary
             style="margin-top: 20px"
-            max-height="450px"
         >
             <el-table-column
                 v-for="col of cacheInfo.columns"
@@ -83,5 +82,10 @@ async function onClearClick() {
 
 <style scoped lang="scss">
 .cacheManage {
+    display: flex;
+    flex-direction: column;
+    &-table {
+        flex: 1;
+    }
 }
 </style>

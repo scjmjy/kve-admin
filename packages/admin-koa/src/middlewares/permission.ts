@@ -14,6 +14,7 @@ export function hasPerm(perm: string | string[], mode: PermMatchMode = "every"):
         if (ctx.perms.includes(PERM_CODES.root) || hasPerm_(ctx.perms, perm, mode)) {
             return next();
         }
-        return throwPermissionError("无权进行此操作！", "NOTIFICATION");
+        const tip = ctx.config.isDev ? "\n" + (Array.isArray(perm) ? perm : [perm]).join(", ") : "";
+        return throwPermissionError("无权进行此操作！" + tip, "NOTIFICATION");
     };
 }

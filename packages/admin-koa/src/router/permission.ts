@@ -1,6 +1,13 @@
 import Router from "koa-router";
 import { PERM_CODES } from "admin-common";
-import { getPermNodes, postPermission, putEnablePerm, putPermission, postReorderPerms } from "@/controllers/permission";
+import {
+    getPermNodes,
+    postPermission,
+    putEnablePerm,
+    putPermission,
+    postReorderPerms,
+    postDragDropPerms,
+} from "@/controllers/permission";
 import { hasPerm } from "@/middlewares/permission";
 
 export const permRouter = new Router<any, any>({
@@ -14,4 +21,5 @@ permRouter
     .post("/", postPermission)
     .put("/", putPermission)
     .put("/status/:permId/:status", putEnablePerm)
-    .post("/reorder", postReorderPerms);
+    .post("/reorder", postReorderPerms)
+    .post("/drag-drop", postDragDropPerms);

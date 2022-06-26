@@ -19,11 +19,19 @@ import { OnlineUsersResult } from "admin-common/src/user";
 export function login(credential: LoginCredential): AxiosPromise<LoginResult> {
     return request({
         method: "POST",
-        url: "/api/login",
+        url: "/api/user/login",
         data: credential,
         // headers: {
         //     [MsgSilentHeader]: "SUCCESS",
         // },
+    });
+}
+
+export function logout(): AxiosPromise<LoginResult> {
+    return request({
+        method: "DELETE",
+        url: "/api/user/logout",
+        timeout: 1000,
     });
 }
 
@@ -108,5 +116,12 @@ export function getOnlineUsers(): AxiosPromise<OnlineUsersResult> {
     return request({
         method: "GET",
         url: "/api/user/list/online",
+    });
+}
+
+export function forceLogout(sessionId: string): AxiosPromise<void> {
+    return request({
+        method: "DELETE",
+        url: "/api/user/list/online/forceLogout/" + sessionId,
     });
 }

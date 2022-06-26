@@ -1,12 +1,12 @@
 import { defineStore } from "pinia";
 import { omit } from "lodash-unified";
-import { IPermission, LoginCredential, UpdateUserProfile, PermMatchMode, hasPerm } from "admin-common";
+import { LoginCredential, UpdateUserProfile, PermMatchMode, hasPerm } from "admin-common";
 import { store } from "@/store";
-import { login, getUserProfile, updateUserProfile, uploadUserAvatar } from "@/api/user";
+import { login, logout, getUserProfile, updateUserProfile, uploadUserAvatar } from "@/api/user";
 import { setTokenHeader } from "@/api/request";
 import { UserProfile } from "@/api/model/user";
 import { ROUTE_PATH } from "@/router/consts";
-import { addServerRoutes } from "@/router/routes";
+import { addServerRoutes } from "@/router";
 
 const storeDefinition = defineStore({
     id: "user",
@@ -50,6 +50,7 @@ const storeDefinition = defineStore({
          * @param relogin 是否回到登录界面
          */
         async logout(relogin = true) {
+            await logout();
             this.cleanup();
             if (relogin) {
                 window.location.href = ROUTE_PATH.DASHBOARD;

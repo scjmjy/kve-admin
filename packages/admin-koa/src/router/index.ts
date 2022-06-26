@@ -2,7 +2,6 @@ import type koa from "koa";
 import Router from "koa-router";
 import koajwt_ from "koa-jwt";
 import bodyParser from "koa-bodyparser";
-import { postLogin } from "@/controllers/user";
 import { userRouter } from "./user";
 import { deptRouter, roleRouter } from "./department";
 import { permRouter } from "./permission";
@@ -15,10 +14,9 @@ const router = new Router<any, any>({
     prefix: "/api",
 });
 
-router.post("/login", postLogin);
-
 export const RouteConsts = {
-    login: "/api/login",
+    login: "/api/user/login",
+    logout: "/api/user/logout",
 };
 
 router.get("/download/:id", download);

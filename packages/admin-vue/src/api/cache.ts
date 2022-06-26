@@ -11,7 +11,7 @@ export function getCacheInfo(): AxiosPromise<CacheInfoResult> {
 
 export function clearCache(): AxiosPromise<void> {
     return request({
-        method: "PUT",
+        method: "DELETE",
         url: "/api/cache/clear",
     });
 }

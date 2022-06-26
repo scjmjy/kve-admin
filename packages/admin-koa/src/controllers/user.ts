@@ -1,4 +1,3 @@
-import { ObjectId } from "bson";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import UAParser from "ua-parser-js";
@@ -32,7 +31,7 @@ import { throwBadRequestError, throwNotFoundError, throwUserNotFoundError } from
 import { handlePaginationRequest } from "./utils";
 import { Schema } from "@/utils/async-validator";
 import { userService } from "@/services";
-import { SessionData, SessionMaxAge, SESSION_PREFIX } from "@/middlewares/session";
+import { delSessionData, SessionData, SessionMaxAge, SESSION_PREFIX } from "@/middlewares/session";
 
 export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
     if (ctx.session && ctx.session.loginErrorCount! >= 5) {
@@ -68,7 +67,7 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
                 throwBadRequestError("请输入正确的用户名或密码！");
             } else {
                 const userId = existingUser.id as string;
-                const payload: JwtPayload = { userId: userId, uuid: new ObjectId() };
+                const payload: JwtPayload = { userId: userId };
                 const token = jwt.sign(payload, ctx.config.jwtSecret, { expiresIn: SessionMaxAge.seconds });
 
                 const uaParser = new UAParser(ctx.headers["user-agent"]);
@@ -99,6 +98,17 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
     } else {
         throwBadRequestError("请输入完整的用户名或密码！");
     }
+}
+
+export async function delLogout(ctx: KoaAjaxContext) {
+    const { userId } = ctx.state.user;
+    userService.deleteCache(userId);
+    await delSessionData(ctx);
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        msg: "退出成功！",
+    };
 }
 
 export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult, any, { perms: any }>) {
@@ -377,5 +387,23 @@ export async function getOnlineUsers(ctx: KoaAjaxContext<void, OnlineUsersResult
             columns: labelProps,
             rows: allUsersJson,
         },
+    };
+}
+
+export async function forceLogout(ctx: KoaAjaxContext<void, void, { sessionId?: string }>) {
+    const { sessionId } = ctx.params;
+    if (!sessionId || sessionId.length < 36) {
+        return throwBadRequestError("会话编号格式错误！");
+    }
+    const key = SESSION_PREFIX + sessionId;
+    const num = await ctx.redisClient.del(key);
+    if (num <= 0) {
+        return throwBadRequestError("会话编号不存在！");
+    }
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        showType: "MESSAGE",
+        msg: "强退成功！",
     };
 }

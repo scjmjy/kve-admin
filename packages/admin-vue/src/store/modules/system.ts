@@ -3,7 +3,7 @@ import { RouteLocationNormalizedLoaded, Router } from "vue-router";
 import { defineStore } from "pinia";
 import { ElementPlusBreackpoints, useBreakpoints } from "@/composables/useBreakpoints";
 import { store } from "@/store";
-import { fullpathRoutes } from "@/router/routes";
+import { fullpathRoutes } from "@/router";
 import { RouteRecordMenuItem } from "@/router/utils";
 import { ROUTE_PATH } from "@/router/consts";
 
