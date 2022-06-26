@@ -86,7 +86,7 @@
                         </p>
                         <p class="is-flex is-between">
                             mongoose:
-                            <el-tag>6.3.6</el-tag>
+                            <el-tag>6.4.0</el-tag>
                         </p>
                         <p class="is-flex is-between">
                             ioredis:
