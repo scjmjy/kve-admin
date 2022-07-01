@@ -276,6 +276,8 @@ function convertData_lines(data: TrafficPM25DataItemType[]) {
                 fromName: dataItem[0].name,
                 toName: dataItem[1].name,
                 coords: [fromCoord, toCoord],
+                name: dataItem[1].name,
+                value: dataItem[1].value,
             });
         }
     }
@@ -300,12 +302,14 @@ echartPromise.then(async (echartInstance) => {
     const color = ["#a6c84c", "#ffa022", "#46bee9"];
     const planePath =
         "path://M1705.06,1318.313v-89.254l-319.9-221.799l0.073-208.063c0.521-84.662-26.629-121.796-63.961-121.491c-37.332-0.305-64.482,36.829-63.961,121.491l0.073,208.063l-319.9,221.799v89.254l330.343-157.288l12.238,241.308l-134.449,92.931l0.531,42.034l175.125-42.917l175.125,42.917l0.531-42.034l-134.449-92.931l12.238-241.308L1705.06,1318.313z";
-    const flyLineSeries: echarts.EChartsOption["series"][] = [];
+    const flyLineSeries: echarts.SeriesOption[] = [];
     [
         ["北京", data_traffic_BJ],
         ["上海", data_traffic_SH],
         ["广州", data_traffic_GZ],
     ].forEach((item, index) => {
+        const linesData = convertData_lines(item[1] as TrafficPM25DataItemType[]);
+
         flyLineSeries.push(
             {
                 name: item[0] + " Top10",
@@ -324,16 +328,14 @@ echartPromise.then(async (echartInstance) => {
                     width: 1,
                     opacity: 0.6,
                     curveness: 0.2,
-                    type: "dotted",
                 },
-                data: convertData_lines(item[1] as TrafficPM25DataItemType[]),
+                data: linesData,
             },
             {
                 name: item[0] + " Top10",
                 type: "lines",
                 coordinateSystem: "geo",
                 zlevel: 2,
-                symbol: ["none", "arrow"],
                 symbolSize: 10,
                 effect: {
                     show: true,
@@ -348,9 +350,8 @@ echartPromise.then(async (echartInstance) => {
                     width: 1,
                     opacity: 0.6,
                     curveness: 0.2,
-                    type: "dotted",
                 },
-                data: convertData_lines(item[1] as TrafficPM25DataItemType[]),
+                data: linesData,
             },
             {
                 name: item[0] + " Top10",
@@ -425,6 +426,11 @@ echartPromise.then(async (echartInstance) => {
                 itemStyle: {
                     areaColor: "#005E61",
                     borderColor: "white",
+                    borderWidth: 1.5,
+                    shadowColor: "rgba(63, 236, 209, 1)",
+                    shadowBlur: 5, //地图外层光晕
+                    // shadowOffsetX: 0,
+                    // shadowOffsetY: 25,
                 },
             },
             xAxis: {
@@ -434,7 +440,7 @@ echartPromise.then(async (echartInstance) => {
                 show: false,
             },
             series: [
-                ...(flyLineSeries as any),
+                ...flyLineSeries,
                 {
                     name: "PM2.5",
                     type: "scatter",

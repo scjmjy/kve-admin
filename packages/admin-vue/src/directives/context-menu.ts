@@ -2,17 +2,7 @@ import { App, createApp, DefineComponent, ObjectDirective, VueElement } from "vu
 import * as components from "@element-plus/icons-vue";
 import ContextMenu from "@/components/contextmenu/ContextMenu.vue";
 import { ContextMenuItem } from "@/components/contextmenu/types";
-
-function setupContextMenuApp(app: App) {
-    // TODO 优化：按需加载图标
-    const icons = components as unknown as Record<string, DefineComponent<{}, {}, any>>;
-    for (const key in icons) {
-        const cfg = icons[key];
-        app.component(cfg.name, cfg);
-    }
-}
-
-let contextMenuApp: App | undefined = undefined;
+let contextMenuApp: App<HTMLUListElement> | undefined = undefined;
 
 export function createContextMenuApp(items: ContextMenuItem[]) {
     destroyContextMenuApp();
@@ -23,22 +13,40 @@ export function createContextMenuApp(items: ContextMenuItem[]) {
 
     contextMenuApp = createApp(ContextMenu, {
         items,
-    });
+    }) as App<HTMLUListElement>;
     setupContextMenuApp(contextMenuApp);
     contextMenuApp.mount(contextMenuMountEl);
 
-    window.addEventListener("click", destroyContextMenuApp);
+    window.addEventListener("click", onWindowClickListener);
     window.addEventListener("resize", destroyContextMenuApp);
+}
+
+function setupContextMenuApp(app: App) {
+    // TODO 优化：按需加载图标
+    const icons = components as unknown as Record<string, DefineComponent<{}, {}, any>>;
+    for (const key in icons) {
+        const cfg = icons[key];
+        app.component(cfg.name, cfg);
+    }
+}
+
+function onWindowClickListener(event: MouseEvent) {
+    // console.log("[onWindowClickListener] target: ", event.target);
+    if (!contextMenuApp || event.target === contextMenuApp!._container) {
+        // 如果点击了菜单的边缘位置，那就不用销毁菜单了
+        return;
+    }
+    destroyContextMenuApp();
 }
 
 export function destroyContextMenuApp() {
     if (contextMenuApp) {
-        const contextMenuMountEl = contextMenuApp._container as HTMLUListElement;
+        const contextMenuMountEl = contextMenuApp._container!;
         contextMenuApp.unmount();
         contextMenuMountEl.remove();
         contextMenuApp = undefined;
 
-        window.removeEventListener("click", destroyContextMenuApp);
+        window.removeEventListener("click", onWindowClickListener);
         window.removeEventListener("resize", destroyContextMenuApp);
     }
 }
@@ -50,7 +58,7 @@ export const contextMenu: ObjectDirective<HTMLElement | VueElement, ContextMenuI
             event.preventDefault();
             createContextMenuApp(value);
 
-            const contextMenuMountEl = contextMenuApp!._container as HTMLUListElement;
+            const contextMenuMountEl = contextMenuApp!._container!;
 
             const { clientX, clientY } = event;
 

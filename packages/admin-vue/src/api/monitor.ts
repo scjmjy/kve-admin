@@ -1,17 +1,24 @@
 import { AxiosPromise } from "axios";
-import { CacheInfoResult } from "admin-common";
+import { CacheInfoResult, MetricTimelines } from "admin-common";
 import { request } from "./request";
 
 export function getCacheInfo(): AxiosPromise<CacheInfoResult> {
     return request({
         method: "GET",
-        url: "/api/cache/info",
+        url: "/api/monitor/cache",
     });
 }
 
 export function clearCache(): AxiosPromise<void> {
     return request({
         method: "DELETE",
-        url: "/api/cache/clear",
+        url: "/api/monitor/cache",
+    });
+}
+
+export function getMetrics(): AxiosPromise<MetricTimelines> {
+    return request({
+        method: "GET",
+        url: "/api/monitor/metric",
     });
 }

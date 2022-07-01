@@ -7,7 +7,7 @@ import { deptRouter, roleRouter } from "./department";
 import { permRouter } from "./permission";
 import { demoCollRouter } from "./demo-collection";
 import { demoPermRouter } from "./demo-permission";
-import { cacheRouter } from "./cache";
+import { monitorRouter } from "./monitor";
 import { download } from "./download";
 
 const router = new Router<any, any>({
@@ -26,7 +26,7 @@ router
     .use("", deptRouter.routes(), deptRouter.allowedMethods())
     .use("", roleRouter.routes(), roleRouter.allowedMethods())
     .use("", permRouter.routes(), permRouter.allowedMethods())
-    .use("", cacheRouter.routes(), cacheRouter.allowedMethods())
+    .use("", monitorRouter.routes(), monitorRouter.allowedMethods())
     .use("", demoCollRouter.routes(), demoCollRouter.allowedMethods())
     .use("", demoPermRouter.routes(), demoPermRouter.allowedMethods());
 

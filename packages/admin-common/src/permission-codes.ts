@@ -3,10 +3,12 @@ export enum PERM_CODES {
     system = "/system",
     system_usermanage = "/system/usermanage",
     system_menumanage = "/system/menumanage",
+    monitor = "/monitor",
     monitor_cachemanage = "/monitor/cachemanage",
     monitor_cachemanage_clear = "/monitor/cachemanage/clear",
     monitor_onlineusers = "/monitor/onlineusers",
     monitor_onlineusers_forceLogout = "/monitor/onlineusers/forceLogout",
+    monitor_metric = "/monitor/metric",
 
     demoPerm_group = "/demoPerm/group",
     demoPerm_group_action1 = "/demoPerm/group/action1",

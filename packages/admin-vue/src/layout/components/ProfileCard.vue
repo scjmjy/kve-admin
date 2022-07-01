@@ -37,9 +37,9 @@ function gotoProfile() {
 
 <style scoped></style>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .profileCard {
-    .el-card__header {
+    :deep(.el-card__header) {
         display: flex;
         justify-content: space-between;
         align-items: center;

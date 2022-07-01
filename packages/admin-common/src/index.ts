@@ -4,5 +4,5 @@ export * from "./department";
 export * from "./permission";
 export * from "./permission-codes";
 export * from "./demo-collection";
-export * from "./cache";
+export * from "./monitor";
 export * from "./utils";

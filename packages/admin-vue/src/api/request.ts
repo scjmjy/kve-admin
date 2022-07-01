@@ -37,13 +37,13 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
     (res) => {
-        let msgSilent: MsgSilent | undefined;
-        if (res.config.headers) {
-            msgSilent = res.config.headers[MsgSilentHeader] as MsgSilent;
-        }
         if (!res.data.data) {
             // 后端没有用 AjaxResult，例如静态文件，此时直接返回 res
             return res;
+        }
+        let msgSilent: MsgSilent | undefined;
+        if (res.config.headers) {
+            msgSilent = res.config.headers[MsgSilentHeader] as MsgSilent;
         }
         const body = res.data as AjaxResult;
         if (msgSilent !== "SUCCESS" && msgSilent !== "BOTH") {
@@ -70,6 +70,10 @@ request.interceptors.response.use(
         // }
 
         if (err.response) {
+            if (!err.response.data) {
+                // 后端没有用 AjaxResult
+                return Promise.reject(err);
+            }
             // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
             let msgSilent: string | undefined;
             if (err.config.headers) {

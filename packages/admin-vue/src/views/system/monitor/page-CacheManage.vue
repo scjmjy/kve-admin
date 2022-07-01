@@ -40,7 +40,7 @@
 import { onActivated, reactive, ref } from "vue";
 import { CacheInfoResult } from "admin-common";
 import { useResponsiveCollumn } from "@/composables/useDescriptions";
-import { clearCache, getCacheInfo } from "@/api/cache";
+import { clearCache, getCacheInfo } from "@/api/monitor";
 import { ElMessageBox } from "element-plus";
 
 const { column } = useResponsiveCollumn();

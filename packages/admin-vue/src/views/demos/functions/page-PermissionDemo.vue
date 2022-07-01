@@ -3,7 +3,9 @@
         <el-col :md="24" :lg="6">
             <el-card header="拥有的权限标识">
                 <div class="permDemo-perms">
-                    <div class="permDemo-perm" v-for="perm in userStore.userProfile.permCodes" :key="perm">{{ perm }}</div>
+                    <div class="permDemo-perm" v-for="perm in userStore.userProfile.permCodes" :key="perm">
+                        {{ perm }}
+                    </div>
                 </div>
             </el-card>
         </el-col>
@@ -124,6 +126,7 @@
 
 <script setup lang="ts" name="permissionDemo">
 import { ref } from "vue";
+import { ElMessage } from "element-plus";
 import { PermMatchMode, PERM_CODES } from "admin-common";
 import { useUserStore } from "@/store/modules/user";
 import { request } from "@/api/request";
@@ -143,6 +146,8 @@ function requestApi(url: string) {
     request({
         method: "GET",
         url,
+    }).then(() => {
+        ElMessage.success("调用成功！");
     });
 }
 

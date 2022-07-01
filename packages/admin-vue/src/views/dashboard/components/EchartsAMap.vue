@@ -275,6 +275,8 @@ function convertData_lines(data: TrafficPM25DataItemType[]) {
                 fromName: dataItem[0].name,
                 toName: dataItem[1].name,
                 coords: [fromCoord, toCoord],
+                name: dataItem[1].name,
+                value: dataItem[1].value,
             });
         }
     }
@@ -295,6 +297,8 @@ echartPromise.then(async (echartInstance) => {
         ["上海", data_traffic_SH],
         ["广州", data_traffic_GZ],
     ].forEach((item, index) => {
+        const linesData = convertData_lines(item[1] as TrafficPM25DataItemType[]);
+
         flyLineSeries.push(
             {
                 name: item[0] + " Top10",
@@ -313,9 +317,8 @@ echartPromise.then(async (echartInstance) => {
                     width: 1,
                     opacity: 0.6,
                     curveness: 0.2,
-                    type: "dotted",
                 },
-                data: convertData_lines(item[1] as TrafficPM25DataItemType[]),
+                data: linesData,
             },
             {
                 name: item[0] + " Top10",
@@ -337,9 +340,8 @@ echartPromise.then(async (echartInstance) => {
                     width: 1,
                     opacity: 0.6,
                     curveness: 0.2,
-                    type: "dotted",
                 },
-                data: convertData_lines(item[1] as TrafficPM25DataItemType[]),
+                data: linesData,
             },
             {
                 name: item[0] + " Top10",

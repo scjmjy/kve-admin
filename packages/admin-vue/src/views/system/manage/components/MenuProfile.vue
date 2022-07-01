@@ -428,8 +428,8 @@ const formItems = computed(() => {
             item: {
                 type: "ReadonlySwitch",
                 props: {
-                    activeText: "缓存",
-                    inactiveText: "不缓存",
+                    activeText: "是",
+                    inactiveText: "否",
                 },
             },
         },
@@ -442,8 +442,8 @@ const formItems = computed(() => {
             item: {
                 type: "ReadonlySwitch",
                 props: {
-                    activeText: "显示",
-                    inactiveText: "不显示",
+                    activeText: "是",
+                    inactiveText: "否",
                     onChange(val: string | number | boolean) {
                         if (val) {
                             (formData.value as CreateMenuItemBody).forName = "";
@@ -478,13 +478,13 @@ const formItems = computed(() => {
             item: {
                 type: "ReadonlySwitch",
                 props: {
-                    activeText: "固定",
-                    inactiveText: "不固定",
+                    activeText: "是",
+                    inactiveText: "否",
                 },
             },
         },
         {
-            label: "路由区分",
+            label: "FullPath",
             prop: "pathKey",
             visible: !isExternal,
             tooltip: {
@@ -493,9 +493,9 @@ const formItems = computed(() => {
             item: {
                 type: "ReadonlySwitch",
                 props: {
-                    activeText: "fullPath",
+                    activeText: "是",
                     activeValue: "fullPath",
-                    inactiveText: "path",
+                    inactiveText: "否",
                     inactiveValue: "path",
                 },
             },
@@ -509,8 +509,8 @@ const formItems = computed(() => {
             item: {
                 type: "ReadonlySwitch",
                 props: {
-                    activeText: "显示",
-                    inactiveText: "不显示",
+                    activeText: "是",
+                    inactiveText: "否",
                 },
             },
         },
