@@ -9,6 +9,7 @@ import { demoCollRouter } from "./demo-collection";
 import { demoPermRouter } from "./demo-permission";
 import { monitorRouter } from "./monitor";
 import { download } from "./download";
+import { getCaptcha } from "@/controllers/user";
 
 const router = new Router<any, any>({
     prefix: "/api",
@@ -17,9 +18,10 @@ const router = new Router<any, any>({
 export const RouteConsts = {
     login: "/api/user/login",
     logout: "/api/user/logout",
+    captcha: "/api/captcha",
 };
 
-router.get("/download/:id", download);
+router.get("/captcha", getCaptcha).get("/download/:id", download);
 
 router
     .use("", userRouter.routes(), userRouter.allowedMethods())
@@ -37,7 +39,7 @@ export function setupRouter(app: koa) {
         debug: process.env.NODE_ENV === "development",
     }).unless({
         // 以下路由不需要校验 token
-        path: [RouteConsts.login],
+        path: [RouteConsts.login, RouteConsts.captcha],
     });
 
     app.use(koajwt);

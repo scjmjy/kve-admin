@@ -29,6 +29,7 @@
         "@types/node": "^16.11.26",
         "@types/sharp": "^0.30.2",
         "@types/ua-parser-js": "^0.7.36",
+        "@types/uuid": "^8.3.4",
         "@types/yargs": "^17.0.10",
         "esm": "^3.2.25",
         "ts-node-dev": "^1.1.8",
@@ -62,6 +63,7 @@
         "multer-gridfs-storage": "^5.0.2",
         "rate-limiter-flexible": "^2.3.7",
         "sharp": "^0.30.7",
+        "svg-captcha": "^1.4.0",
         "ua-parser-js": "^1.0.2"
     }
 }

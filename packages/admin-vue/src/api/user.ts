@@ -14,7 +14,14 @@ import {
     UserIdsBody,
 } from "admin-common";
 import { request } from "./request";
-import { OnlineUsersResult } from "admin-common/src/user";
+import { CaptchaResult, OnlineUsersResult } from "admin-common/src/user";
+
+export function getCaptcha(prevId?: string): AxiosPromise<CaptchaResult> {
+    return request({
+        method: "GET",
+        url: "/api/captcha?prev=" + prevId,
+    });
+}
 
 export function login(credential: LoginCredential): AxiosPromise<LoginResult> {
     return request({

@@ -23,10 +23,27 @@
                             type="password"
                             show-password
                             placeholder="输入密码"
-                            @keyup.enter="handleLogin"
+                            @keyup.enter="onPawwordInputEnter"
                         ></el-input>
                     </el-form-item>
-                    <el-form-item style="margin-top: 40px; width: 100%">
+                    <el-form-item prop="captchaCode">
+                        <div class="login-captcha">
+                            <el-input
+                                ref="refInputCaptcha"
+                                class="login-captcha-input"
+                                v-model="credential.captchaCode"
+                                placeholder="验证码"
+                                @keyup.enter="handleLogin"
+                            ></el-input>
+                            <div
+                                class="login-captcha-svg"
+                                v-if="captcha"
+                                v-html="captcha.captchaSvg"
+                                @click="onCaptchaClick"
+                            ></div>
+                        </div>
+                    </el-form-item>
+                    <el-form-item style="margin-top: 20px; width: 100%">
                         <el-button
                             :loading="state.loggingIn"
                             size="large"
@@ -84,23 +101,39 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import DoubleFaceCard from "@/components/card/DoubleFaceCard.vue";
-import { ElMessage, FormInstance, FormRules, ElInput } from "element-plus";
-import { LoginCredential } from "admin-common";
-import { useUserStore } from "@/store/modules/user";
+import { reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { ElMessage, FormInstance, FormRules, ElInput } from "element-plus";
+import { CaptchaResult, LoginCredential } from "admin-common";
+import DoubleFaceCard from "@/components/card/DoubleFaceCard.vue";
+import { useUserStore } from "@/store/modules/user";
+import { getCaptcha } from "@/api/user";
 import { ROUTE_PATH } from "@/router/consts";
 
 const router = useRouter();
 const route = useRoute();
 
 const refInputPasswd = ref<InstanceType<typeof ElInput>>();
+const refInputCaptcha = ref<InstanceType<typeof ElInput>>();
 
 const credential = reactive<LoginCredential>({
     username: "",
     password: "",
+    captchaCode: "",
+    captchaId: "",
 });
+
+const captcha = ref<CaptchaResult>();
+
+requestCaptcha();
+
+watch(
+    () => captcha.value,
+    (cap) => {
+        cap && (credential.captchaId = cap.captchaId);
+    },
+);
+
 const find = reactive({
     username: "",
     phoneNumber: "",
@@ -119,6 +152,10 @@ const credentialRules: FormRules = {
     password: {
         required: true,
         message: "密码不能为空",
+    },
+    captchaCode: {
+        required: true,
+        message: "验证码不能为空",
     },
 };
 
@@ -146,6 +183,14 @@ function onUsernameInputEnter() {
     }
 }
 
+function onPawwordInputEnter() {
+    if (credential.captchaCode.length) {
+        handleLogin();
+    } else {
+        refInputCaptcha.value?.focus();
+    }
+}
+
 function handleLogin() {
     formCrt.value
         ?.validate()
@@ -159,6 +204,9 @@ function handleLogin() {
                     return router.push({
                         path: redirect || ROUTE_PATH.DASHBOARD,
                     });
+                })
+                .catch(() => {
+                    requestCaptcha();
                 })
                 .finally(() => {
                     state.loggingIn = false;
@@ -181,6 +229,18 @@ function handleFind() {
 function rotateCard() {
     state.rotated = !state.rotated;
 }
+
+function requestCaptcha() {
+    credential.captchaCode = "";
+    credential.captchaId = "";
+    return getCaptcha(credential.captchaId).then((res) => {
+        captcha.value = res.data;
+    });
+}
+
+function onCaptchaClick() {
+    requestCaptcha();
+}
 </script>
 
 <style scoped lang="scss">
@@ -202,13 +262,24 @@ function rotateCard() {
         border-radius: 25px;
     }
 
-    // &-form {
-    //     &_login {
-    //     }
-    //     &_find {
-    //     }
-    // }
-
+    &-captcha {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        &-input {
+            flex: 1;
+        }
+        &-svg {
+            margin-left: 10px;
+            height: 40px;
+            cursor: pointer;
+            html.dark & {
+                border-radius: 10px;
+                background: white;
+            }
+        }
+    }
     &-findPassword {
         display: flex;
         justify-content: flex-end;

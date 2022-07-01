@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import { v4 as uuid } from "uuid";
 import UAParser from "ua-parser-js";
 import { StatusCodes } from "http-status-codes";
 import sharp from "sharp";
+import svgCaptcha from "svg-captcha";
 import { pick } from "lodash-unified";
 import {
     UserProfileResult,
@@ -24,6 +26,7 @@ import {
     UserIdsBody,
     isValidStatus,
     OnlineUsersResult,
+    CaptchaResult,
 } from "admin-common";
 import { IUserMethods, UserModel } from "@/model/user";
 import { JwtPayload, KoaAjaxContext, KoaContext } from "@/types/koa";
@@ -32,6 +35,8 @@ import { handlePaginationRequest } from "./utils";
 import { Schema } from "@/utils/async-validator";
 import { userService } from "@/services";
 import { delSessionData, SessionData, SessionMaxAge, SESSION_PREFIX } from "@/middlewares/session";
+
+const captchaKeyPrefix = "captcha:";
 
 export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
     if (ctx.session && ctx.session.loginErrorCount! >= 5) {
@@ -50,54 +55,85 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
             delete ctx.session.loginErrorTime;
         }
     }
-    const { username, password } = ctx.request.body || {};
-    if (username && password) {
+    const { username, password, captchaId, captchaCode } = ctx.request.body || {};
+    if (!captchaId || !captchaCode) {
+        return throwBadRequestError("请输入验证码！");
+    }
+
+    const captchaCode_ = await ctx.redisClient.getdel(captchaKeyPrefix + captchaId);
+    if (!captchaCode_ || captchaCode !== captchaCode_) {
+        return throwBadRequestError("验证码失效或错误！");
+    }
+
+    if (!username || !password) {
+        return throwBadRequestError("请输入完整的用户名或密码！");
+    } else {
         const existingUser = await UserModel.findOne({ username }, "password").exec();
 
         if (!existingUser) {
-            throwUserNotFoundError(username);
-        } else {
-            const valid = await existingUser.verifyPassword(password);
-            if (!valid) {
-                if (ctx.session) {
-                    let count = ctx.session.loginErrorCount || 0;
-                    ctx.session.loginErrorCount = ++count;
-                    ctx.session.loginErrorTime = Date.now();
-                }
-                throwBadRequestError("请输入正确的用户名或密码！");
-            } else {
-                const userId = existingUser.id as string;
-                const payload: JwtPayload = { userId: userId };
-                const token = jwt.sign(payload, ctx.config.jwtSecret, { expiresIn: SessionMaxAge.seconds });
-
-                const uaParser = new UAParser(ctx.headers["user-agent"]);
-                const browser = uaParser.getBrowser();
-                const os = uaParser.getOS();
-                const session: SessionData = {
-                    username,
-                    userId: payload.userId,
-                    ip: ctx.ip,
-                    browser: `${browser.name}/${browser.version}`,
-                    os: `${os.name}/${os.version}`,
-                    loginTime: Date.now(),
-                };
-                Object.assign(ctx.session!, session);
-
-                ctx.status = StatusCodes.OK;
-                ctx.body = {
-                    code: ctx.status,
-                    showType: "MESSAGE",
-                    msg: "登录成功",
-                    data: {
-                        token,
-                        id: userId,
-                    },
-                };
-            }
+            return throwUserNotFoundError(username);
         }
-    } else {
-        throwBadRequestError("请输入完整的用户名或密码！");
+        const valid = await existingUser.verifyPassword(password);
+        if (!valid) {
+            if (ctx.session) {
+                let count = ctx.session.loginErrorCount || 0;
+                ctx.session.loginErrorCount = ++count;
+                ctx.session.loginErrorTime = Date.now();
+            }
+            return throwBadRequestError("请输入正确的用户名或密码！");
+        }
+        const userId = existingUser.id as string;
+        const payload: JwtPayload = { userId: userId };
+        const token = jwt.sign(payload, ctx.config.jwtSecret, { expiresIn: SessionMaxAge.seconds });
+
+        const uaParser = new UAParser(ctx.headers["user-agent"]);
+        const browser = uaParser.getBrowser();
+        const os = uaParser.getOS();
+        const session: SessionData = {
+            username,
+            userId: payload.userId,
+            ip: ctx.ip,
+            browser: `${browser.name}/${browser.version}`,
+            os: `${os.name}/${os.version}`,
+            loginTime: Date.now(),
+        };
+        Object.assign(ctx.session!, session);
+
+        ctx.status = StatusCodes.OK;
+        ctx.body = {
+            code: ctx.status,
+            showType: "MESSAGE",
+            msg: "登录成功",
+            data: {
+                token,
+                id: userId,
+            },
+        };
     }
+}
+
+export async function getCaptcha(ctx: KoaAjaxContext<void, CaptchaResult, { prev?: string }>) {
+    const { prev } = ctx.params;
+    if (prev) {
+        await ctx.redisClient.del(captchaKeyPrefix + prev);
+    }
+    const captcha = svgCaptcha.createMathExpr({
+        mathOperator: "*",
+        width: 120,
+        height: 40,
+    });
+    const captchaId = uuid();
+
+    await ctx.redisClient.setex(captchaKeyPrefix + captchaId, 60 * 3, captcha.text);
+
+    ctx.status = StatusCodes.OK;
+    ctx.body = {
+        code: ctx.status,
+        data: {
+            captchaId,
+            captchaSvg: captcha.data,
+        },
+    };
 }
 
 export async function delLogout(ctx: KoaAjaxContext) {

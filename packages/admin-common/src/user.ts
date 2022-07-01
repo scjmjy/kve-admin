@@ -7,11 +7,18 @@ export type Gender = "MALE" | "FEMALE" | "UNKNOWN";
 export interface LoginCredential {
     username: string;
     password: string;
+    captchaId: string;
+    captchaCode: string;
 }
 
 export interface LoginResult {
     token: string;
     id: string;
+}
+
+export interface CaptchaResult {
+    captchaId: string;
+    captchaSvg: string;
 }
 
 export interface IUser extends IBase {
