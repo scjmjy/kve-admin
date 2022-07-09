@@ -1,5 +1,4 @@
 import { CacheInfoItem, CacheInfoResult } from "admin-common";
-import { KoaAjaxContext } from "@/types/koa";
 import { StatusCodes } from "http-status-codes";
 
 export interface CacheInfo {

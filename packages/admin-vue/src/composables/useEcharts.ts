@@ -5,7 +5,7 @@ import * as echarts from "echarts";
 import "echarts-extension-amap";
 import type { AMapComponentOption } from "echarts-extension-amap";
 import { debounce } from "lodash";
-import { tryOnMounted, tryOnUnmounted, useDark } from "@vueuse/core";
+import { tryOnMounted, tryOnUnmounted, promiseTimeout, useDark } from "@vueuse/core";
 import { useDarkMode } from "@/composables/useDarkMode";
 import { useAppMainResize } from "./useAppMainResize";
 import { useAMap } from "./useAMap";
@@ -18,13 +18,19 @@ export interface EchartInstance {
     resize(): void;
 }
 
+export interface UseEchartsOpts {
+    /** 是否开启 amap */
+    amap?: boolean;
+    /** 延迟 ECharts.dispose() */
+    delayDispose?: number;
+}
+
 /**
  *
  * @param elRef 图标容器元素
- * @param amap 是否开启 amap
  * @returns
  */
-export function useECharts(elRef: Ref<HTMLDivElement | undefined>, amap = false) {
+export function useECharts(elRef: Ref<HTMLDivElement | undefined>, opts?: UseEchartsOpts) {
     const echartInstance = ref<EchartInstance>();
     let chartInstance: echarts.ECharts | undefined = undefined;
     let setOptFn: SetOptFn | undefined = undefined;
@@ -56,7 +62,7 @@ export function useECharts(elRef: Ref<HTMLDivElement | undefined>, amap = false)
 
     const echartPromise = new Promise<EchartInstance>((resolve) => {
         tryOnMounted(async () => {
-            if (amap) {
+            if (opts && opts.amap) {
                 await useAMap();
             }
             const debouncedResize = debounce(
@@ -104,8 +110,9 @@ export function useECharts(elRef: Ref<HTMLDivElement | undefined>, amap = false)
         });
     });
 
-    tryOnUnmounted(() => {
+    tryOnUnmounted(async () => {
         if (!chartInstance) return;
+        await promiseTimeout((opts && opts.delayDispose) || 0);
         chartInstance.dispose();
         chartInstance = undefined;
         echartInstance.value = undefined;

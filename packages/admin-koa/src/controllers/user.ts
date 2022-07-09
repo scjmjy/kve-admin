@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import { v4 as uuid } from "uuid";
+import _uuid from "uuid";
 import UAParser from "ua-parser-js";
 import { StatusCodes } from "http-status-codes";
 import sharp from "sharp";
@@ -29,13 +29,14 @@ import {
     CaptchaResult,
 } from "admin-common";
 import { IUserMethods, UserModel } from "@/model/user";
-import { JwtPayload, KoaAjaxContext, KoaContext } from "@/types/koa";
 import { throwBadRequestError, throwNotFoundError, throwUserNotFoundError } from "./errors";
 import { handlePaginationRequest } from "./utils";
 import { Schema } from "@/utils/async-validator";
 import { userService } from "@/services";
 import { delSessionData, SessionData, SessionMaxAge, SESSION_PREFIX } from "@/middlewares/session";
+import { getIpLocation } from "@/utils/ip";
 
+const { v4: uuid } = _uuid;
 const captchaKeyPrefix = "captcha:";
 
 export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
@@ -89,10 +90,12 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
         const uaParser = new UAParser(ctx.headers["user-agent"]);
         const browser = uaParser.getBrowser();
         const os = uaParser.getOS();
+        const location = await getIpLocation(ctx.ip);
         const session: SessionData = {
             username,
             userId: payload.userId,
             ip: ctx.ip,
+            location,
             browser: `${browser.name}/${browser.version}`,
             os: `${os.name}/${os.version}`,
             loginTime: Date.now(),
@@ -380,6 +383,10 @@ const labelProps: { prop: keyof SessionDataWithId; label: string }[] = [
     {
         prop: "username",
         label: "用户名",
+    },
+    {
+        prop: "location",
+        label: "登录地址",
     },
     {
         prop: "ip",

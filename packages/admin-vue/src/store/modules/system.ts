@@ -23,7 +23,10 @@ export interface ScreenState {
     tags: boolean;
 }
 
-export type RouteRecordVisited = Pick<RouteLocationNormalizedLoaded, "fullPath" | "path" | "query" | "meta" | "name">;
+export type RouteRecordVisited = Pick<
+    RouteLocationNormalizedLoaded,
+    "fullPath" | "path" | "query" | "params" | "meta" | "name"
+>;
 
 export interface RouterState {
     fullpathRoutes: RouteRecordMenuItem[];
@@ -57,7 +60,11 @@ const storeDefinition = defineStore({
         );
 
         return {
-            theme: "default",
+            settings: {
+                // theme: "default",
+                /** 是否支持外链 */
+                iframe: true,
+            },
             screen: {
                 mode: modes.screenMode,
                 footer: true,
@@ -106,13 +113,14 @@ const storeDefinition = defineStore({
                     return visitedRoute.path === path;
                 })
             ) {
-                const { fullPath, path, query, meta, name } = route;
+                const { fullPath, path, query, meta, name, params } = route;
                 const visited = {
-                    fullPath,
-                    path,
-                    query,
-                    meta,
                     name,
+                    path,
+                    fullPath,
+                    query,
+                    params,
+                    meta,
                 };
                 if (meta.pinned) {
                     this.router.visitedRoutes.unshift(visited);

@@ -9,6 +9,8 @@
 
 <style scoped lang="scss">
 .appFooter {
+    // position: sticky;
+    // top: 100%;
     height: 60px;
     background: linear-gradient(45deg, rgb(104, 221, 196), rgb(72, 114, 206));
     color: var(--el-color-info-light-3);

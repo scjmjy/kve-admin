@@ -16,7 +16,6 @@ import {
     getStatusLabel,
     UpdateRolePermsBody,
 } from "admin-common";
-import { KoaAjaxContext } from "@/types/koa";
 import { DepartmentModel, RoleModel } from "@/model/department";
 import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
@@ -61,7 +60,7 @@ export async function postDept(ctx: KoaAjaxContext<CreateDeptBody, CreateResult>
             }),
         )
         .catch((err) => {
-            ctx.logger.error("[postDept]", err);
+            ctx.logger.debug.error("[postDept]", err);
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
             ctx.body = {
                 code: ctx.status,
@@ -144,7 +143,7 @@ export async function postRole(ctx: KoaAjaxContext<CreateRoleBody, CreateResult>
             }),
         )
         .catch((err) => {
-            ctx.logger.error("[postRole]", err);
+            ctx.logger.debug.error("[postRole]", err);
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
             ctx.body = {
                 code: ctx.status,

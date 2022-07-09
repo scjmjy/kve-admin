@@ -1,7 +1,6 @@
 import Router from "koa-router";
 import { PERM_CODES } from "admin-common";
 import { StatusCodes } from "http-status-codes";
-import { KoaAjaxContext } from "@/types/koa";
 import { hasPerm } from "@/middlewares/permission";
 
 export const demoPermRouter = new Router<any, any>({

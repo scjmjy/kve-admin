@@ -32,9 +32,6 @@
                         </span>
                         <template #dropdown>
                             <el-dropdown-menu>
-                                <el-dropdown-item command="location" :disabled="scope.row.$__location"
-                                    >查看归属地</el-dropdown-item
-                                >
                                 <el-dropdown-item command="ban-ip">禁止IP</el-dropdown-item>
                                 <el-dropdown-item command="ban-user">禁止用户</el-dropdown-item>
                             </el-dropdown-menu>
@@ -118,20 +115,6 @@ async function onForceClick(row: Record<string, any>) {
 
 function onCommand(command: string, row: Record<string, any>) {
     switch (command) {
-        case "location":
-            request({
-                method: "GET",
-                url: "http://whois.pconline.com.cn/ip.jsp?ip=" + row.ip,
-                // url: "http://whois.pconline.com.cn/ip.jsp?ip=117.136.39.100",
-            })
-                .then((res) => {
-                    console.log("[ip location]", res);
-                    row.$__location = res.data;
-                })
-                .catch((err) => {
-                    console.error("[ip location]", err);
-                });
-            break;
         case "ban-ip":
         case "ban-user":
         default:

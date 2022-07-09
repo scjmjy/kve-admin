@@ -1,20 +1,20 @@
 <template>
     <div class="metricMonitor" v-loading="state.refreshing">
-        <el-card v-if="metricTimeline">
-            <template #header>
-                <span>更新时间：{{ metricTimeline.timestamp }}</span>
-                <el-button class="button" type="primary" :loading="state.refreshing" @click="onRefreshClick"
-                    >刷新</el-button
-                >
-            </template>
-            <template v-for="desc of metricTimeline.descriptions" :key="desc.title">
+        <div v-if="metricTimeline" class="metricMonitor-header">
+            <span>更新时间：{{ metricTimeline.timestamp }}</span>
+            <el-button class="button" type="primary" :loading="state.refreshing" @click="onRefreshClick"
+                >刷新</el-button
+            >
+        </div>
+        <el-tabs v-if="metricTimeline" class="metricMonitor-tabs" type="border-card">
+            <el-tab-pane v-for="desc of metricTimeline.descriptions" :key="desc.title" :label="desc.title">
                 <el-descriptions v-if="desc.type === 'descriptions'" :column="column" border :title="desc.title">
                     <el-descriptions-item v-for="(item, index) in desc.items" :key="index" :label="item.label">
                         {{ item.value }}
                     </el-descriptions-item>
                 </el-descriptions>
-            </template>
-        </el-card>
+            </el-tab-pane>
+        </el-tabs>
     </div>
 </template>
 
@@ -70,16 +70,12 @@ function onRefreshClick() {
     display: flex;
     flex-direction: column;
 
-    :deep(.el-card__header) {
+    &-header {
+        width: 100%;
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-    }
-
-    .el-descriptions {
-        &:not(:last-of-type) {
-            margin-bottom: 15px;
-        }
     }
 }
 </style>

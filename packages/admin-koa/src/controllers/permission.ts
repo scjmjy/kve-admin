@@ -22,7 +22,6 @@ import {
     DragDropPermsBody,
     GetPermNodeQuery,
 } from "admin-common";
-import { KoaAjaxContext } from "@/types/koa";
 import { PermissionModel } from "@/model/permission";
 import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
@@ -91,7 +90,7 @@ export async function postPermission(ctx: KoaAjaxContext<CreatePermBody, CreateR
             }),
         )
         .catch((err) => {
-            ctx.logger.error("[postPermission]", err);
+            ctx.logger.debug.error("[postPermission]", err);
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
             ctx.body = {
                 code: ctx.status,

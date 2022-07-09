@@ -1,6 +1,6 @@
 {
     "name": "admin-koa",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "main": "src/index.ts",
     "type": "module",
     "author": "Ronnie",
@@ -8,13 +8,16 @@
     "scripts": {
         "clean": "rimraf dist",
         "cpy": "cpy 'public/' 'dist/' && cpy . '../../admin-koa/dist/public/' --cwd=../admin-vue/dist/",
-        "build": "yarn clean && tsc && tsc-alias && cpy 'public/' 'dist/' && cpy . '../../admin-koa/dist/public/' --cwd=../admin-vue/dist/",
+        "build": "yarn clean && tsc && tsc-alias && yarn cpy",
         "dev": "cross-env NODE_ENV=development ts-node-dev -r esm -r tsconfig-paths/register --debug -- src/index.ts",
-        "preview": "cross-env NODE_ENV=production node --experimental-specifier-resolution=node  dist/js/index.js",
-        "mongodb": "ts-node-dev -r esm -r tsconfig-paths/register scripts/mongodb.ts"
+        "db:dev": "cross-env NODE_ENV=development ts-node-dev -r esm -r tsconfig-paths/register scripts/mongodb.ts",
+        "db:prd": "cross-env NODE_ENV=production ts-node-dev -r esm -r tsconfig-paths/register scripts/mongodb.ts",
+        "start": "pm2 start ./scripts/ecosystem.config.cjs --env production",
+        "stop": "pm2 stop ./scripts/ecosystem.config.cjs"
     },
     "devDependencies": {
         "@types/bcryptjs": "^2.4.2",
+        "@types/config": "^0.0.41",
         "@types/jsonwebtoken": "^8.5.8",
         "@types/koa": "^2.13.4",
         "@types/koa-bodyparser": "^4.3.6",
@@ -41,12 +44,15 @@
     "dependencies": {
         "@koa/cors": "^3.3.0",
         "@koa/multer": "^3.0.0",
-        "admin-common": "1.0.0",
+        "admin-common": "^1.1.0",
         "async-validator": "^4.1.1",
+        "axios": "^0.27.2",
         "bcryptjs": "^2.4.3",
+        "config": "^3.3.7",
         "echarts-china-cities-js": "^0.1.1",
         "http-status-codes": "^2.2.0",
         "ioredis": "^5.0.6",
+        "js-yaml": "^4.1.0",
         "jsonwebtoken": "^8.5.1",
         "koa": "^2.13.4",
         "koa-bodyparser": "^4.3.0",

@@ -1,4 +1,3 @@
-import { KoaAjaxContext } from "@/types/koa";
 import type koa from "koa";
 import { RateLimiterRedis, RateLimiterRes } from "rate-limiter-flexible";
 

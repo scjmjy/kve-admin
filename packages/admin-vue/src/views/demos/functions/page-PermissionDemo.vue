@@ -35,7 +35,7 @@
                         <el-radio-group v-model="permMode">
                             <el-radio label="every">Every 全部匹配</el-radio>
                             <el-radio label="some">Some 部分匹配</el-radio>
-                            <el-radio label="none">None 全不匹配</el-radio>
+                            <el-radio label="none">None 都不匹配</el-radio>
                         </el-radio-group>
                     </div>
                 </template>

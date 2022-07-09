@@ -286,9 +286,10 @@ function convertData_lines(data: TrafficPM25DataItemType[]) {
 
 const refMap = ref<HTMLDivElement>();
 
-const { echarts, echartPromise } = useECharts(refMap);
+const { echarts, echartPromise } = useECharts(refMap, { delayDispose: 500 });
 
 echartPromise.then(async (echartInstance) => {
+    echartInstance.getInstance().showLoading();
     const res = await request({
         method: "GET",
         url: "/static/geo/china.geojson",
@@ -383,6 +384,7 @@ echartPromise.then(async (echartInstance) => {
         );
     });
 
+    echartInstance.getInstance().hideLoading();
     echartInstance.setOption((dark, oldOpt) => {
         if (oldOpt) {
             // return oldOpt; // TODO 有必要的话，可以复用

@@ -1,6 +1,6 @@
 {
     "name": "koa-vue-element-admin",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "license": "MIT",
     "private": true,
     "workspaces": [
@@ -13,7 +13,8 @@
         "build:vue": "yarn workspace admin-vue build",
         "build:koa": "yarn workspace admin-koa build",
         "build": "yarn build:common && yarn build:vue && yarn build:koa",
-        "preview": "yarn workspace admin-koa preview"
+        "start": "yarn workspace admin-koa start",
+        "stop": "yarn workspace admin-koa stop"
     },
     "devDependencies": {
         "cross-env": "^7.0.3",

@@ -47,7 +47,7 @@
 
 .el-scrollbar {
     &.is-vertical {
-        .el-scrollbar__view {
+        > .el-scrollbar__wrap > .el-scrollbar__view {
             overflow-x: hidden;
         }
     }
@@ -146,10 +146,10 @@
 
 $dialog-widths: (
     "90%": "(max-width: #{elementPlusVar.$sm})",
-    "80%": "(min-width: #{elementPlusVar.$sm})",
-    "70%": "(min-width: #{elementPlusVar.$md})",
-    "60%": "(min-width: #{elementPlusVar.$lg})",
-    "50%": "(min-width: #{elementPlusVar.$xl})",
+    "85%": "(min-width: #{elementPlusVar.$sm})",
+    "80%": "(min-width: #{elementPlusVar.$md})",
+    "75%": "(min-width: #{elementPlusVar.$lg})",
+    "70%": "(min-width: #{elementPlusVar.$xl})",
 ) !default;
 
 @each $width, $value in $dialog-widths {
@@ -157,5 +157,12 @@ $dialog-widths: (
         .el-dialog {
             --el-dialog-width: #{$width};
         }
+    }
+}
+
+.el-pagination {
+    &__right {
+        margin-top: 5px;
+        justify-content: flex-end;
     }
 }

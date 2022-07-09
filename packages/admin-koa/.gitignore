@@ -2,3 +2,4 @@
 public/*
 # 后端静态资源
 !public/static
+local.yml

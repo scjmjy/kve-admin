@@ -3,7 +3,6 @@ import { ObjectId } from "bson";
 import { AjaxResult } from "admin-common";
 import { GridFSBucketReadStream } from "mongodb";
 import HttpStatusCodes from "http-status-codes";
-import { KoaContext } from "@/types/koa";
 import { getGridFsBucket } from "@/middlewares/upload";
 
 async function download(ctx: KoaContext<void, AjaxResult | GridFSBucketReadStream | null, { id: string }>) {

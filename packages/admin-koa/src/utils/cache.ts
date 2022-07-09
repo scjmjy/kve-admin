@@ -1,5 +1,5 @@
 import koa from "koa";
-import { appConfig } from "@/config";
+import { appConfig } from "@/utils/config";
 import Redis, { RedisKey } from "ioredis";
 
 // interface RedisGetOpts {
@@ -64,15 +64,19 @@ import Redis, { RedisKey } from "ioredis";
 //     }
 // };
 
-export function setupCache(app: koa) {
+export async function setupCache(app: koa) {
     const redisClient = new Redis({
-        ...appConfig.redis,
-    });
-
-    redisClient.on("error", function (err) {
-        app.context.logger.info("[redis] error", err);
+        ...appConfig.redisCfg,
     });
     app.context.redisClient = redisClient;
+    const { logger } = app.context;
+    try {
+        const pong = await redisClient.ping();
+        logger.debug.info("[Server] Redis PING:", pong);
+    } catch (err) {
+        logger.debug.error("[Server] Redis 连接失败：", err);
+        return Promise.reject();
+    }
 }
 
 declare module "ioredis" {

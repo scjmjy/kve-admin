@@ -1,0 +1,13 @@
+Server:
+    listenPort: 3000
+    keys:
+        - kve123456
+    jwtSecret: kve123456
+    routeDownload: /api/download/
+
+# MongoDB:
+#     connection: "mongodb+srv://admin:kve123456@kvers0.ydfnfii.mongodb.net?retryWrites=true&w=majority"
+
+Redis:
+    host: 127.0.0.1
+    port: 6379

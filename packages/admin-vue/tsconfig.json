@@ -12,7 +12,11 @@
         "resolveJsonModule": true,
         "esModuleInterop": true,
         "lib": ["esnext", "dom"],
-        "types": ["../../node_modules/vite/client", "../../node_modules/element-plus/global"],
+        "types": [
+            "../../node_modules/vite/client",
+            "../../node_modules/element-plus/global",
+            "../../node_modules/admin-common/src/global"
+        ],
         "baseUrl": "./",
         "paths": {
             "@/*": ["src/*"]

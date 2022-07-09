@@ -1,5 +1,5 @@
 <template>
-    <div ref="refMap"></div>
+    <div ref="refMap" v-loading="loading"></div>
 </template>
 
 <script setup lang="ts">
@@ -284,8 +284,8 @@ function convertData_lines(data: TrafficPM25DataItemType[]) {
 }
 
 const refMap = ref<HTMLDivElement>();
-
-const { echarts, echartPromise } = useECharts(refMap, true);
+const loading = ref(true);
+const { echarts, echartPromise } = useECharts(refMap, { amap: true, delayDispose: 500 });
 
 echartPromise.then(async (echartInstance) => {
     const color = ["#a6c84c", "#ffa022", "#46bee9"];
@@ -376,7 +376,7 @@ echartPromise.then(async (echartInstance) => {
     function getMapStyle(dark: boolean) {
         return dark ? "amap://styles/blue" : "amap://styles/normal";
     }
-
+    loading.value = false;
     echartInstance.setOption((dark, oldOpt) => {
         if (oldOpt) {
             // return oldOpt; // TODO 有必要的话，可以复用

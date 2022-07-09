@@ -3,6 +3,8 @@ import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
 import { IPermission } from "admin-common";
 import { useLayout } from "@/layout";
 import DefaultLayout from "@/layout/DefaultLayout.vue";
+import RedirectVue from "@/views/internal/redirect.vue";
+import LoginVue from "@/views/system/user/login.vue";
 import { usePageModules } from "@/composables/usePageModules";
 import { flattenRoutes, makeFullpathRoutes } from "./utils";
 import { ROUTE_PATH } from "./consts";
@@ -29,14 +31,14 @@ const staticRawRoutes: RouteRecordRaw[] = [
         children: [
             {
                 path: ":path(.*)",
-                component: () => import("@/views/internal/redirect.vue"),
+                component: RedirectVue,
             },
         ],
     },
     {
         path: ROUTE_PATH.LOGIN,
         name: "Login",
-        component: () => import("@/views/system/user/login.vue"),
+        component: LoginVue,
         meta: {
             visible: false,
         },

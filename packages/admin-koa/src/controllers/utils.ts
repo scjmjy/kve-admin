@@ -66,7 +66,7 @@ export async function handlePaginationRequest<T, FilterT extends string>(
 
 export class QueryBuilder {
     constructor(public query: mongoose.FilterQuery<any> = {}) {}
-    addQuery(query: Record<string, PaginationCondition>) {
+    addQuery(query: Partial<Record<string, PaginationCondition>>) {
         let key: any;
         for (key in query) {
             const value = query[key];

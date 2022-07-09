@@ -1,0 +1,2 @@
+MongoDB:
+    connection: "mongodb://admin:kve123456@1.117.98.204:27017,1.117.98.204:27018,1.117.98.204:27019?replicaSet=rs0&retryWrites=true&w=majority"

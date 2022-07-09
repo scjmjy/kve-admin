@@ -2,6 +2,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { MongoClient } from "mongodb";
 import mongoose from "mongoose";
+import conifg from "config";
 import { UserModel } from "../src/model/user";
 import { DepartmentModel, RoleModel } from "../src/model/department";
 import { PermissionModel } from "../src/model/permission";
@@ -9,8 +10,7 @@ import { internalDepts, internalUsers, internalPerms } from "./data/seed-all";
 import { createRecursively } from "./utils/create-recursively";
 
 /** connection string */
-const mongoConnectionUrl = "mongodb+srv://admin:kve123456@kvers0.ydfnfii.mongodb.net/?retryWrites=true&w=majority";
-// const mongoConnectionUrl = "mongodb://admin:kve123456@localhost:27018,localhost:27019,localhost:27020/?replSet=kvers0";
+const mongoConnectionUrl = conifg.get<string>("MongoDB.connection");
 
 const argv = yargs(hideBin(process.argv))
     // .strict()

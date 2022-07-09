@@ -45,9 +45,9 @@ onBeforeUnmount(() => {
     elWrapper?.removeEventListener("wheel", horizontalScroll);
 });
 
-function onCloseClick(route: RouteRecordVisited, isExactActive: boolean) {
-    systemStore.closeTab(route, isExactActive, router);
-}
+// function onCloseClick(route: RouteRecordVisited, isExactActive: boolean) {
+//     systemStore.closeTab(route, isExactActive, router);
+// }
 </script>
 
 <style lang="scss" scoped>

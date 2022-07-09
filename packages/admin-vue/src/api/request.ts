@@ -7,7 +7,7 @@ import { convertBlobToBase64, getTypeFromName } from "@/utils/file";
 
 export const request = axios.create({
     baseURL: import.meta.env.VITE_AXIOS_BASE_API,
-    timeout: 60000, // 60秒 超时时间，如果服务器响应慢或上传文件很大，则提高此数值
+    timeout: 20000000, // 20秒 超时时间，如果服务器响应慢或上传文件很大，则使用 request({ timeout: xxxx }) 来覆盖此值
 });
 
 export function setTokenHeader(token: string) {
@@ -37,7 +37,7 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
     (res) => {
-        if (!res.data.data) {
+        if (!res.data.code) {
             // 后端没有用 AjaxResult，例如静态文件，此时直接返回 res
             return res;
         }
@@ -62,7 +62,7 @@ request.interceptors.response.use(
         }
         return body;
     },
-    async (err: AxiosError) => {
+    async (err: AxiosError<any>) => {
         // if (!isAxiosError(err)) {
         //     ElNotification.error("发生了一个未知的错误！");
         //     console.error("[AXIOS]", err.message);
@@ -70,7 +70,7 @@ request.interceptors.response.use(
         // }
 
         if (err.response) {
-            if (!err.response.data) {
+            if (!err.response.data.code) {
                 // 后端没有用 AjaxResult
                 return Promise.reject(err);
             }

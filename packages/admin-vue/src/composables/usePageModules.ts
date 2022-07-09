@@ -1,9 +1,12 @@
-import { ExternalLinkEnum } from "admin-common";
+import { defineAsyncComponent } from "vue";
 import { RouteRecordRaw } from "vue-router";
+import { ExternalLinkEnum } from "admin-common";
 import { FakeLayout } from "@/router/utils";
-import BlankPage from '@/views/internal/blank.vue';
+import AsyncLoader from "@/layout/components/AsyncLoader.vue";
+import BlankPage from "@/views/internal/blank.vue";
 
 const pageModules = import.meta.glob("/src/views/**/page-*.vue");
+console.log("[pageModules]", pageModules);
 
 export interface PageModuleOption {
     label: string;
@@ -21,6 +24,11 @@ export function usePageModules() {
             label: match[1],
             value: match[1],
             component: com,
+            // component: defineAsyncComponent({
+            //     loader: com,
+            //     loadingComponent: AsyncLoader,
+            //     delay: 100,
+            // }),
         };
     });
     pageModuleOpts.unshift({

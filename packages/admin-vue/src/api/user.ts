@@ -1,12 +1,14 @@
 import { AxiosPromise } from "axios";
 // import { MsgSilent, MsgSilentHeader } from "admin-common/AjaxResult";
 import {
+    CaptchaResult,
     CreateUserBody,
     UpdateUserBody,
     FindUsersParams,
     FindUsersResult,
     LoginCredential,
     LoginResult,
+    OnlineUsersResult,
     UserProfileResult,
     UpdateUserProfile,
     UpdateUserPassword,
@@ -14,7 +16,6 @@ import {
     UserIdsBody,
 } from "admin-common";
 import { request } from "./request";
-import { CaptchaResult, OnlineUsersResult } from "admin-common/src/user";
 
 export function getCaptcha(prevId?: string): AxiosPromise<CaptchaResult> {
     return request({
@@ -34,7 +35,7 @@ export function login(credential: LoginCredential): AxiosPromise<LoginResult> {
     });
 }
 
-export function logout(): AxiosPromise<LoginResult> {
+export function logout(): AxiosPromise<void> {
     return request({
         method: "DELETE",
         url: "/api/user/logout",

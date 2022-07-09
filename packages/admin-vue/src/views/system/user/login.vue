@@ -46,7 +46,6 @@
                     <el-form-item style="margin-top: 20px; width: 100%">
                         <el-button
                             :loading="state.loggingIn"
-                            size="large"
                             type="primary"
                             style="width: 100%"
                             @click.prevent="handleLogin"
@@ -84,7 +83,6 @@
                     <el-form-item style="margin-top: 40px; width: 100%">
                         <el-button
                             :loading="state.loggingIn"
-                            size="large"
                             type="primary"
                             style="width: 100%"
                             @click.prevent="handleFind"

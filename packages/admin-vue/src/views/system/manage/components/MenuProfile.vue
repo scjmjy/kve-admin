@@ -319,6 +319,7 @@ const formItems = computed(() => {
             item: {
                 type: "BasicSelect",
                 props: {
+                    filterable: true,
                     clearable: true,
                     options: pageModuleOpts,
                     onChange(val: string) {

@@ -33,10 +33,11 @@ router
     .use("", demoPermRouter.routes(), demoPermRouter.allowedMethods());
 
 export function setupRouter(app: koa) {
+    const { jwtSecret, isDev } = app.context.config;
     const koajwt = koajwt_({
-        secret: app.context.config.jwtSecret,
+        secret: jwtSecret,
         cookie: "Authorization",
-        debug: process.env.NODE_ENV === "development",
+        debug: isDev,
     }).unless({
         // 以下路由不需要校验 token
         path: [RouteConsts.login, RouteConsts.captcha],

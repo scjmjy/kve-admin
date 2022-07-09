@@ -12,7 +12,6 @@ import {
     UpdateDemoCollectionBody,
 } from "admin-common";
 import { DemoCollectionModel } from "@/model/demo-collection";
-import { KoaAjaxContext } from "@/types/koa";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
 import { deleteReqFiles, handlePaginationRequest, mapReqFiles, normalizeUploadBody } from "./utils";
 import { getGridFsBucket } from "@/middlewares/upload";
@@ -96,7 +95,7 @@ export async function putDemoCollection(ctx: KoaAjaxContext<UpdateDemoCollection
         try {
             await bucket.delete(new ObjectId(existingDoc.gridFsFile.url));
         } catch (error) {
-            ctx.logger.error("[putDemoCollection] gridFsFile delete", error);
+            ctx.logger.debug.error("[putDemoCollection] gridFsFile delete", error);
         }
     }
     if (existingDoc.gridFsFile && body.gridFsFile) {
@@ -120,7 +119,7 @@ export async function putDemoCollection(ctx: KoaAjaxContext<UpdateDemoCollection
                 await bucket.delete(new ObjectId(id));
             }
         } catch (error) {
-            ctx.logger.error("[putDemoCollection] gridFsFileList delete", error);
+            ctx.logger.debug.error("[putDemoCollection] gridFsFileList delete", error);
         }
         // 因为 body.gridFsFileList 中的 url 添加了 ctx.config.routeDownload 前缀，所以通过以下代码修复
         body.gridFsFileList = existingDoc.gridFsFileList!.filter((file) => !toDeleteIds.includes(file.url));

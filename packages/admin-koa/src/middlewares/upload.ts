@@ -1,15 +1,31 @@
-import multer from "@koa/multer";
-import { GridFile, GridFsStorage } from "multer-gridfs-storage";
-import { GridFSBucket } from "mongodb";
+import koa from "koa";
 import { ObjectId } from "bson";
-import { appConfig } from "@/config";
+import { GridFSBucket } from "mongodb";
+import { GridFile, GridFsStorage, UrlStorageOptions } from "multer-gridfs-storage";
+import multer from "@koa/multer";
+import { appConfig } from "@/utils/config";
 
 const storage = new GridFsStorage({
-    url: appConfig.mongodbGridFS,
+    url: appConfig.mongodbConnection,
     file(req, file) {
         return file.originalname;
     },
 });
+
+export async function setupUpload(app: koa) {
+    const { logger } = app.context;
+    const { db, client } = await storage.ready();
+    if (!client) {
+        logger.debug.error(
+            "[Server] setupUpload: MongoDB GridFS 连接失败，url:",
+            (storage.configuration as UrlStorageOptions).url,
+        );
+        return Promise.reject("MongoDB GridFS 连接失败");
+    } else {
+        storage.db = client.db("gridfs");
+    }
+    logger.debug.info("[Server] setupUpload: 连接成功");
+}
 
 export const upload = multer({
     storage,

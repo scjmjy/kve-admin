@@ -1,3 +1,4 @@
+import koa from "koa";
 import { MongoError, MongoServerError } from "mongodb";
 import mongoose from "mongoose";
 import type { IMiddleware } from "koa-router";
@@ -5,7 +6,6 @@ import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import type { AsyncValidationError } from "async-validator/dist-types/util";
 import { MulterError } from "multer";
-import { KoaAjaxContext } from "@/types/koa";
 import { AjaxError } from "@/controllers/errors";
 
 function isAsyncValidationError(err: any): err is AsyncValidationError {
@@ -16,7 +16,7 @@ const codeMessage: Record<string, string> = {
     LIMIT_FIELD_VALUE: "文件大小超过限制",
 };
 
-export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void>, next) => {
+export const errorMiddleware: koa.Middleware<any, any> = async (ctx: KoaAjaxContext<any, void>, next) => {
     await next().catch((err: any) => {
         if (err.originalError) {
             if (err.originalError instanceof jwt.TokenExpiredError) {
@@ -58,7 +58,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                     showType: "NOTIFICATION",
                     msg: `${keyValue}资源已存在，不要重复创建`,
                 };
-                console.log("[数据库资源已存在]", err);
+                ctx.logger.debug.error("[数据库资源已存在]", err);
             } else if (err.code === 8000) {
                 // 8000: AtlasError
                 // MongoServerError: user is not allowed to do action [update] on [xxx]
@@ -68,7 +68,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                     showType: "NOTIFICATION",
                     msg: "只读数据库，不可写入！\n请搭建自己的MongoDB Cluster。",
                 };
-                console.log("[只读数据库]", err);
+                ctx.logger.debug.error("[只读数据库]", err);
             } else {
                 ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
                 ctx.body = {
@@ -76,7 +76,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                     showType: "NOTIFICATION",
                     msg: "数据库操作错误，请联系管理员！",
                 };
-                console.log("[数据库操作错误]", err);
+                ctx.logger.debug.error("[数据库操作错误]", err);
             }
         } else if (err instanceof mongoose.Error.ValidationError) {
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
@@ -85,7 +85,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                 showType: "NOTIFICATION",
                 msg: "数据库校验错误，请联系管理员！",
             };
-            console.log("[数据库校验错误]", err);
+            ctx.logger.debug.error("[数据库校验错误]", err);
         } else if (err instanceof mongoose.Error.CastError) {
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
             ctx.body = {
@@ -93,7 +93,7 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
                 showType: "NOTIFICATION",
                 msg: "数据库类型转换错误，请联系管理员！",
             };
-            console.log("[数据库类型转换错误]", err);
+            ctx.logger.debug.error("[数据库类型转换错误]", err);
         } else if (err instanceof MulterError) {
             // | 'LIMIT_PART_COUNT'
             // | 'LIMIT_FILE_SIZE'
@@ -113,10 +113,10 @@ export const errorMiddleware: IMiddleware = async (ctx: KoaAjaxContext<any, void
             ctx.body = {
                 code: ctx.status,
                 showType: "NOTIFICATION",
-                msg: "未授权的操作",
+                msg: "未授权的操作：" + (err.message || "未知"),
             };
         } else {
-            ctx.logger.error("[服务器发生未知错误]", err);
+            ctx.logger.debug.error("[errorMiddleware] 服务器发生未知错误：", err);
 
             ctx.status = StatusCodes.INTERNAL_SERVER_ERROR;
             ctx.body = {

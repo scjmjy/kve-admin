@@ -6,7 +6,7 @@
             </keep-alive>
         </transition>
     </router-view>
-    <transition name="transition-3d" mode="out-in">
+    <transition v-if="systemStore.settings.iframe" name="transition-3d" mode="out-in">
         <FrameContainer></FrameContainer>
     </transition>
 </template>

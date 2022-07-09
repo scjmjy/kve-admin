@@ -1,7 +1,7 @@
 <template>
     <router-link
         :key="props.route.path"
-        :to="{ path: props.route.path, query: props.route.query, fullPath: props.route.fullPath }"
+        :to="{ path: props.route.path, query: props.route.query, params: props.route.params }"
         custom
         v-slot="{ href, navigate, isActive, isExactActive }"
     >

@@ -9,7 +9,7 @@ import { request } from "@/api/request";
 
 const refMap = ref<HTMLDivElement>();
 
-const { echarts, echartPromise } = useECharts(refMap, true);
+const { echarts, echartPromise } = useECharts(refMap, { amap: true, delayDispose: 500 });
 
 echartPromise.then(async (echartInstance) => {
     const res = await request({

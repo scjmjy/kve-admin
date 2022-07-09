@@ -7,7 +7,7 @@
             <el-aside class="defaultLayout-left">
                 <AppMenu></AppMenu>
             </el-aside>
-            <el-container class="scrollbar defaultLayout-right">
+            <el-container class="defaultLayout-right">
                 <el-header v-if="systemStore.screen.tags" class="defaultLayout-tags">
                     <TabList></TabList>
                 </el-header>
@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useRoute } from "vue-router";
 import { useSystemStore } from "@/store/modules/system";
 import { initAppMainResize } from "@/composables/useAppMainResize";
 import AppHeader from "./components/AppHeader.vue";
@@ -33,7 +34,6 @@ import AppMenu from "./components/AppMenu.vue";
 import AppMain from "./components/AppMain.vue";
 import AppFooter from "./components/AppFooter.vue";
 import TabList from "./components/TabList.vue";
-import { useRoute } from "vue-router";
 
 const systemStore = useSystemStore();
 
@@ -90,7 +90,9 @@ $footerHeight: 60px;
             .el-scrollbar__view {
                 display: flex;
                 flex-direction: column;
+                // justify-content: flex-end;
                 min-height: 100%;
+                position: relative;
             }
         }
         display: flex;

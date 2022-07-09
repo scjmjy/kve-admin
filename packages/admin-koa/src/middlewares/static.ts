@@ -6,7 +6,7 @@ import ms from "ms";
 export function setupStatic(app: koa) {
     const { workDir } = app.context.config;
     const publicDir = resolve(workDir, "public");
-    app.context.logger.info("[setupStatic] ", publicDir);
+    app.context.logger.debug.info("[Server] setupStatic:", publicDir);
     app.use(
         serve(publicDir, {
             maxage: ms("1d"), // 一天

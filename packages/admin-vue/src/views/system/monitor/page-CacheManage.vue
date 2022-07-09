@@ -6,7 +6,12 @@
                     <el-button icon="Refresh" type="primary" :loading="state.refreshing" @click="onRefreshClick"
                         >刷新</el-button
                     >
-                    <el-button icon="Delete" type="danger" :loading="state.clearing" @click="onClearClick"
+                    <el-button
+                        v-has-perm="PERM_CODES.monitor_cachemanage_clear"
+                        icon="Delete"
+                        type="danger"
+                        :loading="state.clearing"
+                        @click="onClearClick"
                         >清空缓存</el-button
                     >
                 </el-button-group>
@@ -38,7 +43,7 @@
 
 <script setup lang="ts" name="CacheManage">
 import { onActivated, reactive, ref } from "vue";
-import { CacheInfoResult } from "admin-common";
+import { CacheInfoResult, PERM_CODES } from "admin-common";
 import { useResponsiveCollumn } from "@/composables/useDescriptions";
 import { clearCache, getCacheInfo } from "@/api/monitor";
 import { ElMessageBox } from "element-plus";
@@ -73,7 +78,7 @@ function onRefreshClick() {
 }
 
 async function onClearClick() {
-    await ElMessageBox.confirm("确认清空缓存吗？", "警告");
+    await ElMessageBox.confirm("确认清空缓存吗？\n(此操作会踢出所有在线用户！)", "警告");
     clearCache().finally(() => {
         state.clearing = false;
     });

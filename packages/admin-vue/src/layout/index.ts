@@ -1,6 +1,7 @@
 import DefaultLayout from "@/layout/DefaultLayout.vue";
 import FullscreenLayout from "@/layout/FullscreenLayout.vue";
 import { FakeLayout } from "@/router/utils";
+
 export enum LayoutEnum {
     default = "DefaultLayout",
     fullscreen = "FullscreenLayout",

@@ -1,13 +1,36 @@
-import { Middleware } from "koa";
+import { IMiddleware } from "koa-router";
+import { RouteConsts } from "@/router";
+import { getIpLocation } from "@/utils/ip";
+import { LogData } from "admin-common";
 
-export const responseTime: Middleware = async (ctx, next) => {
+export const responseTime: IMiddleware = async (ctx, next) => {
     const startTime = Date.now();
-    return next().finally(function () {
+    return next().finally(async function () {
         const endTime = Date.now();
-        ctx.loggerAccess.info(
-            `[Response Time] ORIGIN = ${ctx.request.origin}, METHOD = ${ctx.method}, URL = ${ctx.url}, TIME = ${
-                endTime - startTime
-            }ms`,
-        );
+        let { userId, username, ip, location } = ctx.session || {};
+        const url = ctx._matchedRoute instanceof RegExp ? ctx._matchedRoute.toString() : ctx._matchedRoute || ctx.url;
+        if (ip !== ctx.ip || !location) {
+            location = await getIpLocation(ctx.ip);
+        }
+        const logInfo: LogData = {
+            method: ctx.method,
+            url,
+            query: ctx.query,
+            params: ctx.params,
+            reqBody: ctx.request.body || {},
+            status: ctx.status,
+            success: ctx.status < 400,
+            userId: userId,
+            username: username,
+            ip: ctx.ip,
+            location,
+            elapsedTime: endTime - startTime,
+        };
+        if (ctx.path === RouteConsts.login) {
+            delete logInfo.reqBody.password;
+            ctx.logger.access.info(logInfo);
+        } else {
+            ctx.logger.operation.info(logInfo);
+        }
     });
 };

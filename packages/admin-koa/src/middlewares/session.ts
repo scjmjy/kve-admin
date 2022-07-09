@@ -17,6 +17,7 @@ export interface SessionData {
     username: string;
     userId: string;
     ip: string;
+    location: string;
     browser: string;
     os: string;
 }

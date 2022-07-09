@@ -58,7 +58,9 @@ function flattenRoute(flatRoutes: RouteRecordRaw[], route: RouteRecordRaw, paren
             redirect = normalizePath(fullPath, route.children[0].path);
         }
         flatRoutes.push({
-            ...route,
+            name: route.name,
+            component: route.component,
+            meta: route.meta,
             path: fullPath,
             redirect,
             children,

@@ -1,3 +1,6 @@
+import type log4js from "log4js";
+import type { StatusCodes } from "http-status-codes";
+import { LoginCredential } from "./user";
 export interface CacheInfoItem {
     label: string;
     value: string;
@@ -43,3 +46,40 @@ export type MetricGroup = {
 export interface MetricTimelines {
     [timestamp: string]: MetricGroup[];
 }
+
+export interface LogData<ReqBody = any> {
+    method: string;
+    url: string;
+    query: Record<string, any>;
+    params: Record<string, any>;
+    reqBody: ReqBody;
+    status: StatusCodes;
+    success: boolean;
+    userId?: string;
+    username?: string;
+    ip: string;
+    location?: string;
+    /** unit: ms */
+    elapsedTime: number;
+}
+
+export interface LogItem<DataT> extends Pick<log4js.LoggingEvent, "categoryName" | "startTime" | "level" | "cluster"> {
+    data: DataT;
+}
+
+export type AccessLogItem = LogItem<LogData<Omit<LoginCredential, "password">>>;
+export type OperationLogItem = LogItem<LogData>;
+export type DebugLogItem = LogItem<string>;
+
+export const logCategories = ["debug", "access", "operation"] as const;
+export type LogCategoryEnum = typeof logCategories[number];
+// export interface LogFilter {
+//     level?: string;
+//     category?: LogCategoryEnum;
+//     pageNum: number;
+//     pageSize: number;
+//     // startTime?: string;
+//     // endTime?: string;
+// }
+// export type ReadLogItemsParams = LogFilter;
+// export type ReadLogItemsResult = PaginationResult<LogItem>;
