@@ -75,7 +75,7 @@ export async function setupCache(app: koa) {
         logger.debug.info("[Server] Redis PING:", pong);
     } catch (err) {
         logger.debug.error("[Server] Redis 连接失败：", err);
-        return Promise.reject();
+        return Promise.reject("Redis 连接失败");
     }
 }
 

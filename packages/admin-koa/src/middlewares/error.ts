@@ -112,7 +112,7 @@ export const errorMiddleware: koa.Middleware<any, any> = async (ctx: KoaAjaxCont
             ctx.status = err.status;
             ctx.body = {
                 code: ctx.status,
-                showType: "NOTIFICATION",
+                showType: "FATAL",
                 msg: "未授权的操作：" + (err.message || "未知"),
             };
         } else {

@@ -1,3 +1,6 @@
 MongoDB:
     # connection: "mongodb+srv://admin:kve123456@kvers0.ydfnfii.mongodb.net?retryWrites=true&w=majority"
     connection: "mongodb://admin:kve123456@1.117.98.204:27017,1.117.98.204:27018,1.117.98.204:27019?replicaSet=rs0&retryWrites=true&w=majority"
+
+Redis:
+    port: 6380 # 我的服务器的6379已被另外应用占用
