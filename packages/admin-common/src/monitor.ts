@@ -63,8 +63,9 @@ export interface LogData<ReqBody = any> {
     elapsedTime: number;
 }
 
-export interface LogItem<DataT>
-    extends Pick<log4js.LoggingEvent, "INSTANCE" | "categoryName" | "startTime" | "level" | "cluster"> {
+export interface LogItem<DataT> extends Pick<log4js.LoggingEvent, "categoryName" | "startTime" | "level" | "cluster"> {
+    INSTANCE: number; // NODE_APP_INSTANCE
+
     data: DataT;
 }
 
