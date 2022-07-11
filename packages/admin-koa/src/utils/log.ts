@@ -1,10 +1,10 @@
-import { resolve } from "path";
 import type koa from "koa";
-import log4js from "log4js";
-import { opendir, readFile, rm } from "fs/promises";
 import { EOL } from "os";
-import { isSameDay, logCategories, LogCategoryEnum, LogItem } from "admin-common";
 import process from "process";
+import { resolve } from "path";
+import { opendir, readFile, rm } from "fs/promises";
+import log4js from "log4js";
+import { isSameDay, logCategories, LogCategoryEnum, LogItem } from "admin-common";
 
 export let logDir = "";
 
@@ -76,7 +76,7 @@ export function setupLog(app: koa) {
         access: log4js.getLogger("access"),
         operation: log4js.getLogger("operation"),
     };
-    app.context.logger.debug.info("[LogDir] ", logDir);
+    app.context.logger.debug.info("[Log] out dir:", logDir);
 }
 
 export async function readAllLogItems(ctx: koa.BaseContext, category: LogCategoryEnum): Promise<string[]> {
@@ -100,7 +100,7 @@ export async function readAllLogItems(ctx: koa.BaseContext, category: LogCategor
         }
         return lines;
     } catch (err) {
-        ctx.logger.debug.error("'[readAllLogItems] error: ", err);
+        ctx.logger.debug.error("'[Log] readAllLogItems error:", err);
         return [];
     }
 }
@@ -129,6 +129,6 @@ export async function clearLogItems(ctx: koa.BaseContext, category: LogCategoryE
             await rm(filePath, { recursive: true, force: true });
         }
     } catch (err) {
-        ctx.logger.debug.error("'[clearLogItems] error: ", err);
+        ctx.logger.debug.error("'[Log] clearLogItems error:", err);
     }
 }

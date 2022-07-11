@@ -13,6 +13,7 @@
         "db:dev": "cross-env NODE_ENV=development ts-node-dev -r esm -r tsconfig-paths/register scripts/mongodb.ts",
         "db:prd": "cross-env NODE_ENV=production ts-node-dev -r esm -r tsconfig-paths/register scripts/mongodb.ts",
         "start": "pm2 start ./scripts/ecosystem.config.cjs --env production",
+        "reload": "pm2 reload ./scripts/ecosystem.config.cjs",
         "stop": "pm2 stop ./scripts/ecosystem.config.cjs"
     },
     "devDependencies": {

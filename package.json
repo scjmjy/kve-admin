@@ -14,6 +14,7 @@
         "build:koa": "yarn workspace admin-koa build",
         "build": "yarn build:common && yarn build:vue && yarn build:koa",
         "start": "yarn workspace admin-koa start",
+        "reload": "yarn workspace admin-koa reload",
         "stop": "yarn workspace admin-koa stop"
     },
     "devDependencies": {

@@ -1,5 +1,5 @@
 <template>
-    <el-row class="menuManage" :gutter="20">
+    <el-row class="menuManage" :gutter="20" v-loading="state.loading">
         <el-col :md="24" :lg="5">
             <!-- <el-input v-model="state.deptKeyword" placeholder="输入部门名称进行筛选" :prefix-icon="Search" /> -->
             <div class="menuManage-filter">
@@ -7,7 +7,6 @@
             </div>
             <el-tree
                 ref="refTree"
-                v-loading="state.loading"
                 class="menuManage-tree"
                 node-key="_id"
                 :data="menuNodes"

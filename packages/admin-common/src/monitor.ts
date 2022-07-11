@@ -64,7 +64,7 @@ export interface LogData<ReqBody = any> {
 }
 
 export interface LogItem<DataT> extends Pick<log4js.LoggingEvent, "categoryName" | "startTime" | "level" | "cluster"> {
-    INSTANCE: number; // NODE_APP_INSTANCE
+    INSTANCE: string; // NODE_APP_INSTANCE
 
     data: DataT;
 }

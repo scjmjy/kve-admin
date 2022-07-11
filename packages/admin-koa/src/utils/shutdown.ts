@@ -10,11 +10,11 @@ export function setupShutdown(app: koa) {
         p.push(app.context.redisClient.quit());
         Promise.all(p)
             .then(() => {
-                logger.debug.info("Server has gracefully shut down!");
+                logger.debug.info("[Server] has gracefully shut down!");
                 return 0;
             })
             .catch((err) => {
-                logger.debug.info("Server has gracefully shut down with error:", err);
+                logger.debug.info("[Server] has gracefully shut down with error:", err);
                 return 1;
             })
             .then((code: number) => {
