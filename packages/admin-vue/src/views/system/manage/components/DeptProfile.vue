@@ -4,7 +4,7 @@
             <template #extra>
                 <el-button-group size="small">
                     <el-button icon="Plus" type="primary" :loading="state.loading" @click="onAddClick"
-                        >添加部门</el-button
+                        >添加子部门</el-button
                     >
                     <el-button
                         icon="Edit"

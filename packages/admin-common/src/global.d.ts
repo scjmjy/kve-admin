@@ -66,3 +66,12 @@ interface PaginationResult<T> {
     pageHasPre: boolean;
     pageHasNext: boolean;
 }
+
+interface DragDropBody {
+    draggingId: string;
+    draggingParentId: string;
+    dropId: string;
+    dropParentId: string;
+    type: "before" | "after" | "inner";
+    returnNew?: boolean;
+}

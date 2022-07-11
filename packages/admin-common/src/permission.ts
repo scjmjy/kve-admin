@@ -251,21 +251,3 @@ export function getUpdateItemRules(requireHttp: boolean, requireIframe: boolean)
 }
 
 //#endregion
-
-//#region reorder
-
-export interface ReorderPermsBody {
-    permId: string;
-    permIds: string[];
-}
-
-export interface DragDropPermsBody {
-    draggingId: string;
-    draggingParentId: string;
-    dropId: string;
-    dropParentId: string;
-    type: "before" | "after" | "inner";
-    returnNew?: boolean;
-}
-
-//#endregion

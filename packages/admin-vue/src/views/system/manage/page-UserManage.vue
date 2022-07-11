@@ -1,5 +1,5 @@
 <template>
-    <el-row class="userManage" :gutter="20">
+    <el-row class="userManage" :gutter="20" v-loading="state.loading">
         <el-col :xs="24" :sm="5" style="margin-bottom: 20px">
             <!-- <el-input v-model="state.deptKeyword" placeholder="输入部门名称进行筛选" :prefix-icon="Search" /> -->
             <div class="userManage-filter">
@@ -7,7 +7,6 @@
             </div>
             <el-tree
                 ref="refTree"
-                v-loading="state.loading"
                 class="userManage-tree"
                 node-key="_id"
                 :data="deptNodes"
@@ -66,7 +65,7 @@ import { computed, nextTick, onActivated, provide, reactive, ref, toRef, watch }
 import { cloneDeep } from "lodash";
 import { DeptTreeNodesResult } from "admin-common";
 import { ElTree } from "element-plus";
-import { getDeptTreeNodes, reorderDepts } from "@/api/department";
+import { getDeptTreeNodes, dragDropDepts } from "@/api/department";
 import DeptProfile from "./components/DeptProfile.vue";
 import DeptRoleManage from "./components/DeptRoleManage.vue";
 import DeptUserManage from "./components/DeptUserManage.vue";
@@ -80,6 +79,7 @@ import {
 
 interface TreeNode {
     key: string;
+    level: number;
     parent: TreeNode;
     data: DeptTreeNodesResult;
     childNodes: TreeNode[];
@@ -157,29 +157,37 @@ onActivated(() => {
 });
 
 function allowDrag(node: TreeNode) {
-    return !!node.parent;
+    return node.level > 1;
 }
+
+let draggingNodeParentId: string | undefined = undefined;
+
 function allowDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "prev" | "inner" | "next") {
-    // 只允许在同一层移动
-    if (type === "inner" || draggingNode.parent !== dropNode.parent) {
+    // 如果是 dropNode 是根节点，那只能拖进去
+    if (dropNode.level === 1 && type !== "inner") {
         return false;
     }
+    draggingNodeParentId = draggingNode.parent.data._id;
     return true;
 }
 
 async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "before" | "after" | "inner") {
-    const deptId = dropNode.parent.data._id;
-    const newChildNodes = dropNode.parent.childNodes;
-    const newOrder = newChildNodes.map((item) => item.data._id);
-    await reorderDepts({
-        deptId,
-        deptIds: newOrder,
+    const body: DragDropBody = {
+        draggingId: draggingNode.data._id,
+        draggingParentId: draggingNodeParentId || "",
+        dropId: dropNode.data._id,
+        dropParentId: dropNode.parent.data._id,
+        type,
+        returnNew: true,
+    };
+
+    state.loading = true;
+    const res = await dragDropDepts(body).finally(() => {
+        state.loading = false;
     });
-    const dept = deepFindOriginalDept(state.deptOriginal!, deptId)!;
-    // 按照最新的顺序重新排序
-    dept.depts.sort((a, b) => {
-        return newOrder.findIndex((id) => a._id === id) - newOrder.findIndex((id) => b._id === id);
-    });
+    if (res.data) {
+        state.deptOriginal = res.data;
+    }
 }
 
 function onCurrentNodeChange(data: DeptTreeNodesResult, node: TreeNode) {

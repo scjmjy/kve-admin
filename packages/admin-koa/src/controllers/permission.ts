@@ -1,4 +1,4 @@
-import mongoose, { ClientSession } from "mongoose";
+import mongoose from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import {
     CreateMenuActionBody,
@@ -18,14 +18,13 @@ import {
     ExternalLinkEnum,
     isValidStatus,
     getStatusLabel,
-    ReorderPermsBody,
-    DragDropPermsBody,
     GetPermNodeQuery,
 } from "admin-common";
 import { PermissionModel } from "@/model/permission";
 import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
 import { permService } from "@/services";
+import { dragDropDocs } from "./utils";
 
 export async function getPermNodes(ctx: KoaAjaxContext<void, PermNodeResult, any, GetPermNodeQuery>) {
     const { status } = ctx.query;
@@ -155,115 +154,12 @@ export async function putEnablePerm(ctx: KoaAjaxContext<void, void, { permId: st
     };
 }
 
-export async function postReorderPerms(ctx: KoaAjaxContext<ReorderPermsBody>) {
-    const { permId, permIds } = ctx.request.body || {};
-    if (!permId || !Array.isArray(permIds) || permIds.length === 0) {
-        return throwBadRequestError("请提供有效的菜单 ID！");
-    }
-    const perm = await PermissionModel.findById<mongoose.Document & { children: mongoose.Types.ObjectId[] }>(
-        permId,
-        "children",
-    ).exec();
-    if (!perm) {
-        return throwNotFoundError(`菜单不存在：${permId}`);
-    }
-    perm.children.sort((a, b) => {
-        return permIds.findIndex((id) => a.equals(id)) - permIds.findIndex((id) => b.equals(id));
-    });
-    await perm.save();
-    ctx.status = StatusCodes.OK;
-    ctx.body = {
-        code: ctx.status,
-        showType: "MESSAGE",
-        msg: "菜单排序成功！",
-    };
-}
-
-export async function postDragDropPerms(ctx: KoaAjaxContext<DragDropPermsBody, PermNodeResult | undefined>) {
-    const { draggingParentId, draggingId, dropParentId, dropId, type, returnNew } = ctx.request.body || {};
-    if (!draggingParentId || !draggingId || !dropParentId || !dropId || !type) {
-        return throwBadRequestError("参数格式错误！");
-    }
-    const dragDropIds = [draggingParentId, draggingId, dropParentId, dropId];
-    const perms = await PermissionModel.find<mongoose.Document & { children: mongoose.Types.ObjectId[] }>(
-        {
-            _id: {
-                $in: dragDropIds,
-            },
-        },
-        "children",
-    ).exec();
-
-    const draggingParentPerm = perms.find((perm) => perm.id === draggingParentId);
-    const draggingPerm = perms.find((perm) => perm.id === draggingId);
-    const dropParentPerm = perms.find((perm) => perm.id === dropParentId);
-    const dropPerm = perms.find((perm) => perm.id === dropId);
-
-    if (!draggingParentPerm || !draggingPerm || !dropParentPerm || !dropPerm) {
-        return throwNotFoundError("菜单未找到！");
-    }
-
-    const draggingIndex = draggingParentPerm.children.findIndex((child) => child.toString() === draggingId);
-    const dropIndex = dropParentPerm.children.findIndex((child) => child.toString() === dropId);
-    switch (type) {
-        case "before":
-            if (draggingParentId === dropParentId) {
-                // 在同一层，执行排序
-                if (dropIndex > draggingIndex) {
-                    // 已经处在正确的顺序
-                } else {
-                    const draggingObjId = draggingParentPerm.children.splice(draggingIndex, 1)[0];
-                    draggingParentPerm.children.splice(dropIndex, 0, draggingObjId);
-                }
-                await draggingParentPerm.save();
-            } else {
-                // 不在同一层
-                const draggingObjId = draggingParentPerm.children.splice(draggingIndex, 1)[0];
-                dropParentPerm.children.splice(dropIndex, 0, draggingObjId);
-                const session = await mongoose.startSession();
-                await session.withTransaction(async () => {
-                    await draggingParentPerm.save({ session: session });
-                    await dropParentPerm.save({ session: session });
-                });
-            }
-            break;
-
-        case "after":
-            if (draggingParentId === dropParentId) {
-                // 在同一层，执行排序
-                if (draggingIndex > dropIndex) {
-                    // 已经处在正确的顺序
-                } else {
-                    const draggingObjId = draggingParentPerm.children.splice(draggingIndex, 1)[0];
-                    draggingParentPerm.children.splice(dropIndex, 0, draggingObjId);
-                }
-                await draggingParentPerm.save();
-            } else {
-                // 不在同一层
-                const draggingObjId = draggingParentPerm.children.splice(draggingIndex, 1)[0];
-                dropParentPerm.children.splice(dropIndex + 1, 0, draggingObjId);
-                const session = await mongoose.startSession();
-                await session.withTransaction(async () => {
-                    await draggingParentPerm.save({ session: session });
-                    await dropParentPerm.save({ session: session });
-                });
-            }
-            break;
-        case "inner":
-            const draggingObjId = draggingParentPerm.children.splice(draggingIndex, 1)[0];
-            dropPerm.children.push(draggingObjId);
-            const session = await mongoose.startSession();
-            await session.withTransaction(async () => {
-                await draggingParentPerm.save({ session: session });
-                await dropPerm.save({ session: session });
-            });
-            break;
-        default:
-            return throwBadRequestError("拖拽类型错误错误: " + type);
-    }
+export async function postDragDropPerms(ctx: KoaAjaxContext<DragDropBody, PermNodeResult | undefined>) {
+    const reqBody = ctx.request.body!;
+    await dragDropDocs(reqBody, PermissionModel, "children");
 
     let data: PermNodeResult | undefined = undefined;
-    if (returnNew) {
+    if (reqBody.returnNew) {
         data = await permService.getPermNodes();
     }
 

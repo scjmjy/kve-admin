@@ -65,7 +65,7 @@ import {
     deepFindMenu,
     filterDeletedMenuNodes,
 } from "./composables/useMenuNodes";
-import { getPermNodes, reorderPerms, dragDropPerms } from "@/api/permission";
+import { getPermNodes, dragDropPerms } from "@/api/permission";
 import MenuProfile from "./components/MenuProfile.vue";
 import { normalizePath } from "@/utils/url";
 
@@ -73,6 +73,7 @@ type NodeType = PermNodeResult;
 
 interface TreeNode {
     key: string;
+    level: number;
     parent: TreeNode;
     data: NodeType;
     childNodes: TreeNode[];
@@ -149,13 +150,16 @@ onActivated(() => {
 });
 
 function allowDrag(node: TreeNode) {
-    return !!node.parent;
+    return node.level > 1;
 }
 
 let draggingNodeParentId: string | undefined = undefined;
 
 function allowDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "prev" | "inner" | "next") {
-    // console.log("[allowDrop]", arguments);
+    // 如果是 dropNode 是根节点，那只能拖进去
+    if (dropNode.level === 1 && type !== "inner") {
+        return false;
+    }
     // 动作菜单不能有子菜单
     if (type === "inner" && dropNode.data.type === "action") {
         return false;
@@ -169,7 +173,6 @@ function allowDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "prev" | "i
 }
 
 async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "before" | "after" | "inner") {
-    // console.log("[onNodeDrop]", arguments);
     const body: DragDropPermsBody = {
         draggingId: draggingNode.data._id,
         draggingParentId: draggingNodeParentId || "",

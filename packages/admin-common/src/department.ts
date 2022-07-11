@@ -131,12 +131,7 @@ export function getUpdateRoleRules() {
 
 //#endregion
 
-//#region reorder
-
-export interface ReorderDeptsBody {
-    deptId: string;
-    deptIds: string[];
-}
+//#region drag-drop reorder
 
 export interface ReorderRolesBody {
     deptId: string;

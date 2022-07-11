@@ -5,7 +5,7 @@ import {
     postRole,
     putRole,
     putEnableRole,
-    postReorderDepts,
+    postDragDropDepts,
     postReorderRoles,
     putEnableDept,
     putDept,
@@ -26,7 +26,7 @@ deptRouter
     .post("/", postDept)
     .put("/", putDept)
     .put("/status/:deptId/:status", putEnableDept)
-    .post("/reorder", postReorderDepts);
+    .post("/drag-drop", postDragDropDepts);
 
 export const roleRouter = new Router<any, any>({
     prefix: "/role",

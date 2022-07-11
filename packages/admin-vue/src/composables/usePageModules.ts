@@ -6,7 +6,7 @@ import AsyncLoader from "@/layout/components/AsyncLoader.vue";
 import BlankPage from "@/views/internal/blank.vue";
 
 const pageModules = import.meta.glob("/src/views/**/page-*.vue");
-console.log("[pageModules]", pageModules);
+// console.log("[pageModules]", pageModules);
 
 export interface PageModuleOption {
     label: string;
@@ -23,12 +23,12 @@ export function usePageModules() {
         return {
             label: match[1],
             value: match[1],
-            component: com,
-            // component: defineAsyncComponent({
-            //     loader: com,
-            //     loadingComponent: AsyncLoader,
-            //     delay: 100,
-            // }),
+            // component: com,
+            component: defineAsyncComponent({
+                loader: com,
+                loadingComponent: AsyncLoader,
+                delay: 100,
+            }),
         };
     });
     pageModuleOpts.unshift({

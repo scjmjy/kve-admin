@@ -4,7 +4,7 @@
             <el-descriptions border :column="column">
                 <el-descriptions-item label="项目名称">
                     KVE 全栈后端管理系统
-                    <el-tag type="success">@1.0.0</el-tag>
+                    <el-tag type="success">@1.1.0</el-tag>
                     <el-tag type="danger" style="margin-left: 5px">￥ 免费开源</el-tag>
                 </el-descriptions-item>
                 <el-descriptions-item label="名称含义">
@@ -169,15 +169,14 @@
                         <li>
                             优雅的系统功能
                             <ul>
-                                <li>易用的部门/角色/用户管理系统</li>
+                                <li>易用的部门/角色/用户管理系统，拖拽式排序重组</li>
                                 <li>易用的权限菜单系统，拖拽式排序重组</li>
                                 <li>一致的前后端错误机制</li>
                                 <li>基于 MongoDB GridFS 的文件上传、下载、预览</li>
                                 <li>低代码增删改查组件和后端接口</li>
-                                <li>完备且易用的路由功能，借用权限系统支持不同首页</li>
-                                <li>编程式的响应式设计</li>
-                                <li>编程式响应式的暗黑模式</li>
-                                <li>一致的 ElementPlus 图标和精灵图标</li>
+                                <li>完备且易用的路由功能，内置路由懒加载动画</li>
+                                <li>编程式的响应式设计、暗黑模式</li>
+                                <li>ElementPlus 图标和精灵图标</li>
                             </ul>
                         </li>
                     </ol>

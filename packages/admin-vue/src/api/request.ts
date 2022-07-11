@@ -37,7 +37,7 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
     (res) => {
-        if (!res.data.code) {
+        if (!res.data || !res.data.code) {
             // 后端没有用 AjaxResult，例如静态文件，此时直接返回 res
             return res;
         }
@@ -70,7 +70,7 @@ request.interceptors.response.use(
         // }
 
         if (err.response) {
-            if (!err.response.data.code) {
+            if (!err.response.data || !err.response.data.code) {
                 // 后端没有用 AjaxResult
                 return Promise.reject(err);
             }

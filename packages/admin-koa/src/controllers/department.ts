@@ -7,7 +7,6 @@ import {
     getCreateRoleRules,
     getUpdateRoleRules,
     isValidStatus,
-    ReorderDeptsBody,
     ReorderRolesBody,
     CreateDeptBody,
     getCreateDeptRules,
@@ -20,6 +19,7 @@ import { DepartmentModel, RoleModel } from "@/model/department";
 import { Schema } from "@/utils/async-validator";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
 import { deptService } from "@/services";
+import { dragDropDocs } from "./utils";
 
 export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesResult>) {
     const department = await deptService.getDeptNodes();
@@ -195,27 +195,21 @@ export async function putEnableRole(ctx: KoaAjaxContext<void, void, { roleId: st
     };
 }
 
-export async function postReorderDepts(ctx: KoaAjaxContext<ReorderDeptsBody>) {
-    const { deptId, deptIds } = ctx.request.body || {};
-    if (!deptId || !Array.isArray(deptIds) || deptIds.length === 0) {
-        return throwBadRequestError("请提供有效的部门 ID！");
+export async function postDragDropDepts(ctx: KoaAjaxContext<DragDropBody, DeptTreeNodesResult | undefined>) {
+    const reqBody = ctx.request.body!;
+    await dragDropDocs(reqBody, DepartmentModel, "depts");
+
+    let department: DeptTreeNodesResult | undefined = undefined;
+    if (reqBody.returnNew) {
+        department = await deptService.getDeptNodes();
     }
-    const dept = await DepartmentModel.findById<mongoose.Document & { depts: mongoose.Types.ObjectId[] }>(
-        deptId,
-        "depts",
-    ).exec();
-    if (!dept) {
-        return throwNotFoundError(`部门不存在：${deptId}`);
-    }
-    dept.depts.sort((a, b) => {
-        return deptIds.findIndex((id) => a.equals(id)) - deptIds.findIndex((id) => b.equals(id));
-    });
-    await dept.save();
+
     ctx.status = StatusCodes.OK;
     ctx.body = {
         code: ctx.status,
         showType: "MESSAGE",
-        msg: "部门排序成功！",
+        msg: "部门拖拽成功！",
+        data: department,
     };
 }
 

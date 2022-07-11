@@ -5,7 +5,6 @@ import {
     postPermission,
     putEnablePerm,
     putPermission,
-    postReorderPerms,
     postDragDropPerms,
 } from "@/controllers/permission";
 import { hasPerm } from "@/middlewares/permission";
@@ -21,5 +20,4 @@ permRouter
     .post("/", postPermission)
     .put("/", putPermission)
     .put("/status/:permId/:status", putEnablePerm)
-    .post("/reorder", postReorderPerms)
     .post("/drag-drop", postDragDropPerms);

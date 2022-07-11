@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import "mongoose-paginate-v2";
 import type { Request } from "koa";
 import { getGridFsBucket } from "@/middlewares/upload";
-import { throwBadRequestError } from "./errors";
+import { throwBadRequestError, throwNotFoundError } from "./errors";
 import { File } from "@koa/multer";
 import path from "path";
 
@@ -300,4 +300,88 @@ export function mapReqFiles(req: Request, fieldname?: string) {
         }
     }
     return gridFsFiles;
+}
+
+export async function dragDropDocs(body: DragDropBody, Model: mongoose.Model<any>, childrenField = "children") {
+    const { draggingParentId, draggingId, dropParentId, dropId, type } = body || {};
+    if (!draggingParentId || !draggingId || !dropParentId || !dropId || !type) {
+        return throwBadRequestError("参数格式错误！");
+    }
+    const dragDropIds = [draggingParentId, draggingId, dropParentId, dropId];
+    const children = await Model.find<mongoose.Document & { [k in typeof childrenField]: mongoose.Types.ObjectId[] }>(
+        {
+            _id: {
+                $in: dragDropIds,
+            },
+        },
+        childrenField,
+    ).exec();
+
+    const draggingParentDoc = children.find((child) => child.id === draggingParentId);
+    const draggingDoc = children.find((child) => child.id === draggingId);
+    const dropParentDoc = children.find((child) => child.id === dropParentId);
+    const dropDoc = children.find((child) => child.id === dropId);
+
+    if (!draggingParentDoc || !draggingDoc || !dropParentDoc || !dropDoc) {
+        return throwNotFoundError("资源未找到！");
+    }
+
+    const draggingIndex = draggingParentDoc[childrenField].findIndex((child) => child.toString() === draggingId);
+    const dropIndex = dropParentDoc[childrenField].findIndex((child) => child.toString() === dropId);
+    switch (type) {
+        case "before":
+            if (draggingParentId === dropParentId) {
+                // 在同一层，执行排序
+                if (dropIndex > draggingIndex) {
+                    // 已经处在正确的顺序
+                } else {
+                    const draggingObjId = draggingParentDoc[childrenField].splice(draggingIndex, 1)[0];
+                    draggingParentDoc[childrenField].splice(dropIndex, 0, draggingObjId);
+                }
+                await draggingParentDoc.save();
+            } else {
+                // 不在同一层
+                const draggingObjId = draggingParentDoc[childrenField].splice(draggingIndex, 1)[0];
+                dropParentDoc[childrenField].splice(dropIndex, 0, draggingObjId);
+                const session = await mongoose.startSession();
+                await session.withTransaction(async () => {
+                    await draggingParentDoc.save({ session: session });
+                    await dropParentDoc.save({ session: session });
+                });
+            }
+            break;
+
+        case "after":
+            if (draggingParentId === dropParentId) {
+                // 在同一层，执行排序
+                if (draggingIndex > dropIndex) {
+                    // 已经处在正确的顺序
+                } else {
+                    const draggingObjId = draggingParentDoc[childrenField].splice(draggingIndex, 1)[0];
+                    draggingParentDoc[childrenField].splice(dropIndex, 0, draggingObjId);
+                }
+                await draggingParentDoc.save();
+            } else {
+                // 不在同一层
+                const draggingObjId = draggingParentDoc[childrenField].splice(draggingIndex, 1)[0];
+                dropParentDoc[childrenField].splice(dropIndex + 1, 0, draggingObjId);
+                const session = await mongoose.startSession();
+                await session.withTransaction(async () => {
+                    await draggingParentDoc.save({ session: session });
+                    await dropParentDoc.save({ session: session });
+                });
+            }
+            break;
+        case "inner":
+            const draggingObjId = draggingParentDoc[childrenField].splice(draggingIndex, 1)[0];
+            dropDoc[childrenField].push(draggingObjId);
+            const session = await mongoose.startSession();
+            await session.withTransaction(async () => {
+                await draggingParentDoc.save({ session: session });
+                await dropDoc.save({ session: session });
+            });
+            break;
+        default:
+            return throwBadRequestError("拖拽类型错误错误: " + type);
+    }
 }

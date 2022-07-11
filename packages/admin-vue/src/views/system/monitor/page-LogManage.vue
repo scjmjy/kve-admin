@@ -4,6 +4,7 @@
             <el-tab-pane label="访问日志" name="access">
                 <div class="logManage-header">
                     <el-button-group size="small">
+                        <el-button type="primary" @click="fetchLogItems(state.tabName, true)">刷新</el-button>
                         <el-button
                             type="danger"
                             v-has-perm="PERM_CODES.monitor_log_clearAccess"
@@ -24,6 +25,7 @@
                                 <el-descriptions-item label="Level">
                                     <el-tag :color="row.level.colour"> {{ row.level.levelStr }}</el-tag>
                                 </el-descriptions-item>
+                                <el-descriptions-item label="INSTANCE">{{ row.INSTANCE }}</el-descriptions-item>
                             </el-descriptions>
                         </template>
                     </el-table-column>
@@ -54,6 +56,7 @@
             <el-tab-pane label="操作日志" name="operation">
                 <div class="logManage-header">
                     <el-button-group size="small">
+                        <el-button type="primary" @click="fetchLogItems(state.tabName, true)">刷新</el-button>
                         <el-button
                             type="danger"
                             v-has-perm="PERM_CODES.monitor_log_clearOp"
@@ -74,6 +77,7 @@
                                 <el-descriptions-item label="Level">
                                     <el-tag :color="row.level.colour"> {{ row.level.levelStr }}</el-tag>
                                 </el-descriptions-item>
+                                <el-descriptions-item label="INSTANCE">{{ row.INSTANCE }}</el-descriptions-item>
                             </el-descriptions>
                         </template>
                     </el-table-column>
@@ -106,6 +110,7 @@
             <el-tab-pane label="调试日志" name="debug">
                 <div class="logManage-header">
                     <el-button-group size="small">
+                        <el-button type="primary" @click="fetchLogItems(state.tabName, true)">刷新</el-button>
                         <el-button
                             type="danger"
                             v-has-perm="PERM_CODES.monitor_log_clearDebug"
@@ -117,6 +122,7 @@
                 <el-table :data="debugPagination.currentData.value" stripe>
                     <el-table-column label="记录时间" prop="startTime" :formatter="formatter" width="180px">
                     </el-table-column>
+                    <el-table-column label="INSTANCE" prop="INSTANCE" width="100px"> </el-table-column>
                     <el-table-column label="调试信息" prop="data"> </el-table-column>
                     <el-table-column label="日志等级" width="100px" center>
                         <template #default="{ row }">

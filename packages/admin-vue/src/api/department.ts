@@ -2,7 +2,6 @@ import { AxiosPromise } from "axios";
 import {
     CreateRoleBody,
     DeptTreeNodesResult,
-    ReorderDeptsBody,
     ReorderRolesBody,
     UpdateRoleBody,
     CreateDeptBody,
@@ -64,10 +63,10 @@ export function enableRole(roleId: string, status: EnableStatus): AxiosPromise<v
     });
 }
 
-export function reorderDepts(body: ReorderDeptsBody): AxiosPromise<void> {
+export function dragDropDepts(body: DragDropBody): AxiosPromise<DeptTreeNodesResult | undefined> {
     return request({
         method: "POST",
-        url: "/api/dept/reorder",
+        url: "/api/dept/drag-drop",
         data: body,
     });
 }

@@ -4,6 +4,7 @@ import log4js from "log4js";
 import { opendir, readFile, rm } from "fs/promises";
 import { EOL } from "os";
 import { isSameDay, logCategories, LogCategoryEnum, LogItem } from "admin-common";
+import process from "process";
 
 export let logDir = "";
 
@@ -23,6 +24,7 @@ export function setupLog(app: koa) {
                 data = logEvent.data.join(" ");
             }
             const logItem: LogItem<any> = {
+                INSTANCE: process.env.NODE_APP_INSTANCE,
                 categoryName: logEvent.categoryName,
                 startTime: logEvent.startTime,
                 data: data,

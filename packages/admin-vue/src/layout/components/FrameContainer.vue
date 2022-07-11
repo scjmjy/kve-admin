@@ -69,6 +69,7 @@ useAppMainResize(() => {
     top: 0;
     right: 0;
     bottom: 0;
+    z-index: 1;
     // margin: var(--el-main-padding);
     &-iframe {
         position: absolute;

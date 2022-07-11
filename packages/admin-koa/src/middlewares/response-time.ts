@@ -10,7 +10,7 @@ export const responseTime: IMiddleware = async (ctx, next) => {
         let { userId, username, ip, location } = ctx.session || {};
         const url = ctx._matchedRoute instanceof RegExp ? ctx._matchedRoute.toString() : ctx._matchedRoute || ctx.url;
         if (ip !== ctx.ip || !location) {
-            location = await getIpLocation(ctx.ip);
+            location = await getIpLocation(ctx, ctx.ip);
         }
         const logInfo: LogData = {
             method: ctx.method,

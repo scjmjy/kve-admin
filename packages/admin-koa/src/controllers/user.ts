@@ -90,7 +90,7 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
         const uaParser = new UAParser(ctx.headers["user-agent"]);
         const browser = uaParser.getBrowser();
         const os = uaParser.getOS();
-        const location = await getIpLocation(ctx.ip);
+        const location = await getIpLocation(ctx, ctx.ip);
         const session: SessionData = {
             username,
             userId: payload.userId,
