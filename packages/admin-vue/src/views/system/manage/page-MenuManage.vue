@@ -57,7 +57,7 @@
 import { computed, nextTick, onActivated, provide, reactive, ref, toRef, watch } from "vue";
 import { ElTree } from "element-plus";
 import { cloneDeep } from "lodash";
-import { DragDropPermsBody, PermNodeResult } from "admin-common";
+import { PermNodeResult } from "admin-common";
 import {
     symbolFetchPerm,
     symbolPermOriginal,
@@ -173,7 +173,7 @@ function allowDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "prev" | "i
 }
 
 async function onNodeDrop(draggingNode: TreeNode, dropNode: TreeNode, type: "before" | "after" | "inner") {
-    const body: DragDropPermsBody = {
+    const body: DragDropBody = {
         draggingId: draggingNode.data._id,
         draggingParentId: draggingNodeParentId || "",
         dropId: dropNode.data._id,
