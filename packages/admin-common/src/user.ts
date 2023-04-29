@@ -1,4 +1,4 @@
-import { FormItemRule, IBase, isValidPassword, ValidatorRules } from "./utils";
+import { FormItemRule, IBase, isValidPassword, PaginationParams, PaginationResult, ValidatorRules } from "./utils";
 import { IPermission } from "./permission";
 import { IDepartment, IRole } from "./department";
 

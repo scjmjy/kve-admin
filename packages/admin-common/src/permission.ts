@@ -1,5 +1,5 @@
 import { pick } from "lodash-unified";
-import { IBase, ValidatorRules } from "./utils";
+import { EnableStatus, IBase, ValidatorRules } from "./utils";
 
 export interface IRouteMeta {
     /**

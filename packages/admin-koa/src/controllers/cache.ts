@@ -150,7 +150,7 @@ const cacheInfoFilter: Filter = {
     ],
 };
 
-export async function getCacheInfo(ctx: KoaAjaxContext<void, CacheInfoResult>) {
+export const getCacheInfo: RestAjaxMiddleware<void, CacheInfoResult> = async (ctx) => {
     const info = await ctx.redisClient.info("all");
     const fieldValues = info.split("\r\n");
     const cacheInfo: CacheInfo = {};
@@ -243,9 +243,9 @@ export async function getCacheInfo(ctx: KoaAjaxContext<void, CacheInfoResult>) {
         code: ctx.status,
         data: result,
     };
-}
+};
 
-export async function clearCache(ctx: KoaAjaxContext<void, void>) {
+export const clearCache: RestAjaxMiddleware = async (ctx) => {
     await ctx.redisClient.flushdb("ASYNC");
     ctx.status = StatusCodes.OK;
     ctx.body = {

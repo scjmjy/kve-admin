@@ -35,6 +35,7 @@ export const upload = multer({
 });
 
 export function getGridFsBucket() {
+    // @ts-ignore
     const bucket = new GridFSBucket(storage.db, { bucketName: "fs" });
     return bucket;
 }

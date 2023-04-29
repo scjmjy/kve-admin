@@ -11,6 +11,9 @@
 - [4. 部署](#4-部署)
   - [安装 pm2](#安装-pm2)
   - [打包和启动](#打包和启动)
+- [Fixes](#fixes)
+  - [mongoose-paginate-v2 types](#mongoose-paginate-v2-types)
+  - [fix-esm \& tsx](#fix-esm--tsx)
 
 ## 1. 介绍
 
@@ -120,3 +123,20 @@ yarn stop # 暂停
 浏览器访问：http://localhost:3000
 
 > 注意前缀是 http，如果想要支持 https，请百度搜索关键词 `koa2 https`
+
+
+## Fixes
+
+### mongoose-paginate-v2 types
+```ts
+// mongoose-paginate-v2/index.d.ts
+import mongoose = require('mongoose');
+declare function _<Doc>(schema: mongoose.Schema<Doc>): void;
+export = _;
+```
+
+### fix-esm & tsx
+```js
+  Module._extensions[".js"] = newLoader;
+  // Module._extensions[".mjs"] = newLoader; // comment this line
+```

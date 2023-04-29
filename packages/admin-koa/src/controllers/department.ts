@@ -1,18 +1,21 @@
 import mongoose from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import {
-    DeptTreeNodesResult,
-    CreateRoleBody,
-    UpdateRoleBody,
-    getCreateRoleRules,
-    getUpdateRoleRules,
-    isValidStatus,
-    ReorderRolesBody,
     CreateDeptBody,
-    getCreateDeptRules,
-    UpdateDeptBody,
+    CreateResult,
+    CreateRoleBody,
+    DragDropBody,
+    DeptTreeNodesResult,
+    EnableStatus,
     getUpdateDeptRules,
     getStatusLabel,
+    getCreateRoleRules,
+    getUpdateRoleRules,
+    ReorderRolesBody,
+    getCreateDeptRules,
+    isValidStatus,
+    UpdateDeptBody,
+    UpdateRoleBody,
     UpdateRolePermsBody,
 } from "admin-common";
 import { DepartmentModel, RoleModel } from "@/model/department";
@@ -21,7 +24,7 @@ import { throwBadRequestError, throwNotFoundError } from "./errors";
 import { deptService } from "@/services";
 import { dragDropDocs } from "./utils";
 
-export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesResult>) {
+export const getDeptTreeNodes: RestAjaxMiddleware<void, DeptTreeNodesResult> = async (ctx) => {
     const department = await deptService.getDeptNodes();
     ctx.status = StatusCodes.OK;
     ctx.body = {
@@ -30,7 +33,7 @@ export async function getDeptTreeNodes(ctx: KoaAjaxContext<void, DeptTreeNodesRe
     };
 }
 
-export async function postDept(ctx: KoaAjaxContext<CreateDeptBody, CreateResult>) {
+export const postDept: RestAjaxMiddleware<CreateDeptBody, CreateResult> = async (ctx) => {
     const schema = new Schema(getCreateDeptRules());
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as CreateDeptBody;
     const parent = await DepartmentModel.findById<mongoose.Document & { depts: string[] }>(
@@ -70,7 +73,7 @@ export async function postDept(ctx: KoaAjaxContext<CreateDeptBody, CreateResult>
         });
 }
 
-export async function putDept(ctx: KoaAjaxContext<UpdateDeptBody>) {
+export const putDept: RestAjaxMiddleware<UpdateDeptBody> = async (ctx) => {
     const schema = new Schema(getUpdateDeptRules());
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateRoleBody;
     const res = await DepartmentModel.findByIdAndUpdate(validBody._id, validBody, {
@@ -87,7 +90,7 @@ export async function putDept(ctx: KoaAjaxContext<UpdateDeptBody>) {
     };
 }
 
-export async function putEnableDept(ctx: KoaAjaxContext<void, void, { deptId: string; status: EnableStatus }>) {
+export const putEnableDept: RestAjaxMiddleware<void, void, { deptId: string; status: EnableStatus }> = async (ctx) => {
     const { deptId, status } = ctx.params;
     if (!deptId || deptId.length !== 24 || !isValidStatus(status)) {
         return throwBadRequestError("请提供有效的部门 ID 或 状态值！");
@@ -112,7 +115,7 @@ export async function putEnableDept(ctx: KoaAjaxContext<void, void, { deptId: st
     };
 }
 
-export async function postRole(ctx: KoaAjaxContext<CreateRoleBody, CreateResult>) {
+export const postRole: RestAjaxMiddleware<CreateRoleBody, CreateResult> = async (ctx) => {
     const schema = new Schema(getCreateRoleRules());
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as CreateRoleBody;
     const dept = await DepartmentModel.findById<mongoose.Document & { roles: string[] }>(
@@ -153,7 +156,7 @@ export async function postRole(ctx: KoaAjaxContext<CreateRoleBody, CreateResult>
         });
 }
 
-export async function putRole(ctx: KoaAjaxContext<UpdateRoleBody>) {
+export const putRole: RestAjaxMiddleware<UpdateRoleBody> = async (ctx) => {
     const schema = new Schema(getUpdateRoleRules());
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateRoleBody;
     const res = await RoleModel.findByIdAndUpdate(validBody._id, validBody, {
@@ -170,7 +173,7 @@ export async function putRole(ctx: KoaAjaxContext<UpdateRoleBody>) {
     };
 }
 
-export async function putEnableRole(ctx: KoaAjaxContext<void, void, { roleId: string; status: EnableStatus }>) {
+export const putEnableRole: RestAjaxMiddleware<void, void, { roleId: string; status: EnableStatus }> = async (ctx) => {
     const { roleId, status } = ctx.params;
     if (!roleId || roleId.length !== 24 || !isValidStatus(status)) {
         return throwBadRequestError("请提供有效的角色 ID 或 状态值！");
@@ -195,7 +198,7 @@ export async function putEnableRole(ctx: KoaAjaxContext<void, void, { roleId: st
     };
 }
 
-export async function postDragDropDepts(ctx: KoaAjaxContext<DragDropBody, DeptTreeNodesResult | undefined>) {
+export const postDragDropDepts: RestAjaxMiddleware<DragDropBody, DeptTreeNodesResult | undefined> = async (ctx) => {
     const reqBody = ctx.request.body!;
     await dragDropDocs(reqBody, DepartmentModel, "depts");
 
@@ -213,7 +216,7 @@ export async function postDragDropDepts(ctx: KoaAjaxContext<DragDropBody, DeptTr
     };
 }
 
-export async function postReorderRoles(ctx: KoaAjaxContext<ReorderRolesBody>) {
+export const postReorderRoles: RestAjaxMiddleware<ReorderRolesBody> = async (ctx) => {
     const { deptId, rolesIds } = ctx.request.body || {};
     if (!deptId || !Array.isArray(rolesIds) || rolesIds.length === 0) {
         return throwBadRequestError("请提供有效的部门 ID 或 角色 ID！");
@@ -237,7 +240,7 @@ export async function postReorderRoles(ctx: KoaAjaxContext<ReorderRolesBody>) {
     };
 }
 
-export async function putRolePerms(ctx: KoaAjaxContext<UpdateRolePermsBody>) {
+export const putRolePerms: RestAjaxMiddleware<UpdateRolePermsBody> = async (ctx) => {
     const { _id, perms } = ctx.request.body || {};
     if (!_id || !Array.isArray(perms)) {
         return throwBadRequestError("请提供角色 ID 或 权限 ID 列表！");

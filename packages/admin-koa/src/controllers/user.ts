@@ -1,32 +1,34 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import _uuid from "uuid";
+import { v4 as uuid } from "uuid";
 import UAParser from "ua-parser-js";
 import { StatusCodes } from "http-status-codes";
 import sharp from "sharp";
 import svgCaptcha from "svg-captcha";
 import { pick } from "lodash-unified";
 import {
-    UserProfileResult,
+    CaptchaResult,
+    CreateResult,
+    CreateUserBody,
+    EnableStatus,
+    FindUsersParams,
+    FindUserProjection,
+    FindUsersResult,
+    getUserRules,
+    isValidPassword,
+    isValidStatus,
+    IUser,
     LoginCredential,
     LoginResult,
+    makeBase64,
+    OnlineUsersResult,
+    splitBase64,
+    UserProfileResult,
     UpdateUserProfile,
     UpdateUserPassword,
-    isValidPassword,
     UpdateUserAvatar,
-    FindUsersParams,
-    FindUsersResult,
-    CreateUserBody,
-    getUserRules,
-    IUser,
-    splitBase64,
-    FindUserProjection,
-    makeBase64,
     UpdateUserBody,
     UserIdsBody,
-    isValidStatus,
-    OnlineUsersResult,
-    CaptchaResult,
 } from "admin-common";
 import { IUserMethods, UserModel } from "@/model/user";
 import { throwBadRequestError, throwNotFoundError, throwUserNotFoundError } from "./errors";
@@ -36,10 +38,9 @@ import { userService } from "@/services";
 import { delSessionData, SessionData, SessionMaxAge, SESSION_PREFIX } from "@/middlewares/session";
 import { getIpLocation } from "@/utils/ip";
 
-const { v4: uuid } = _uuid;
 const captchaKeyPrefix = "captcha:";
 
-export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>, LoginResult>) {
+export const postLogin: RestAjaxMiddleware<Undefinable<LoginCredential>, LoginResult> = async (ctx) => {
     if (ctx.session && ctx.session.loginErrorCount! >= 5) {
         const elapsed = Date.now() - ctx.session.loginErrorTime!;
         const rest = 1000 * 30 - elapsed;
@@ -113,9 +114,9 @@ export async function postLogin(ctx: KoaAjaxContext<Undefinable<LoginCredential>
             },
         };
     }
-}
+};
 
-export async function getCaptcha(ctx: KoaAjaxContext<void, CaptchaResult, { prev?: string }>) {
+export const getCaptcha: RestAjaxMiddleware<void, CaptchaResult, { prev?: string }> = async (ctx) => {
     const { prev } = ctx.params;
     if (prev) {
         await ctx.redisClient.del(captchaKeyPrefix + prev);
@@ -137,9 +138,9 @@ export async function getCaptcha(ctx: KoaAjaxContext<void, CaptchaResult, { prev
             captchaSvg: captcha.data,
         },
     };
-}
+};
 
-export async function delLogout(ctx: KoaAjaxContext) {
+export const delLogout: RestAjaxMiddleware = async (ctx) => {
     const { userId } = ctx.state.user;
     userService.deleteCache(userId);
     await delSessionData(ctx);
@@ -148,9 +149,9 @@ export async function delLogout(ctx: KoaAjaxContext) {
         code: ctx.status,
         msg: "退出成功！",
     };
-}
+};
 
-export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult, any, { perms: any }>) {
+export const getUserProfile: RestAjaxMiddleware<void, UserProfileResult, any, { perms: any }> = async (ctx) => {
     const userId = ctx.state.user.userId;
     const userProfile = await userService.getUserProfile(userId);
     if (!userProfile) {
@@ -166,9 +167,9 @@ export async function getUserProfile(ctx: KoaAjaxContext<void, UserProfileResult
             data: userProfile,
         };
     }
-}
+};
 
-export async function putUserProfile(ctx: KoaAjaxContext<UpdateUserProfile>) {
+export const putUserProfile: RestAjaxMiddleware<UpdateUserProfile> = async (ctx) => {
     const userId = ctx.state.user.userId;
     const existingUser = await UserModel.findById<mongoose.Document & UpdateUserProfile>(
         userId,
@@ -188,9 +189,9 @@ export async function putUserProfile(ctx: KoaAjaxContext<UpdateUserProfile>) {
             code: ctx.status,
         };
     }
-}
+};
 
-export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword>) {
+export const putUserPassword: RestAjaxMiddleware<UpdateUserPassword> = async (ctx) => {
     const userId = ctx.state.user.userId;
     const { oldPassword, newPassword } = ctx.request.body || {};
     if (!oldPassword || !newPassword) {
@@ -227,9 +228,9 @@ export async function putUserPassword(ctx: KoaAjaxContext<UpdateUserPassword>) {
             };
         }
     }
-}
+};
 
-export async function getUserAvatar(ctx: KoaContext<void, any, { userId: string }>) {
+export const getUserAvatar: RestMiddleware<void, any, { userId: string }> = async (ctx) => {
     const { userId } = ctx.params;
     const existingUser = await UserModel.findById<Pick<IUser, "avatar">>(userId, "avatar").exec();
     if (!existingUser) {
@@ -250,9 +251,9 @@ export async function getUserAvatar(ctx: KoaContext<void, any, { userId: string 
             throwNotFoundError("此用户没有设置头像", "SILENT");
         }
     }
-}
+};
 
-export async function putUserAvatar(ctx: KoaAjaxContext<UpdateUserAvatar>) {
+export const putUserAvatar: RestAjaxMiddleware<UpdateUserAvatar> = async (ctx) => {
     const userId = ctx.state.user.userId;
     const { avatar = "" } = ctx.request.body || {};
     const base64 = splitBase64(avatar || "");
@@ -276,9 +277,9 @@ export async function putUserAvatar(ctx: KoaAjaxContext<UpdateUserAvatar>) {
             code: ctx.status,
         };
     }
-}
+};
 
-export async function postFindUsers(ctx: KoaAjaxContext<Undefinable<FindUsersParams>, FindUsersResult>) {
+export const postFindUsers: RestAjaxMiddleware<Undefinable<FindUsersParams>, FindUsersResult> = async (ctx) => {
     const params = ctx.request.body;
     if (!params || !params.pageNum || !params.pageSize) {
         return throwBadRequestError("分页参数错误！");
@@ -291,9 +292,9 @@ export async function postFindUsers(ctx: KoaAjaxContext<Undefinable<FindUsersPar
         code: ctx.status,
         data: res,
     };
-}
+};
 
-export async function postUser(ctx: KoaAjaxContext<Undefinable<CreateUserBody>, CreateResult>) {
+export const postUser: RestAjaxMiddleware<Undefinable<CreateUserBody>, CreateResult> = async (ctx) => {
     const schema = new Schema(getUserRules("create"));
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as CreateUserBody;
     const newUser = await UserModel.create(validBody);
@@ -307,9 +308,9 @@ export async function postUser(ctx: KoaAjaxContext<Undefinable<CreateUserBody>, 
             _id: newUser._id,
         },
     };
-}
+};
 
-export async function putUser(ctx: KoaAjaxContext<Undefinable<UpdateUserBody>, void>) {
+export const putUser: RestAjaxMiddleware<Undefinable<UpdateUserBody>, void> = async (ctx) => {
     const schema = new Schema(getUserRules("update"));
     const validBody = (await schema.validate(ctx.request.body || {}, { first: true })) as UpdateUserBody;
     if (validBody.password === "") {
@@ -327,9 +328,9 @@ export async function putUser(ctx: KoaAjaxContext<Undefinable<UpdateUserBody>, v
         showType: "MESSAGE",
         msg: "用户更新成功！",
     };
-}
+};
 
-export async function deleteUser(ctx: KoaAjaxContext<void, void, { userId: string }>) {
+export const deleteUser: RestAjaxMiddleware<void, void, { userId: string }> = async (ctx) => {
     const { userId } = ctx.params;
     const existingUser = await UserModel.findById<mongoose.Document & Pick<IUser, "status">>(userId, "status").exec();
     if (!existingUser) {
@@ -343,9 +344,9 @@ export async function deleteUser(ctx: KoaAjaxContext<void, void, { userId: strin
         showType: "MESSAGE",
         msg: "用户删除成功！",
     };
-}
+};
 
-export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, { status: EnableStatus }>) {
+export const putEnableUsers: RestAjaxMiddleware<UserIdsBody, void, { status: EnableStatus }> = async (ctx) => {
     const { ids } = ctx.request.body || {};
     const { status } = ctx.params;
     if (!ids || !Array.isArray(ids) || ids.length === 0 || !isValidStatus(status)) {
@@ -369,7 +370,7 @@ export async function putEnableUsers(ctx: KoaAjaxContext<UserIdsBody, void, { st
         showType: "MESSAGE",
         msg: `${status === "enabled" ? "启用" : status === "disabled" ? "禁用" : "删除"}${res.modifiedCount}个用户！`,
     };
-}
+};
 
 interface SessionDataWithId extends SessionData {
     sessionId: string;
@@ -406,7 +407,7 @@ const labelProps: { prop: keyof SessionDataWithId; label: string }[] = [
     },
 ];
 
-export async function getOnlineUsers(ctx: KoaAjaxContext<void, OnlineUsersResult>) {
+export const getOnlineUsers: RestAjaxMiddleware<void, OnlineUsersResult> = async (ctx) => {
     const allUserKeys = await ctx.redisClient.keys(SESSION_PREFIX + "*");
     const allUsers = await ctx.redisClient.mget(allUserKeys);
     const allUsersJson: Partial<SessionDataWithId>[] = [];
@@ -431,9 +432,9 @@ export async function getOnlineUsers(ctx: KoaAjaxContext<void, OnlineUsersResult
             rows: allUsersJson,
         },
     };
-}
+};
 
-export async function forceLogout(ctx: KoaAjaxContext<void, void, { sessionId?: string }>) {
+export const forceLogout: RestAjaxMiddleware<void, void, { sessionId?: string }> = async (ctx) => {
     const { sessionId } = ctx.params;
     if (!sessionId || sessionId.length < 36) {
         return throwBadRequestError("会话编号格式错误！");
@@ -449,4 +450,4 @@ export async function forceLogout(ctx: KoaAjaxContext<void, void, { sessionId?: 
         showType: "MESSAGE",
         msg: "强退成功！",
     };
-}
+};

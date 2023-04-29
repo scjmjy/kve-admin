@@ -27,7 +27,8 @@
                             </span>
                         </template>
                         <component
-                            v-model="formData[item.prop]"
+                            :modelValue="formData[item.prop]"
+                            @update:modelValue="formData[item.prop] = $event"
                             :is="item.item.type"
                             :readonly="state.readonly"
                             v-bind="item.item.props"

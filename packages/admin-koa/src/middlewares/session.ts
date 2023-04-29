@@ -35,8 +35,10 @@ export function setupSession(app: koa) {
                     async set(key, sess, maxAge: number, data) {
                         return app.context.redisClient.set(key, JSON.stringify(sess), "PX", maxAge);
                     },
-                    async get(key, maxAge, data: { ctx: koa.ExtendableContext; rolling: boolean }) {
+                    async get(key, maxAge, data: { ctx: any; rolling: boolean }) {
                         const sess = await app.context.redisClient.get(key);
+                        // TODO
+                        debugger;
                         const { sessionOptions, cookies, path } = data.ctx;
                         if (sess) {
                             return JSON.parse(sess);
@@ -52,12 +54,12 @@ export function setupSession(app: koa) {
                     },
                 },
             },
-            app,
+            app as any,
         ),
     );
 }
 
-export async function delSessionData(ctx: koa.ExtendableContext) {
+export async function delSessionData(ctx: koa.DefaultContext) {
     const { sessionOptions, cookies } = ctx;
     const sess = cookies.get(sessionOptions!.key);
 

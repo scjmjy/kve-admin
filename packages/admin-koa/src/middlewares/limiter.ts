@@ -18,8 +18,7 @@ export function setupLimiter(app: koa) {
         };
         ctx.set(headers);
     }
-
-    app.use(async (ctx: KoaAjaxContext<void>, next) => {
+    const middleware: RestAjaxMiddleware = async (ctx, next) => {
         try {
             const limiterRes = await rateLimiter.consume(ctx.ip);
             // setLimiterHeaders(ctx, limiterRes);
@@ -37,5 +36,6 @@ export function setupLimiter(app: koa) {
         }
 
         await next();
-    });
+    };
+    app.use(middleware);
 }

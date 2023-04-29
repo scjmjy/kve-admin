@@ -11,7 +11,7 @@ import type Redis from "ioredis";
 import { UserModel } from "@/model/user";
 import { DepartmentModel } from "@/model/department";
 import { permService } from "./index";
-import "@/utils/cache"; // TODO for ts-node-dev
+// import "@/utils/cache"; // TODO for ts-node-dev
 import { SessionMaxAge } from "@/middlewares/session";
 
 // export const UserCacheKey = {

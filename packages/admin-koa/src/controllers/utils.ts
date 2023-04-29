@@ -1,11 +1,12 @@
-import { ObjectId } from "bson";
+import type { Request } from "koa";
+import { File } from "@koa/multer";
 import mongoose from "mongoose";
 import "mongoose-paginate-v2";
-import type { Request } from "koa";
+import path from "path";
+import { ObjectId } from "bson";
 import { getGridFsBucket } from "@/middlewares/upload";
 import { throwBadRequestError, throwNotFoundError } from "./errors";
-import { File } from "@koa/multer";
-import path from "path";
+import { DragDropBody, GridFsFile, PaginationParams, PaginationCondition } from "admin-common";
 
 declare module "mongoose" {
     export interface ExtraQueryOptions {
@@ -13,8 +14,20 @@ declare module "mongoose" {
     }
     export interface QueryOptions<DocType = unknown> extends ExtraQueryOptions {}
 }
+// TODO copied from @types/koa__multer/index.d.ts
+declare module "koa" {
+    interface DefaultContext {
+        file: File;
+        files: { [fieldname: string]: File[] } | File[] | undefined;
+    }
 
-export function makePaginationResult<T>(result: mongoose.PaginateResult<T>) {
+    interface Request {
+        file: File;
+        files: { [fieldname: string]: File[] } | File[] | undefined;
+    }
+}
+
+export function makePaginationResult(result: mongoose.PaginateResult<any>) {
     return {
         list: result.docs,
         total: result.totalDocs,

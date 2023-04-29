@@ -48,7 +48,7 @@ DemoCollectionSchema.pre(["find", "findOne"], function (next) {
     next();
 });
 
-DemoCollectionSchema.plugin(mongoosePaginate);
+DemoCollectionSchema.plugin(mongoosePaginate as any);
 
 export const DemoCollectionModel = mongoose.model<IDemoCollectionDoc, IDemoCollectionModel>(
     MODEL_NAME_DEMOCOLLECTION,

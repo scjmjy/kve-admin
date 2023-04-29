@@ -1,7 +1,6 @@
 import koa from "koa";
 import { MongoError, MongoServerError } from "mongodb";
 import mongoose from "mongoose";
-import type { IMiddleware } from "koa-router";
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
 import type { AsyncValidationError } from "async-validator/dist-types/util";
@@ -16,7 +15,7 @@ const codeMessage: Record<string, string> = {
     LIMIT_FIELD_VALUE: "文件大小超过限制",
 };
 
-export const errorMiddleware: koa.Middleware<any, any> = async (ctx: KoaAjaxContext<any, void>, next) => {
+export const errorMiddleware: RestAjaxMiddleware = async (ctx, next) => {
     await next().catch((err: any) => {
         if (err.originalError) {
             if (err.originalError instanceof jwt.TokenExpiredError) {
@@ -128,11 +127,11 @@ export const errorMiddleware: koa.Middleware<any, any> = async (ctx: KoaAjaxCont
     });
 };
 
-export function error404(ctx: KoaAjaxContext<any, void>) {
+export const error404: RestAjaxMiddleware = async (ctx) => {
     ctx.status = StatusCodes.NOT_FOUND;
     ctx.body = {
         code: ctx.status,
         showType: "NOTIFICATION",
         msg: "请求的资源不存在:\n" + ctx.url,
     };
-}
+};

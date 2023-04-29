@@ -1,9 +1,8 @@
-import { IMiddleware } from "koa-router";
+import { LogData } from "admin-common";
 import { RouteConsts } from "@/router";
 import { getIpLocation } from "@/utils/ip";
-import { LogData } from "admin-common";
 
-export const responseTime: IMiddleware = async (ctx, next) => {
+export const responseTime: RestAjaxMiddleware = async (ctx, next) => {
     const startTime = Date.now();
     return next().finally(async function () {
         const endTime = Date.now();

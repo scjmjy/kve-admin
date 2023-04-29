@@ -38,7 +38,7 @@ export const UserSchema = new mongoose.Schema<IUserDoc, IUserModel>(
     },
 );
 
-UserSchema.plugin(BcryptPlugin).plugin(mongoosePaginate);
+UserSchema.plugin(BcryptPlugin).plugin(mongoosePaginate as any);
 
 UserSchema.pre("save", function (next) {
     if (!this.status) {

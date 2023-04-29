@@ -79,7 +79,7 @@ export function setupLog(app: koa) {
     app.context.logger.debug.info("[Log] out dir:", logDir);
 }
 
-export async function readAllLogItems(ctx: koa.BaseContext, category: LogCategoryEnum): Promise<string[]> {
+export async function readAllLogItems(ctx: koa.DefaultContext, category: LogCategoryEnum): Promise<string[]> {
     if (!logCategories.includes(category)) {
         return Promise.reject("请提供日志 category 参数！");
     }
@@ -105,7 +105,7 @@ export async function readAllLogItems(ctx: koa.BaseContext, category: LogCategor
     }
 }
 
-export async function clearLogItems(ctx: koa.BaseContext, category: LogCategoryEnum): Promise<void> {
+export async function clearLogItems(ctx: koa.DefaultContext, category: LogCategoryEnum): Promise<void> {
     if (!logCategories.includes(category)) {
         return Promise.reject("请提供日志 category 参数！");
     }

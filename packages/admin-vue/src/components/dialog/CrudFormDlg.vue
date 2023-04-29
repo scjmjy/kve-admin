@@ -1,6 +1,7 @@
 <template>
     <el-dialog
-        v-model="modelValue"
+        :modelValue="modelValue"
+        @update:modelValue="emit('update:modelValue', $event)"
         :title="title"
         destroy-on-close
         :close-on-click-modal="false"

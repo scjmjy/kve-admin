@@ -1,5 +1,5 @@
 import { omit } from "lodash-unified";
-import { IBase, ValidatorRules } from "./utils";
+import { GridFsFile, IBase, PaginationParams, PaginationResult, ValidatorRules } from "./utils";
 
 export interface IDemoCollection extends IBase {
     field1: number;

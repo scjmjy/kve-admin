@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { PERM_CODES } from "admin-common";
 import { hasPerm } from "@/middlewares/permission";
 import { clearCache, getCacheInfo } from "@/controllers/cache";

@@ -5,7 +5,7 @@ import { hasPermFn } from "@/middlewares/permission";
 import { getAllMetrics } from "@/utils/metrics";
 import { readAllLogItems, clearLogItems } from "@/utils/log";
 
-export async function getMetrics(ctx: KoaAjaxContext<void, MetricTimelines>) {
+export const getMetrics: RestAjaxMiddleware<void, MetricTimelines> = async (ctx) => {
     const metrics = await getAllMetrics();
 
     ctx.status = StatusCodes.OK;
@@ -13,9 +13,9 @@ export async function getMetrics(ctx: KoaAjaxContext<void, MetricTimelines>) {
         code: ctx.status,
         data: metrics,
     };
-}
+};
 
-export async function getLogItems(ctx: KoaAjaxContext<void, string[], { category: LogCategoryEnum }>) {
+export const getLogItems: RestAjaxMiddleware<void, string[], { category: LogCategoryEnum }> = async (ctx) => {
     const result = await readAllLogItems(ctx, ctx.params.category);
 
     ctx.status = StatusCodes.OK;
@@ -23,9 +23,9 @@ export async function getLogItems(ctx: KoaAjaxContext<void, string[], { category
         code: ctx.status,
         data: result,
     };
-}
+};
 
-export async function clearLog(ctx: KoaAjaxContext<void, string[], { category: LogCategoryEnum }>) {
+export const clearLog: RestAjaxMiddleware<void, string[], { category: LogCategoryEnum }> = async (ctx) => {
     const { category } = ctx.params;
     let permCode = "";
     switch (category) {
@@ -53,4 +53,4 @@ export async function clearLog(ctx: KoaAjaxContext<void, string[], { category: L
         showType: "MESSAGE",
         msg: "日志清空成功！",
     };
-}
+};

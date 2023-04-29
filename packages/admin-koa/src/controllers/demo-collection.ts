@@ -2,12 +2,15 @@ import mongoose from "mongoose";
 import { ObjectId } from "bson";
 import { StatusCodes } from "http-status-codes";
 import {
+    CreateResult,
     CreateDemoCollectionBody,
+    EnableStatus,
     FindDemoCollectionParams,
     FindDemoCollectionProjection,
     FindDemoCollectionResult,
     getCreateDemoCollRules,
     getUpdateDemoCollRules,
+    GridFsFile,
     IDemoCollection,
     UpdateDemoCollectionBody,
 } from "admin-common";
@@ -17,9 +20,7 @@ import { deleteReqFiles, handlePaginationRequest, mapReqFiles, normalizeUploadBo
 import { getGridFsBucket } from "@/middlewares/upload";
 import { Schema } from "@/utils/async-validator";
 
-export async function postFindDemoCollection(
-    ctx: KoaAjaxContext<Undefinable<FindDemoCollectionParams>, FindDemoCollectionResult>,
-) {
+export const postFindDemoCollection: RestAjaxMiddleware<Undefinable<FindDemoCollectionParams>, FindDemoCollectionResult> = async (ctx) => {
     const params = ctx.request.body;
     if (!params || !params.pageNum || !params.pageSize) {
         return throwBadRequestError("分页参数错误！");
@@ -40,7 +41,7 @@ export async function postFindDemoCollection(
 //     return next();
 // }
 
-export async function postDemoCollection(ctx: KoaAjaxContext<CreateDemoCollectionBody, CreateResult>) {
+export const postDemoCollection: RestAjaxMiddleware<CreateDemoCollectionBody, CreateResult> = async (ctx) => {
     const body = ctx.request.body!;
     normalizeUploadBody(body);
     const schema = new Schema(getCreateDemoCollRules());
@@ -75,7 +76,7 @@ export async function postDemoCollection(ctx: KoaAjaxContext<CreateDemoCollectio
     // console.log("[postDemoCollection] files", ctx.request.files);
 }
 
-export async function putDemoCollection(ctx: KoaAjaxContext<UpdateDemoCollectionBody, void>) {
+export const putDemoCollection: RestAjaxMiddleware<UpdateDemoCollectionBody, void> = async (ctx) => {
     const body = ctx.request.body!;
     normalizeUploadBody(body);
     const schema = new Schema(getUpdateDemoCollRules());
@@ -141,7 +142,7 @@ export async function putDemoCollection(ctx: KoaAjaxContext<UpdateDemoCollection
     };
 }
 
-export async function getDemoCollection(ctx: KoaAjaxContext<void, IDemoCollection, any, { demoCollId: string }>) {
+export const getDemoCollection: RestAjaxMiddleware<void, IDemoCollection, { demoCollId: string }> = async (ctx) => {
     const { demoCollId } = ctx.params;
     const existingDoc = await DemoCollectionModel.findById(demoCollId).exec();
     if (!existingDoc) {
@@ -163,7 +164,7 @@ export async function getDemoCollection(ctx: KoaAjaxContext<void, IDemoCollectio
     };
 }
 
-export async function deleteDemoCollection(ctx: KoaAjaxContext<void, void, { demoCollId: string }>) {
+export const deleteDemoCollection: RestAjaxMiddleware<void, void, { demoCollId: string }> = async (ctx) => {
     const { demoCollId } = ctx.params;
     const existingDoc = await DemoCollectionModel.findById<mongoose.Document & { status: EnableStatus }>(
         demoCollId,

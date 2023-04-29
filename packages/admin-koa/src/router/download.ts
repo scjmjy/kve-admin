@@ -5,7 +5,7 @@ import { GridFSBucketReadStream } from "mongodb";
 import HttpStatusCodes from "http-status-codes";
 import { getGridFsBucket } from "@/middlewares/upload";
 
-async function download(ctx: KoaContext<void, AjaxResult | GridFSBucketReadStream | null, { id: string }>) {
+async function download(ctx: KoaBodyContext<void, AjaxResult | GridFSBucketReadStream | null, { id: string }>) {
     const id = ctx.params.id;
     if (!id || id.length !== 24) {
         ctx.status = HttpStatusCodes.BAD_REQUEST;

@@ -7,7 +7,7 @@ export interface BcryptPluginOptions {
     rounds?: number;
 }
 
-export function BcryptPlugin(schema: mongoose.Schema, options: BcryptPluginOptions) {
+export function BcryptPlugin<Doc>(schema: mongoose.Schema<Doc>, options: BcryptPluginOptions) {
     options = options || {};
 
     // Get array of encrypted field(s)
@@ -136,7 +136,7 @@ export function BcryptPlugin(schema: mongoose.Schema, options: BcryptPluginOptio
         }
     }
 
-    schema.pre(["update", "updateOne", "updateMany", "findOneAndUpdate"], function (next) {
+    schema.pre(["updateOne", "updateMany", "findOneAndUpdate"], function (next) {
         const query = this;
         const update = query.getUpdate();
         const changed: string[] = [];

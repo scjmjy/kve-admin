@@ -4,7 +4,7 @@
             <el-sub-menu
                 :class="'menuItem menuItem-' + depth"
                 :index="route.path"
-                popper-append-to-body
+                teleported
                 popper-class="appMenu"
             >
                 <template #title>

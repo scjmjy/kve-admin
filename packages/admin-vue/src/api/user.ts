@@ -1,5 +1,5 @@
 import { AxiosPromise } from "axios";
-// import { MsgSilent, MsgSilentHeader } from "admin-common/AjaxResult";
+import { MsgSilentHeader } from "admin-common";
 import {
     CaptchaResult,
     CreateUserBody,
@@ -29,17 +29,17 @@ export function login(credential: LoginCredential): AxiosPromise<LoginResult> {
         method: "POST",
         url: "/api/user/login",
         data: credential,
-        // headers: {
-        //     [MsgSilentHeader]: "SUCCESS",
-        // },
     });
 }
 
-export function logout(): AxiosPromise<void> {
+export function logout(silent = false): AxiosPromise<void> {
     return request({
         method: "DELETE",
         url: "/api/user/logout",
         timeout: 1000,
+        headers: {
+            [MsgSilentHeader]: silent ? "BOTH" : "",
+        },
     });
 }
 

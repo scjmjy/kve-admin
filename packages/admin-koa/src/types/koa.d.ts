@@ -1,10 +1,28 @@
-import type { DefaultState, DefaultContext, Request } from "koa";
-import type { RouterContext } from "koa-router";
+import type { DefaultState, DefaultContext, Request, BaseContext, ParameterizedContext } from "koa";
+import "koa__multer";
+import type { Middleware } from "@types/koa__router";
 import type { Redis } from "ioredis";
 import type { AjaxResult } from "admin-common";
 import type { ParsedUrlQuery } from "querystring";
 import type { Logger } from "log4js";
 import type { AppConfig } from "@/utils/config";
+
+declare module "koa" {
+    interface DefaultContext {
+        config: AppConfig;
+        logger: {
+            /** 调试目的，例如服务器启动日志、各种调试信息 */
+            debug: Logger;
+            /** 访问日志，记录登录信息 */
+            access: Logger;
+            /** 操作日志，记录 CRUD 等操作信息 */
+            operation: Logger;
+        };
+        redisClient: Redis;
+        perms?: string[];
+    }
+    interface DefaultState extends JwtState {}
+}
 
 declare global {
     /**
@@ -21,15 +39,52 @@ declare global {
         user: JwtPayload;
     }
 
-    interface KoaRequest<RequestBodyT = any> extends Request {
+    // interface MyBaseContext {
+    //     config: AppConfig;
+    //     logger: {
+    //         /** 调试目的，例如服务器启动日志、各种调试信息 */
+    //         debug: Logger;
+    //         /** 访问日志，记录登录信息 */
+    //         access: Logger;
+    //         /** 操作日志，记录 CRUD 等操作信息 */
+    //         operation: Logger;
+    //     };
+    //     redisClient: Redis;
+    //     perms?: string[];
+    // }
+
+    interface KoaRequest<RequestBodyT> extends Request {
         body?: RequestBodyT;
     }
 
-    interface IRouterContext<ParamsT extends Record<string, string>, QueryT extends ParsedUrlQuery>
-        extends RouterContext<DefaultState, DefaultContext> {
+    interface KoaContext<
+        RequestBodyT = any,
+        ParamsT extends Record<string, string> = Record<string, string>,
+        QueryT extends ParsedUrlQuery = ParsedUrlQuery,
+    > extends DefaultContext {
+        request: KoaRequest<RequestBodyT>;
         params: ParamsT;
         query: QueryT;
     }
+
+    type RestAjaxMiddleware<
+        RequestBodyT = any,
+        ResponseDataT = any,
+        ParamsT extends Record<string, string> = Record<string, string>,
+        QueryT extends ParsedUrlQuery = ParsedUrlQuery,
+        ResponseErrDataT = any,
+    > = Middleware<
+        DefaultState,
+        KoaContext<RequestBodyT, ParamsT, QueryT>,
+        AjaxResult<ResponseDataT, ResponseErrDataT>
+    >;
+
+    type RestMiddleware<
+        RequestBodyT = any,
+        ResponseBodyT = any,
+        ParamsT extends Record<string, string> = Record<string, string>,
+        QueryT extends ParsedUrlQuery = ParsedUrlQuery,
+    > = Middleware<DefaultState, KoaContext<RequestBodyT, ParamsT, QueryT>, ResponseBodyT>;
 
     interface KoaAjaxContext<
         RequestBodyT = any,
@@ -37,18 +92,16 @@ declare global {
         ParamsT extends Record<string, string> = Record<string, string>,
         QueryT extends ParsedUrlQuery = ParsedUrlQuery,
         ResponseErrDataT = any,
-    > extends IRouterContext<ParamsT, QueryT> {
-        request: KoaRequest<RequestBodyT>;
+    > extends KoaContext<RequestBodyT, ParamsT, QueryT> {
         body: AjaxResult<ResponseDataT, ResponseErrDataT>;
     }
 
-    interface KoaContext<
+    interface KoaBodyContext<
         RequestBodyT = any,
         ResponseBodyT = any,
         ParamsT extends Record<string, string> = Record<string, string>,
         QueryT extends ParsedUrlQuery = ParsedUrlQuery,
-    > extends IRouterContext<ParamsT, QueryT> {
-        request: KoaRequest<RequestBodyT>;
+    > extends KoaContext<RequestBodyT, ParamsT, QueryT> {
         body: ResponseBodyT;
     }
 }
@@ -94,19 +147,4 @@ declare global {
 //     };
 // }
 
-declare module "koa" {
-    interface BaseContext {
-        config: AppConfig;
-        logger: {
-            /** 调试目的，例如服务器启动日志、各种调试信息 */
-            debug: Logger;
-            /** 访问日志，记录登录信息 */
-            access: Logger;
-            /** 操作日志，记录 CRUD 等操作信息 */
-            operation: Logger;
-        };
-        redisClient: Redis;
-        perms?: string[];
-    }
-    interface DefaultState extends JwtState {}
-}
+export {};

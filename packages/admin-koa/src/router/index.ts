@@ -1,5 +1,5 @@
 import type koa from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 import koajwt_ from "koa-jwt";
 import bodyParser from "koa-bodyparser";
 import { userRouter } from "./user";

@@ -44,6 +44,8 @@ import {
     FindDemoCollectionResult,
     DemoCollectionFilter,
     DemoCollectionSort,
+    PaginationFilter,
+    PaginationSort,
 } from "admin-common";
 import { ElMessage, ElMessageBox } from "element-plus";
 import type { TableColumnCtx } from "element-plus/es/components/table/src/table-column/defaults";

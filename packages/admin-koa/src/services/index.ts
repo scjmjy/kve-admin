@@ -1,7 +1,7 @@
-import { DeptService } from "@/services/department";
-import { PermService } from "@/services/permission";
-import { UserService } from "@/services/user";
 import type koa from "koa";
+import { UserService } from "@/services/user";
+import { PermService } from "@/services/permission";
+import { DeptService } from "@/services/department";
 
 export let userService: UserService;
 export let permService: PermService;

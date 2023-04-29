@@ -1,6 +1,7 @@
 import { AxiosPromise, AxiosResponse } from "axios";
 import {
     CreateDemoCollectionBody,
+    CreateResult,
     FindDemoCollectionParams,
     FindDemoCollectionResult,
     IDemoCollection,

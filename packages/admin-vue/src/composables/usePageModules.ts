@@ -5,7 +5,7 @@ import { FakeLayout } from "@/router/utils";
 import AsyncLoader from "@/layout/components/AsyncLoader.vue";
 import BlankPage from "@/views/internal/blank.vue";
 
-const pageModules = import.meta.glob("/src/views/**/page-*.vue");
+const pageModules = import.meta.glob("../views/**/page-*.vue");
 // console.log("[pageModules]", pageModules);
 
 export interface PageModuleOption {
@@ -20,10 +20,12 @@ export function usePageModules() {
         if (!match || match.length < 1) {
             throw new Error("菜单页面命名错误：" + name);
         }
+        // debugger;
         return {
             label: match[1],
             value: match[1],
             // component: com,
+            // TODO Vue Router Warn
             component: defineAsyncComponent({
                 loader: com,
                 loadingComponent: AsyncLoader,

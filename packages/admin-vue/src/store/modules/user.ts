@@ -49,8 +49,8 @@ const storeDefinition = defineStore({
         /**
          * @param relogin 是否回到登录界面
          */
-        async logout(relogin = true) {
-            await logout();
+        async logout(relogin = true, silent = false) {
+            await logout(silent);
             this.cleanup();
             if (relogin) {
                 window.location.href = ROUTE_PATH.DASHBOARD;

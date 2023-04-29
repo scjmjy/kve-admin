@@ -1,24 +1,27 @@
 import mongoose from "mongoose";
 import { StatusCodes } from "http-status-codes";
 import {
+    CreateResult,
     CreateMenuActionBody,
     CreateMenuGroupBody,
     CreateMenuItemBody,
-    UpdateMenuActionBody,
-    UpdateMenuGroupBody,
-    UpdateMenuItemBody,
+    DragDropBody,
+    EnableStatus,
+    ExternalLinkEnum,
     getCreateActionRules,
     getCreateGroupRules,
     getCreateItemRules,
     getUpdateActionRules,
     getUpdateGroupRules,
     getUpdateItemRules,
-    PermissionTypeEnum,
-    PermNodeResult,
-    ExternalLinkEnum,
-    isValidStatus,
     getStatusLabel,
     GetPermNodeQuery,
+    isValidStatus,
+    PermissionTypeEnum,
+    PermNodeResult,
+    UpdateMenuActionBody,
+    UpdateMenuGroupBody,
+    UpdateMenuItemBody,
 } from "admin-common";
 import { PermissionModel } from "@/model/permission";
 import { Schema } from "@/utils/async-validator";
@@ -26,7 +29,7 @@ import { throwBadRequestError, throwNotFoundError } from "./errors";
 import { permService } from "@/services";
 import { dragDropDocs } from "./utils";
 
-export async function getPermNodes(ctx: KoaAjaxContext<void, PermNodeResult, any, GetPermNodeQuery>) {
+export const getPermNodes: RestAjaxMiddleware<void, PermNodeResult, any, GetPermNodeQuery> = async (ctx) => {
     const { status } = ctx.query;
     const res = await permService.getPermNodes(status);
 
@@ -38,14 +41,14 @@ export async function getPermNodes(ctx: KoaAjaxContext<void, PermNodeResult, any
         code: ctx.status,
         data: res,
     };
-}
+};
 
 type PermDoc1 = mongoose.Document & { children: string[] };
 
 type CreatePermBody = CreateMenuActionBody & CreateMenuGroupBody & CreateMenuItemBody;
 type UpdatePermBody = UpdateMenuActionBody & UpdateMenuGroupBody & UpdateMenuItemBody;
 
-export async function postPermission(ctx: KoaAjaxContext<CreatePermBody, CreateResult>) {
+export const postPermission: RestAjaxMiddleware<CreatePermBody, CreateResult> = async (ctx) => {
     const { type, component } = ctx.request.body || {};
     if (!PermissionTypeEnum.includes(type as any)) {
         return throwBadRequestError("无效的菜单类型：" + type);
@@ -99,7 +102,7 @@ export async function postPermission(ctx: KoaAjaxContext<CreatePermBody, CreateR
         });
 }
 
-export async function putPermission(ctx: KoaAjaxContext<UpdatePermBody, void>) {
+export const putPermission: RestAjaxMiddleware<UpdatePermBody> = async (ctx) => {
     const { type, component } = ctx.request.body || {};
     if (!PermissionTypeEnum.includes(type as any)) {
         return throwBadRequestError("无效的菜单类型：" + type);
@@ -129,7 +132,7 @@ export async function putPermission(ctx: KoaAjaxContext<UpdatePermBody, void>) {
     };
 }
 
-export async function putEnablePerm(ctx: KoaAjaxContext<void, void, { permId: string; status: EnableStatus }>) {
+export const putEnablePerm: RestAjaxMiddleware<void, void, { permId: string; status: EnableStatus }> = async (ctx) => {
     const { permId, status } = ctx.params;
     if (!permId || permId.length !== 24 || !isValidStatus(status)) {
         return throwBadRequestError("请提供有效的部门 ID 或 状态值！");
@@ -153,8 +156,7 @@ export async function putEnablePerm(ctx: KoaAjaxContext<void, void, { permId: st
         msg: getStatusLabel(status) + "菜单成功！",
     };
 }
-
-export async function postDragDropPerms(ctx: KoaAjaxContext<DragDropBody, PermNodeResult | undefined>) {
+export const postDragDropPerms: RestAjaxMiddleware<DragDropBody, PermNodeResult | undefined> = async (ctx) => {
     const reqBody = ctx.request.body!;
     await dragDropDocs(reqBody, PermissionModel, "children");
 

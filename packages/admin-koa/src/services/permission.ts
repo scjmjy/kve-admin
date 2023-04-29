@@ -1,5 +1,5 @@
 import Redis from "ioredis";
-import { IPermission, isValidStatus, PERMISSION_CONTAINER_ID } from "admin-common";
+import { EnableStatus, IPermission, isValidStatus, PERMISSION_CONTAINER_ID } from "admin-common";
 import { PermissionModel } from "@/model/permission";
 
 export class PermService {

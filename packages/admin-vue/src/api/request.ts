@@ -114,7 +114,7 @@ request.interceptors.response.use(
                             });
                             // 重新登录
                             const userStore = useUserStore();
-                            await userStore.logout();
+                            await userStore.logout(true);
                         } catch (err) {
                             // 忽略错误
                         }
