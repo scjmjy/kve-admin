@@ -23,7 +23,7 @@
 
 前后端均使用 Typescript，代码逻辑清晰、精炼。
 
-更多介绍请前往在线预览地址：http://kve.iflyit.top:3000
+更多介绍请前往在线预览地址：https://kve.iflyit.top
 
 ## 2. TODOs
 
