@@ -1,8 +1,8 @@
 <template>
     <el-input :model-value="modelValue" v-bind="$attrs">
-        <template v-if="state.showPrepend" #prepend>
-            <el-tooltip v-if="state.showTooltip" placement="top" :content="prefix">
-                <span>{{ state.prefixEllipsis }}</span>
+        <template v-if="showPrepend" #prepend>
+            <el-tooltip v-if="showTooltip" placement="top" :content="prefix">
+                <span>{{ prefixEllipsis }}</span>
             </el-tooltip>
             <span v-else>{{ prefix }}</span>
         </template>
@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts" name="PathInput">
+import { computed, } from "vue";
 import { isExternalLink } from "@/utils/is";
-import { computed, reactive } from "@vue/reactivity";
 
 const props = defineProps({
     modelValue: {
@@ -22,20 +22,19 @@ const props = defineProps({
         default: undefined,
     },
 });
-const state = reactive({
-    showPrepend: computed(() => {
-        if (props.modelValue && (isExternalLink(props.modelValue) || props.modelValue.startsWith("/"))) {
-            return false;
-        }
-        return !!props.prefix;
-    }),
-    showTooltip: computed(() => props.prefix && props.prefix.length >= 10),
-    prefixEllipsis: computed(() => {
-        if (!props.prefix) {
-            return "";
-        }
-        return props.prefix.slice(0, 10) + "...";
-    }),
+
+const showPrepend = computed(() => {
+    if (props.modelValue && (isExternalLink(props.modelValue) || props.modelValue.startsWith("/"))) {
+        return false;
+    }
+    return !!props.prefix;
+});
+const showTooltip = computed(() => props.prefix && props.prefix.length >= 10);
+const prefixEllipsis = computed(() => {
+    if (!props.prefix) {
+        return "";
+    }
+    return props.prefix.slice(0, 10) + "...";
 });
 </script>
 

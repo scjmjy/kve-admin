@@ -139,6 +139,7 @@ import {
     createMenuActionFields,
     updateMenuActionFields,
     ExternalLinkEnum,
+    EnableStatus,
 } from "admin-common";
 import { FormAction, FormActions, ItemSchema } from "@/components/form/CrudForm.vue";
 import { createPerm, updatePerm, enablePerm } from "@/api/permission";
@@ -268,10 +269,14 @@ const formItems = computed(() => {
               .map((item) => ({ label: `${item.name}(${item.title})`, value: item.name! }))
         : [];
 
-    const pathPrefix =
+    let pathPrefix =
         formAction.value === "create"
             ? normalizePath(props.parentFullpath, props.menu.path || "")
             : props.parentFullpath;
+
+    if (!pathPrefix.endsWith("/")) {
+        pathPrefix += "/";
+    }
 
     const items: ItemSchema[] = [
         {
@@ -299,7 +304,7 @@ const formItems = computed(() => {
             item: {
                 type: "MenuTypeRadio",
                 props: {
-                    excluded: props.menu.type === "menuitem" ? ["menugroup", "menuitem"] : undefined,
+                    excluded: props.menu.type === "menuitem" ? ["menugroup"] : undefined,
                 },
             },
         },
